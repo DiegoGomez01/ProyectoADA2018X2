@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Proyecto ADA 2018X2 - Beta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="assets/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/estilos.css" />
+    <script src="/socket.io/socket.io.js" type="text/javascript" charset="utf-8"></script>
+    <script src="assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="assets/js/bootstrap.bundle.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="assets/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="assets/js/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="assets/js/main.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid p-0">
+        <header id="headerBar" class="row m-0">
+            <h3 class="align-self-center ml-1 mb-0">Proyecto ADA 2018-2</h3>
+        </header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between row m-0">
+            <div id="estiloEditor" class="dropdown">
+                <button class="btn btn-secondary" type="button" data-toggle="dropdown" aria-haspopup="true"
+                    aria-expanded="false">
+                    <i class="fas fa-palette"></i>
+                </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <h6 class="dropdown-header">Claro</h6>
+                    <a class="dropdown-item active" href="#" data-tema="chrome">Chrome</a>
+                    <a class="dropdown-item" href="#" data-tema="github">GitHub</a>
+                    <a class="dropdown-item" href="#" data-tema="textmate">TextMate</a>
+                    <a class="dropdown-item" href="#" data-tema="eclipse">Eclipse</a>
+                    <a class="dropdown-item" href="#" data-tema="sqlserver">SQL Server</a>
+                    <div class="dropdown-divider"></div>
+                    <h6 class="dropdown-header">Oscuro</h6>
+                    <a class="dropdown-item" href="#" data-tema="chaos">Chaos</a>
+                    <a class="dropdown-item" href="#" data-tema="cobalt">Cobalt</a>
+                    <a class="dropdown-item" href="#" data-tema="gob">Green on Black</a>
+                    <a class="dropdown-item" href="#" data-tema="monokai">Monokai</a>
+                    <a class="dropdown-item" href="#" data-tema="vibrant_ink">Vibrant Ink</a>
+                </div>
+            </div>
+            <button id="btnExe" class="btn btn-secondary" type="button">
+                <i class="fas fa-play"></i>
+            </button>
+        </nav>
+        <div class="pl-3 pr-3">
+            <div id="editor">//Comienza a escribir tu código</div>
+        </div>
+    </div>
+</body>
+
+</html>

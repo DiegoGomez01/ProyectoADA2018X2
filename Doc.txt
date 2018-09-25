@@ -1,0 +1,7 @@
+npm install -g pegjs
+
+
+
+Execution:
+pegjs C:\Users\G40\Develop\WEB\ProyectoADA-2018X2\server\gramatica.pegjs
+node C:\Users\G40\Develop\WEB\ProyectoADA-2018X2\server\main.js
