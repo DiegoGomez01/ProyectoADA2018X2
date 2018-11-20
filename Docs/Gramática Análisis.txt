@@ -12,7 +12,7 @@ Booleano -> true | false
 Programa -> Inicio Id ((Parametros(,Parametros)*)?) VarDeclaracion* {Instrucciones}
 Inicio -> procedure | function Tipo
 Modo -> E | S | ES
-Tipo -> bool | int | float | char
+Tipo -> boolean | int | float | char
 Id -> Minuscula+ (Minuscula|Mayuscula|Numero)*
 Parametros -> Modo Tipo Id OpArray?
 VarDeclaration -> var Tipo OpArray? Id (,Id)*
