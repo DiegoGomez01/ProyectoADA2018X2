@@ -7,8 +7,16 @@ $(document).ready(function () {
         minLines: 10
     });
 
-    $("#btnExe").on("click", function(){
-        alert("now");
+    $("#btnExe").on("click", function () {
+        try {
+            var mon = parser.parse("abbac");
+            alert(mon);
+            alert("Exito");
+        } catch (err) {
+            console.log(err.location);
+            console.log(err.found);
+            console.log(err.message);
+        }
     });
 
     $('#estiloEditor a').on('click', function () {
@@ -19,14 +27,5 @@ $(document).ready(function () {
         }
     });
 });
-
-function prueba() {
-    // var socket = io();
-    // alert("revisar");
-    // socket.on('hola', function (stockprice) {
-    //     alert("hola");
-    // });
-    alert("hulk");
-}
 
 

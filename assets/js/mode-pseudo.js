@@ -1,4 +1,4 @@
-//Comentarios
+//--------------------Comentarios--------------------
 ace.define("ace/mode/doc_comment_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (require, exports, module) {
     "use strict";
     var oop = require("../lib/oop");
@@ -39,28 +39,43 @@ ace.define("ace/mode/doc_comment_highlight_rules", ["require", "exports", "modul
     };
     exports.DocCommentHighlightRules = DocCommentHighlightRules;
 });
+//----------------------------------------
 
+//--------------------Reglas--------------------
 ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/doc_comment_highlight_rules", "ace/mode/text_highlight_rules"], function (require, exports, module) {
     "use strict";
     var oop = require("../lib/oop");
     var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocCommentHighlightRules;
     var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
-    var identifierRe = "[a-zA-Z\\$_\u00a1-\uffff][a-zA-Z\\d\\$_\u00a1-\uffff]*";
+    var identifierRe = "[a-zA-Z\\$_\u00a1-\uffff][a-zA-Z\\d\\$_\u00a1-\uffff]*"; //----------Identificador Regex
     var pseudoHighlightRules = function (options) {
         var keywordMapper = this.createKeywordMapper({
+            "variable.language":
+                "Array|Boolean|Date|Function|Iterator|Number|Object|RegExp|String|Proxy|" + // Constructors
+                "Namespace|QName|XML|XMLList|" + // E4X
+                "ArrayBuffer|Float32Array|Float64Array|Int16Array|Int32Array|Int8Array|" +
+                "Uint16Array|Uint32Array|Uint8Array|Uint8ClampedArray|" +
+                "Error|EvalError|InternalError|RangeError|ReferenceError|StopIteration|" + // Errors
+                "SyntaxError|TypeError|URIError|" +
+                "decodeURI|decodeURIComponent|encodeURI|encodeURIComponent|eval|isFinite|" + // Non-constructor functions
+                "isNaN|parseFloat|parseInt|" +
+                "JSON|Math|" + // Other
+                "this|arguments|prototype|window|document", // Pseudo
             "keyword":
-                "get|set|" +
-                "case|delete|do|else|finally|for|endfor|function|procedure|" +
-                "if|endif|in|of|new|return|switch|var|while|endwhile|" +
-                "boolean|char|int|float"+
-                "private|public",
+                "const|yield|import|get|set|async|await|" +
+                "break|case|catch|continue|default|delete|do|else|finally|for|function|" +
+                "if|in|of|instanceof|new|return|switch|throw|try|typeof|let|var|while|with|debugger|" +
+                "__parent__|__count__|escape|unescape|with|__proto__|" +
+                "class|enum|extends|super|export|implements|private|public|interface|package|protected|static",
             "storage.type":
-                "boolean|char|int|float",
+                "const|let|var|function",
             "constant.language":
-                "null|NaN|undefined",
+                "null|Infinity|NaN|undefined",
+            "support.function":
+                "alert",
             "constant.language.boolean": "true|false"
         }, "identifier");
-        var kwBeforeRe = "case|do|else|return";
+        var kwBeforeRe = "case|do|else|finally|in|instanceof|return|throw|try|typeof|yield|void";
 
         var escapedRe = "\\\\(?:x[0-9a-fA-F]{2}|" + // hex
             "u[0-9a-fA-F]{4}|" + // unicode
@@ -69,6 +84,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
             "3[0-7][0-7]?|" + // oct
             "[4-7][0-7]?|" + //oct
             ".)";
+
         this.$rules = {
             "no_regex": [
                 DocCommentHighlightRules.getStartRule("doc-start"),
@@ -82,6 +98,9 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
                     regex: '"(?=.)',
                     next: "qqstring"
                 }, {
+                    token: "constant.numeric", // hexadecimal, octal and binary
+                    regex: /0(?:[xX][0-9a-fA-F]+|[oO][0-7]+|[bB][01]+)\b/
+                }, {
                     token: "constant.numeric", // decimal integers and floats
                     regex: /(?:\d\d*(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+\b)?/
                 }, {
@@ -89,21 +108,21 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
                         "storage.type", "punctuation.operator", "support.function",
                         "punctuation.operator", "entity.name.function", "text", "keyword.operator"
                     ],
-                    regex: "(" + identifierRe + ")(\\.)(prototype)(\\.)(" + identifierRe + ")(\\s*)(=)",
+                    regex: "(" + identifierRe + ")(\\.)(prototype)(\\.)(" + identifierRe + ")(\\s*)(<-)",
                     next: "function_arguments"
                 }, {
                     token: [
                         "storage.type", "punctuation.operator", "entity.name.function", "text",
                         "keyword.operator", "text", "storage.type", "text", "paren.lparen"
                     ],
-                    regex: "(" + identifierRe + ")(\\.)(" + identifierRe + ")(\\s*)(=)(\\s*)(function)(\\s*)(\\()",
+                    regex: "(" + identifierRe + ")(\\.)(" + identifierRe + ")(\\s*)(<-)(\\s*)(function)(\\s*)(\\()",
                     next: "function_arguments"
                 }, {
                     token: [
                         "entity.name.function", "text", "keyword.operator", "text", "storage.type",
                         "text", "paren.lparen"
                     ],
-                    regex: "(" + identifierRe + ")(\\s*)(=)(\\s*)(function)(\\s*)(\\()",
+                    regex: "(" + identifierRe + ")(\\s*)(<-)(\\s*)(function)(\\s*)(\\()",
                     next: "function_arguments"
                 }, {
                     token: [
@@ -111,7 +130,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
                         "keyword.operator", "text",
                         "storage.type", "text", "entity.name.function", "text", "paren.lparen"
                     ],
-                    regex: "(" + identifierRe + ")(\\.)(" + identifierRe + ")(\\s*)(=)(\\s*)(function)(\\s+)(\\w+)(\\s*)(\\()",
+                    regex: "(" + identifierRe + ")(\\.)(" + identifierRe + ")(\\s*)(<-)(\\s*)(function)(\\s+)(\\w+)(\\s*)(\\()",
                     next: "function_arguments"
                 }, {
                     token: [
@@ -185,7 +204,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
                     "keyword.operator", "text",
                     "storage.type", "text", "entity.name.function", "text", "paren.lparen"
                 ],
-                regex: "(" + identifierRe + ")(\\.)(" + identifierRe + ")(\\s*)(=)(\\s*)(function)(?:(\\s+)(\\w+))?(\\s*)(\\()",
+                regex: "(" + identifierRe + ")(\\.)(" + identifierRe + ")(\\s*)(<-)(\\s*)(function)(?:(\\s+)(\\w+))?(\\s*)(\\()",
                 next: "function_arguments"
             }, {
                 token: "punctuation.operator",
@@ -322,8 +341,6 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
                 }
             ]
         };
-
-
         if (!options || !options.noES6) {
             this.$rules.no_regex.unshift({
                 regex: "[{}]", onMatch: function (val, state, stack) {
@@ -362,15 +379,11 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
             if (!options || options.jsx != false)
                 JSX.call(this);
         }
-
         this.embedRules(DocCommentHighlightRules, "doc-",
             [DocCommentHighlightRules.getEndRule("no_regex")]);
-
         this.normalizeRules();
     };
-
     oop.inherits(pseudoHighlightRules, TextHighlightRules);
-
     function JSX() {
         var tagRegex = identifierRe.replace("\\d", "\\d\\-");
         var jsxTag = {
@@ -470,11 +483,11 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
             regex: "(?:&#[0-9]+;)|(?:&#x[0-9a-fA-F]+;)|(?:&[a-zA-Z0-9_:\\.-]+;)"
         }];
     }
-
+    //----------Comentarios multi-linea----------
     function comments(next) {
         return [
             {
-                token: "comment", // multi line comment
+                token: "comment",
                 regex: /\/\*/,
                 next: [
                     DocCommentHighlightRules.getTagRule(),
@@ -494,6 +507,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
     }
     exports.pseudoHighlightRules = pseudoHighlightRules;
 });
+//----------------------------------------
 
 ace.define("ace/mode/matching_brace_outdent", ["require", "exports", "module", "ace/range"], function (require, exports, module) {
     "use strict";
@@ -760,8 +774,7 @@ ace.define("ace/mode/pseudo", ["require", "exports", "module", "ace/lib/oop", "a
     }).call(Mode.prototype);
 
     exports.Mode = Mode;
-});
-(function () {
+}); (function () {
     ace.require(["ace/mode/pseudo"], function (m) {
         if (typeof module == "object" && typeof exports == "object" && module) {
             module.exports = m;
