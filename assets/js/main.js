@@ -9,13 +9,20 @@ $(document).ready(function () {
 
     $("#btnExe").on("click", function () {
         try {
-            var mon = parser.parse("abbac");
+            var mon = parser.parse(editor.getValue());
             alert(mon);
             alert("Exito");
         } catch (err) {
-            console.log(err.location);
-            console.log(err.found);
-            console.log(err.message);
+            editor.getSession().setAnnotations([{
+                row: err.location.start.line - 1,
+                column: err.location.start.column - 1,
+                text: err.message,
+                type: "error" // (warning, info, error)
+            }]);
+            // editor.session.clearAnnotations();
+            // console.log(err.location); // {start:{offset:X,line:Y,column:Z},end:{offset:X,line:Y,column:Z}}
+            // console.log(err.found); // Valor encontrado
+            // console.log(err.message); // Mensaje de error
         }
     });
 
@@ -27,5 +34,3 @@ $(document).ready(function () {
         }
     });
 });
-
-
