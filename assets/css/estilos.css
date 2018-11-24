@@ -1,10 +1,15 @@
-#headerBar{
+#headerBar {
     width: 100vw;
     height: 50px;
     background-color: #cf000f;
     color: #fff;
 }
 
-#headerBar h3{
+#headerBar h3 {
     font-family: 'Source Sans Pro', sans-serif;
+}
+
+#editor {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20px;
 }
