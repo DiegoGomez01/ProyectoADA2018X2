@@ -1,4 +1,11 @@
+var parser;
 $(document).ready(function () {
+    $.get('http://localhost:8000/assets/gramatica.pegjs', function (gramatica) {
+        parser = peg.generate(gramatica);
+    }, 'text');
+
+    alert(2e3);
+
     var editor = ace.edit($("#editor")[0], {
         theme: "ace/theme/chrome",
         mode: "ace/mode/pseudo",
@@ -12,6 +19,7 @@ $(document).ready(function () {
             var mon = parser.parse(editor.getValue());
             alert(mon);
             alert("Exito");
+
         } catch (err) {
             editor.getSession().setAnnotations([{
                 row: err.location.start.line - 1,
