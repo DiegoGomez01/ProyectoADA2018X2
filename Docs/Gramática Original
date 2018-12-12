@@ -1,12 +1,19 @@
+Minuscula -> [a..z]
+Mayuscula -> [A..Z]
+Digito -> [0..9]
+Numero -> [1..9]+ Digito*
+float -> (Digito | numero)+ , (Digito|numero)+
 OpCond -> < | > | <= | >= | = | <>
 MathOp -> + | - | * | / | div | mod | ^
 Conectores -> or, and
 Negador -> not
 IncDec -> inc | dec
+Booleano -> true | false
 Programa -> Inicio Id ((Parametros(,Parametros)*)?) VarDeclaracion* {Instrucciones}
 Inicio -> procedure | function Tipo
 Modo -> E | S | ES
 Tipo -> boolean | int | float | char
+Id -> Minuscula+ (Minuscula|Mayuscula|Numero)*
 Parametros -> Modo Tipo Id OpArray?
 VarDeclaration -> var Tipo OpArray? Id (,Id)*
 OpArray -> [numero* | OpMatematicas* | Id*] 								// A[] <- 1 
@@ -26,4 +33,4 @@ Repeat -> repeat Instrucciones until (Condiciones);
 For -> for(Id <- Numero | Id | OpMatematicas to Numero | Id | OpMatematicas) do Instrucciones endfor
 ForIncDec -> for(Id <- Numero | Id | OpMatematicas to Numero | Id | OpMatematicas IncDec Numero) do Instrucciones endfor
 OpMatematicas -> Id OpArray? | Digito | Numero | Float MathOp Id OpArray? | Digito | Numero | Float // mirar mas operaciones
-
+Comentario -> // (Id ( Id*))*
