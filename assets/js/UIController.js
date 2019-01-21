@@ -16,6 +16,7 @@ $(document).ready(function () {
         }
     });
 
+    //escoger un algoritmo para cargarlo
     $('#examplesChooser a').on('click', function (evt) {
         evt.preventDefault();
         $.get('http://localhost:8000/assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
@@ -25,7 +26,7 @@ $(document).ready(function () {
 
     $("#btnExe").on("click", function () {
         if (isExecuting) {
-            $(this).text("Iniciar");
+            $(this).text("Ejecutar");
             $("#configBar").slideDown(1000, undefined);
             $("#hubExecutionControllerContainer").fadeOut(1000, function () {
                 if ($("#btnPlay i").hasClass("fa-pause")) {
@@ -34,13 +35,15 @@ $(document).ready(function () {
             });
             editor.setReadOnly(false);
             isExecuting = false;
-            program = undefined;
-        } else {
-            $(this).text("Detener");
+            deleteMarker(actLineSelected);
+        } else if (program !== undefined) {
             editor.setReadOnly(true);
+            $(this).text("Detener");
             $("#configBar").slideUp(1000, undefined);
             $("#hubExecutionControllerContainer").fadeIn(1000, undefined);
             isExecuting = true;
+        } else {
+            alertify.error('El programa no se puede ejecutar.'); 
         }
     });
 

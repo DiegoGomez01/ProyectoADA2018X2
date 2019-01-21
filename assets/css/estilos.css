@@ -35,6 +35,11 @@ button,
     background-color: #FF6E40;
 }
 
+.ace_underline_error {
+    position: absolute;
+    border-bottom: 1px solid red;
+}
+
 .dropdown-menu>a:not(.active):hover {
     background-color: #E0E0E0;
 }
