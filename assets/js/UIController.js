@@ -3,7 +3,6 @@ $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
         alert("algo");
-        $("#estiloEditor, #examplesChooser").fadeOut(1000, function () {});
     });
     //---------------------------------------------------------------------------------------------------
 
@@ -25,9 +24,8 @@ $(document).ready(function () {
     });
 
     $("#btnExe").on("click", function () {
-        $("span", this).toggleClass("d-none");
-        $("i", this).toggleClass("d-none");
         if (isExecuting) {
+            $(this).text("Iniciar");
             $("#configBar").slideDown(1000, undefined);
             $("#hubExecutionControllerContainer").fadeOut(1000, function () {
                 if ($("#btnPlay i").hasClass("fa-pause")) {
@@ -36,7 +34,9 @@ $(document).ready(function () {
             });
             editor.setReadOnly(false);
             isExecuting = false;
+            program = undefined;
         } else {
+            $(this).text("Detener");
             editor.setReadOnly(true);
             $("#configBar").slideUp(1000, undefined);
             $("#hubExecutionControllerContainer").fadeIn(1000, undefined);
