@@ -7,15 +7,21 @@
     <title>Proyecto ADA 2018X2 - Beta</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Aleo" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="../assets/css/all.min.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertify.min.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeDefault.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeBootstrap.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/estilos.css" />
     <script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/bootstrap.bundle.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/alertify.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/ace.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/peg.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/main.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/UIController.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body>
@@ -23,34 +29,90 @@
         <header id="headerBar" class="row m-0">
             <h3 class="align-self-center ml-1 mb-0">Proyecto ADA 2018-2</h3>
         </header>
-        <nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between row m-0">
-            <div id="estiloEditor" class="dropdown">
-                <button class="btn btn-secondary" type="button" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">
-                    <i class="fas fa-palette"></i>
-                </button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <h6 class="dropdown-header">Claro</h6>
-                    <a class="dropdown-item active" href="#" data-tema="chrome">Chrome</a>
-                    <a class="dropdown-item" href="#" data-tema="github">GitHub</a>
-                    <a class="dropdown-item" href="#" data-tema="textmate">TextMate</a>
-                    <a class="dropdown-item" href="#" data-tema="eclipse">Eclipse</a>
-                    <a class="dropdown-item" href="#" data-tema="sqlserver">SQL Server</a>
-                    <div class="dropdown-divider"></div>
-                    <h6 class="dropdown-header">Oscuro</h6>
-                    <a class="dropdown-item" href="#" data-tema="chaos">Chaos</a>
-                    <a class="dropdown-item" href="#" data-tema="cobalt">Cobalt</a>
-                    <a class="dropdown-item" href="#" data-tema="gob">Green on Black</a>
-                    <a class="dropdown-item" href="#" data-tema="monokai">Monokai</a>
-                    <a class="dropdown-item" href="#" data-tema="vibrant_ink">Vibrant Ink</a>
+        <nav id="configBar" class="navbar navbar-expand-lg navbar-light bg-light row m-0">
+            <div id="algo" class="col">
+                <div id="estiloEditor" class="btn-group">
+                    <div type="button" class="btn btn-secondary">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <h6 class="dropdown-header">Claro</h6>
+                        <a class="dropdown-item active" href="#" data-tema="chrome">Chrome</a>
+                        <a class="dropdown-item" href="#" data-tema="github">GitHub</a>
+                        <a class="dropdown-item" href="#" data-tema="textmate">TextMate</a>
+                        <a class="dropdown-item" href="#" data-tema="eclipse">Eclipse</a>
+                        <a class="dropdown-item" href="#" data-tema="sqlserver">SQL Server</a>
+                        <div class="dropdown-divider"></div>
+                        <h6 class="dropdown-header">Oscuro</h6>
+                        <a class="dropdown-item" href="#" data-tema="chaos">Chaos</a>
+                        <a class="dropdown-item" href="#" data-tema="cobalt">Cobalt</a>
+                        <a class="dropdown-item" href="#" data-tema="gob">Green on Black</a>
+                        <a class="dropdown-item" href="#" data-tema="monokai">Monokai</a>
+                        <a class="dropdown-item" href="#" data-tema="vibrant_ink">Vibrant Ink</a>
+                    </div>
+                </div>
+                <div id="examplesChooser" class="btn-group ml-4">
+                    <div type="button" class="btn btn-secondary">
+                        Ejemplos <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <span class="sr-only">Toggle Dropdown</span>
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#" data-fname="BubbleSort.pseudo">BubbleSort</a>
+                        <a class="dropdown-item" href="#" data-fname="InsertionSort.pseudo">InsertionSort</a>
+                        <a class="dropdown-item" href="#">...</a>
+                    </div>
                 </div>
             </div>
-            <button id="btnExe" class="btn btn-secondary" type="button">
-                <i class="fas fa-play"></i>
-            </button>
         </nav>
+        <button id="btnExe" class="btn btn-secondary" type="button">
+            Ejecutar
+        </button>
         <div class="pl-3 pr-3">
             <div id="editor">//Comienza a escribir tu código</div>
+        </div>
+        <div id="hubExecutionControllerContainer" style="display:none;" class="row m-0">
+            <div class="col"></div>
+            <div class="col-2">
+                <div class="row justify-content-md-center">
+                    <div id="btnBackStep" class="btn btn-secondary" type="button">
+                        <i class="fas fa-backward"></i>
+                    </div>
+                    <div id="btnPlay" class="btn btn-secondary ml-2 mr-2" type="button">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div id="btnNextStep" class="btn btn-secondary" type="button">
+                        <i class="fas fa-forward"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div id="spdSelector" class="btn-group dropup">
+                    <div type="button" class="btn btn-secondary">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <button type="button" class="btn btn-secondary dropdown-toggle disabled" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        normal
+                    </button>
+                    <div class="dropdown-menu">
+                        <h6 class="dropdown-header">Velocidad</h6>
+                        <a class="dropdown-item" href="#" data-vel="0.25">0.25</a>
+                        <a class="dropdown-item" href="#" data-vel="0.5">0.5</a>
+                        <a class="dropdown-item" href="#" data-vel="0.75">0.75</a>
+                        <a class="dropdown-item active" href="#" data-vel="1">normal</a>
+                        <a class="dropdown-item" href="#" data-vel="1.25">1.25</a>
+                        <a class="dropdown-item" href="#" data-vel="1.5">1.5</a>
+                        <a class="dropdown-item" href="#" data-vel="2">2</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

@@ -7,29 +7,29 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
     var pseudoHighlightRules = function () {
         
         var keywords = (
-            "if|then|else|endif|switch|case|of|default|endcase|while|do|endwhile|repeat|until|" +
-            "for|to|inc|downto|endfor|return|var"
+            "if|then|else|endif|case|of|default|endcase|" +
+            "while|do|endwhile|repeat|until|for|to|inc|downto|endfor|" +
+            "var|return"            
         );
 
         var builtinConstants = (
-            "true|false|null|function|procedure|E|S|ES"
+            "infinito|true|false|not|function|procedure|e|s|es|" +
+            "piso|techo|apilar|desapilar|cima|encolar|desencolar|frente|" +
+            "isempty|len|size|and|or"
         );
 
         var builtinFunctions = (
-            "int|float|boolean|char|string" +
-            "" +
-            "" +
-            "" +
-            "" +
-            ""
+            "int|float|boolean|char|string|" +
+            "pila|cola|lista|swap"
         );
+
         var keywordMapper = this.createKeywordMapper({
             "invalid.deprecated": "debugger",
             "support.function": builtinFunctions,
             "variable.language": "self|cls",
             "constant.language": builtinConstants,
             "keyword": keywords
-        }, "identifier");
+        }, "identifier", true);
 
         var strPre = "[uU]?";
         var strRawPre = "[rR]";
