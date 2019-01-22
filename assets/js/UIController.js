@@ -42,8 +42,21 @@ $(document).ready(function () {
             $("#configBar").slideUp(1000, undefined);
             $("#hubExecutionControllerContainer").fadeIn(1000, undefined);
             isExecuting = true;
+            if (program.SUBPROGRAMS.main === undefined) {
+                alertify.alert(
+                    '<h4 class="text-center">¡Seleccione la función inicial (main)!</h4>' +
+                    '<div class="btn-group-vertical w-100">' +
+                    Object.keys(program.SUBPROGRAMS).reduce(function (buttons, nameAct) {
+                        return buttons + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startProgram(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
+                    }, "") +
+                    '</div>'
+                ).set('basic', true);
+            } else {
+                startProgram("main");
+            }
+
         } else {
-            alertify.error('El programa no se puede ejecutar.'); 
+            alertify.error('El programa no se puede ejecutar.');
         }
     });
 
@@ -68,7 +81,7 @@ $(document).ready(function () {
 
     $("#btnBackStep").on("click", function () {
         if (!$(this).hasClass('disabled')) {
-            editor.getSession().removeMarker(actRangeSelected);
+            editor.getSession().removeMarker(actLineSelected);
         }
     });
 
