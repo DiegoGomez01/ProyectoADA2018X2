@@ -19,7 +19,7 @@ button,
     width: 90px;
     top: 55px;
     right: 10px;
-    z-index: 9999;
+    z-index: 1900;
 }
 
 #hubExecutionControllerContainer {
@@ -27,7 +27,7 @@ button,
     bottom: 1px;
     left: 0px;
     width: 100vw;
-    z-index: 10000;
+    z-index: 1901;
 }
 
 .ace_selected_line {
@@ -47,4 +47,91 @@ button,
 #editor {
     font-family: 'Courier New', Courier, monospace;
     font-size: 19px;
+}
+
+/* 
+-------------------------- 
+Alertify 
+-------------------------- 
+*/
+
+.ajs-content p {
+    margin: 0;
+    font-size: 20px;
+}
+
+.ajs-content {
+    margin: 0;
+    max-height: 70vh;
+    padding: 15px 24px 15px 24px !important;
+    overflow-y: auto;
+}
+
+.alertify .ajs-header {
+    border-bottom: none;
+}
+
+.alertify .ajs-footer {
+    border-top: none;
+    display: -webkit-box !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+    -webkit-box-pack: center !important;
+    -ms-flex-pack: center !important;
+    justify-content: center !important;
+}
+
+.btn-primario {
+    background-color: #22A7F0;
+    border: 0px;
+    letter-spacing: 2px;
+    color: #FFFFFF;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 400;
+}
+
+.btn-primario:hover,
+.btn-secundario:hover {
+    border: 1px solid #424242;
+}
+
+.btn-secundario {
+    background-color: #6C7A89;
+    border: 0px;
+    letter-spacing: 2px;
+    color: #FFFFFF;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 300;
+    padding: 5px;
+}
+
+.alertify-titulo-info {
+    margin: 0;
+    text-align: center;
+    color: #00B0FF;
+}
+
+.texto-advertencia {
+    color: #F9690E;
+    white-space: pre-wrap;
+    text-align: center;
+}
+
+.texto-errorSistema {
+    color: #E53935;
+    white-space: pre-wrap;
+    text-align: center;
+}
+
+.texto-info {
+    white-space: pre-wrap;
+    text-align: justify;
+    color: #424242;
+}
+
+.texto-exito {
+    text-align: center;
+    color: #26A65B;
 }

@@ -6,6 +6,42 @@ var actErrorMarker;
 var isExecuting = false;
 var Range = ace.require('ace/range').Range;
 
+alertify.defaults = {
+    autoReset: true,
+    basic: false,
+    closable: false,
+    closableByDimmer: false,
+    frameless: false,
+    maintainFocus: true,
+    maximizable: false,
+    modal: true,
+    movable: false,
+    moveBounded: false,
+    overflow: true,
+    padding: false,
+    pinnable: true,
+    pinned: true,
+    preventBodyShift: false,
+    resizable: false,
+    startMaximized: false,
+    transition: 'pulse',
+    notifier: {
+        delay: 5,
+        position: 'bottom-right',
+        closeButton: false
+    },
+    glossary: {
+        title: 'AlertifyJS',
+        ok: 'OK',
+        cancel: 'Cancelar'
+    },
+    theme: {
+        input: 'ajs-input',
+        ok: 'ajs-ok', //btn btn-primario
+        cancel: 'ajs-cancel' //btn btn-secundario
+    }
+};
+
 $(document).ready(function () {
     //Lee el archivo de la gramatica y crea el parser
     $.get('http://localhost:8000/assets/gramatica.pegjs', (gramatica) => {
@@ -17,7 +53,7 @@ $(document).ready(function () {
         theme: "ace/theme/chrome",
         mode: "ace/mode/pseudo",
         autoScrollEditorIntoView: true,
-        maxLines: 50,
+        maxLines: 25,
         minLines: 10
     });
 
@@ -45,11 +81,17 @@ function analyzeProgram() {
     }
 }
 
+function startProgram(mainFunctionName) {
+    alertify.alert().close();
+    selectLine(program.SUBPROGRAMS[mainFunctionName].body[0].line);
+}
+
 function selectLine(line) {
     deleteMarker(actLineSelected);
     actLineSelected = editor.getSession().addMarker(
         new Range(line, 0, line, 1), "ace_selected_line", "fullLine"
     );
+    editor.scrollToLine(line, true, true, undefined);
 }
 
 function deleteMarker(id) {
