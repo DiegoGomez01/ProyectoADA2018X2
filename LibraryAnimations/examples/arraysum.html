@@ -12,11 +12,10 @@
             var stage = new inalan.Stage("myCanvas");
             stage.showAllButtons();
 
-            var sum = new inalan.VisuVariable("sum", 0, false);
+            var sum = new inalan.VisuVariable("sum", 0, false);            
             sum.x = 100;
             sum.y = 220;
             stage.add(sum, "sum");
-
             var a = new inalan.VisuArray("a", [0, 0, 0, 0, 0], true);
             a.setMinValue(5);
             a.setMaxValue(40);

@@ -19,7 +19,7 @@ $(document).ready(function () {
     //escoger un algoritmo para cargarlo
     $('#examplesChooser a').on('click', function (evt) {
         evt.preventDefault();
-        $.get('http://localhost:8000/assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
+        $.get('http://localhost/ProyectoADA2018X2/assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
             editor.setValue(pseudo, 1);
         }, 'text');
     });
