@@ -46,7 +46,7 @@ $(document).ready(function () {
     //Lee el archivo de la gramatica y crea el parser
     $.get('http://localhost/ProyectoADA2018X2/assets/gramatica.pegjs', (gramatica) => {
         parser = peg.generate(gramatica);
-    }, 'text');
+    }, "text");
 
     //Creación del editor de código
     editor = ace.edit($("#editor")[0], {

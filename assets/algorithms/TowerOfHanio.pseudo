@@ -1,0 +1,15 @@
+procedure tH(E int n, E char o, E char a, E char d) 
+{
+    if (n == 1) then
+        //mostrar mover un disco de origen al destino
+    else
+        tH(n-1, o, d, a)
+        //mostrar mover un disco de origen al destino
+        tH(n-1, a, o, d)
+    endif
+}
+
+procedure main()
+{
+    tH(4, 'A', 'B', 'C')
+}
