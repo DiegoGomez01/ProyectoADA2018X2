@@ -1,0 +1,32 @@
+function int binarySearch(E int[] a, E int x)
+var
+int ini, fin, pos, mitad
+{
+    ini <- 1
+    fin <- a.len
+    pos <- -1
+    
+    while (pos == -1) do
+        mitad <- piso((ini + fin)/2)
+        if (a[mitad] == x) then
+            pos <- mitad
+        else
+            if (a[mitad] > x) then
+                fin <- mitad - 1
+            else
+                ini <- mitad + 1
+            endif
+        endif
+    endwhile
+    
+    return pos
+}
+
+procedure main() 
+var
+int[9] a <- [0, 1, 2, 8, 13, 17, 19, 32, 42]
+int res
+{
+    res <- binarySearch(a,2)
+    //mostrarRes
+}

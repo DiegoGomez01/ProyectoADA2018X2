@@ -15,7 +15,7 @@
     <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeBootstrap.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/estilos.css" />
     <script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../assets/js/bootstrap.bundle.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/popper.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/alertify.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -66,17 +66,24 @@
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="#" data-fname="BubbleSort.pseudo">BubbleSort</a>
                         <a class="dropdown-item" href="#" data-fname="InsertionSort.pseudo">InsertionSort</a>
-                        <a class="dropdown-item" href="#" data-fname="MinYMax.pseudo">MinYMax</a>
-                        <a class="dropdown-item" href="#">...</a>
+                        <a class="dropdown-item" href="#" data-fname="BinarySearch.pseudo">BinarySearch</a>
+                        <a class="dropdown-item" href="#" data-fname="MergeSort.pseudo">MergeSort</a>
+                        <a class="dropdown-item" href="#" data-fname="Quicksort.pseudo">Quicksort</a>
+                        <a class="dropdown-item" href="#" data-fname="MinYMax.pseudo">Min&Max</a>
+                        <a class="dropdown-item" href="#" data-fname="TowerOfHanio.pseudo">TowerOfHanio</a>
                     </div>
                 </div>
             </div>
         </nav>
-        <button id="btnExe" class="btn btn-secondary" type="button">
+        <button id="btnExe" class="btn btn-primary btnUI" type="button">
             Ejecutar
         </button>
-        <div class="pl-3 pr-3">
-            <div id="editor">//Comienza a escribir tu código</div>
+        <button id="btnTreeA" class="btn btn-secondary btn-circle d-none" type="button">
+            <i class="fas fa-share-alt"></i>
+        </button>
+        <div id="containerApp" class="row m-0">
+            <div id="editor" class="col">//Comienza a escribir tu código</div>
+            <div id="visualizationContainer" class="d-none"></div>
         </div>
         <div id="hubExecutionControllerContainer" style="display:none;" class="row m-0">
             <div class="col"></div>
