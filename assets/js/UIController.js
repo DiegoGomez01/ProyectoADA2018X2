@@ -8,8 +8,8 @@ $(document).ready(function () {
 
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        // $("#visualizationContainer").toggleClass("col-sm-7 d-none");
-        // $("#editor").toggleClass("col-sm-5 col");
+        $("#viewerCointainer").toggleClass("col-sm-7 d-none");
+        $("#editor").toggleClass("col-sm-5 col");
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
         // test2.testColorChange(1);
         // test2.swap(2,3);
@@ -23,7 +23,7 @@ $(document).ready(function () {
         mode: "ace/mode/pseudo",
         autoScrollEditorIntoView: true,
         maxLines: 25,
-        minLines: 10
+        minLines: 25
     });
 
     editor.on("change", function () {
@@ -111,7 +111,7 @@ $(document).ready(function () {
 
     $("#btnNextStep").on("click", function () {
         if (!$(this).hasClass('disabled')) {
-            selectLine(0);
+            executeNextStatement();
         }
     });
 });

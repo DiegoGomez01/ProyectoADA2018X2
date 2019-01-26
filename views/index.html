@@ -84,7 +84,10 @@
         </button>
         <div id="containerApp" class="row m-0">
             <div id="editor" class="col">//Comienza a escribir tu código</div>
-            <div id="visualizationContainer" class="d-none"></div>
+            <div id="visualizationContainer"></div>
+            <div id="viewerCointainer" class="embed-responsive embed-responsive-21by9 d-none">
+                <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
+            </div>
         </div>
         <div id="hubExecutionControllerContainer" style="display:none;" class="row m-0">
             <div class="col"></div>
@@ -123,9 +126,6 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="embed-responsive embed-responsive-21by9">
-        <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
     </div>
 </body>
 
