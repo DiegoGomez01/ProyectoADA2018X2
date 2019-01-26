@@ -104,9 +104,8 @@ ComparisonSort.prototype.createVisualObjects = function()
 	this.lastCreatedIndex = this.nextIndex;
 }
 
-
-ComparisonSort.prototype.swap = function(index1, index2)
-{
+function swap(index1, index2){
+	thisGlobal.animationManager.clearHistory();
 	var tmp = thisGlobal.arrayData[index1];
 	thisGlobal.arrayData[index1] = thisGlobal.arrayData[index2];
 	thisGlobal.arrayData[index2] = tmp;
@@ -119,40 +118,29 @@ ComparisonSort.prototype.swap = function(index1, index2)
 	thisGlobal.barLabels[index1] = thisGlobal.barLabels[index2];
 	thisGlobal.barLabels[index2] = tmp;
 	
-	
 	thisGlobal.cmd("Move", thisGlobal.barObjects[index1], thisGlobal.barPositionsX[index1], thisGlobal.array_y_pos);
 	thisGlobal.cmd("Move", thisGlobal.barObjects[index2], thisGlobal.barPositionsX[index2], thisGlobal.array_y_pos);
 	thisGlobal.cmd("Move", thisGlobal.barLabels[index1], thisGlobal.barPositionsX[index1], thisGlobal.array_label_y_pos);
 	thisGlobal.cmd("Move", thisGlobal.barLabels[index2], thisGlobal.barPositionsX[index2], thisGlobal.array_label_y_pos);
 	thisGlobal.cmd("Step");
+	
+	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
-ComparisonSort.prototype.testn = function(){
-	var a = addControlToAlgorithmBar("button", "test2");
-	// a.onclick = thisGlobal.testColorChange.bind(thisGlobal,2);
-	a.onclick = thisGlobal.bubbleSortCallback.bind(thisGlobal);
-	a.click();
-}
-
-ComparisonSort.prototype.testColorChange = function(barNumber,event){
+function testColorChange(barNumber){
     thisGlobal.animationManager.clearHistory();
     thisGlobal.commands = new Array();
-    // thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], "#2df900");
-    // thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], HIGHLIGHT_BAR_BACKGROUND_COLOR);
-    thisGlobal.swap(2,3);
+    thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], "#2df900");
+    thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], HIGHLIGHT_BAR_BACKGROUND_COLOR);
     thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
-ComparisonSort.prototype.bubbleSortCallback = function(event)
-{
+function bubbleSortCallback(){
 	thisGlobal.animationManager.clearHistory();
+	thisGlobal.commands = new Array();
 	
-    thisGlobal.commands = new Array();
-    console.log(thisGlobal.barObjects);
-	for (var i = thisGlobal.array_size-1; i > 0; i--)
-	{
-		for (var j = 0; j < i; j++)
-		{
+	for (var i = thisGlobal.array_size-1; i > 0; i--){
+		for (var j = 0; j < i; j++){
 			thisGlobal.cmd("SetForegroundColor", thisGlobal.barObjects[j], HIGHLIGHT_BAR_COLOR);
 			thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[j], HIGHLIGHT_BAR_BACKGROUND_COLOR);
 
@@ -161,14 +149,13 @@ ComparisonSort.prototype.bubbleSortCallback = function(event)
 			thisGlobal.cmd("Step");
 			if (thisGlobal.arrayData[j] > thisGlobal.arrayData[j+1])
 			{
-				thisGlobal.swap(j,j+1);
+				swap(j,j+1);
 			}
 			thisGlobal.cmd("SetForegroundColor", thisGlobal.barObjects[j], BAR_FOREGROUND_COLOR);
 			thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[j], BAR_BACKGROUND_COLOR);
 
 			thisGlobal.cmd("SetForegroundColor", thisGlobal.barObjects[j+1], BAR_FOREGROUND_COLOR);
 			thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[j+1], BAR_BACKGROUND_COLOR);
-
 		}
 	}
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);

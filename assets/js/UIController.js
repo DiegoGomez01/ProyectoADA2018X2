@@ -5,8 +5,9 @@ $(document).ready(function () {
         // $("#visualizationContainer").toggleClass("col-sm-7 d-none");
         // $("#editor").toggleClass("col-sm-5 col");
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
-        console.log(test2);
-        test2.ComparisonSort.prototype.testn();
+        // test2.testColorChange(1);
+        // test2.swap(2,3);
+        test2.bubbleSortCallback();
     });
     //---------------------------------------------------------------------------------------------------
 
