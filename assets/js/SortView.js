@@ -3,6 +3,7 @@ function ComparisonSort(am, w, h, arr)
 	this.init(am, w, h, arr);
 }
 var thisGlobal;
+var visibleVariables={};
 
 var BAR_FOREGROUND_COLOR = "#0000FF";
 var BAR_BACKGROUND_COLOR ="#AAAAFF";
@@ -122,7 +123,7 @@ function swap(index1, index2){
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
-function changeBar(i,newSize){
+function changeSizeBar(i,newSize){
 	thisGlobal.commands = new Array();
 	
 	thisGlobal.arrayData[i] = newSize;
@@ -174,6 +175,24 @@ function bubbleSortCallback(){
 		}
 	}
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
+}
+
+function addVisibleVariable(key,value){
+	visibleVariables[key] = value;
+	console.log(visibleVariables);
+	$('#wrapVariables').append('<div id="divVariable'+key+'" class="p-2 bd-highlight"><span id="animationVariable'+key+'" style="display: block;">'+key+':['+value+']</span></div>');
+}
+
+function removeVisibleVariable(key){
+	delete visibleVariables[key];
+	console.log(visibleVariables);
+	document.getElementById("divVariable"+key).remove();
+}
+
+function animationChangeVariable(key){
+	$('#animationVariable'+key).removeClass().addClass('shake animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+		$(this).removeClass();
+	});
 }
 
 var currentAlg;

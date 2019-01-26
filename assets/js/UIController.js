@@ -14,11 +14,26 @@ $(document).ready(function () {
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
         test2.init(arr);
 
+        /*******Agregar, quitar y animar una variable visible*******/
+        // test2.addVisibleVariable('V',50);
+        // test2.addVisibleVariable('F',30);
+        // test2.addVisibleVariable('G',560);
+        // test2.addVisibleVariable('M',80);
+
         // setTimeout(() => {
-        //     test2.changeBar(2,80);
+        //     test2.animationChangeVariable('G');
         // }, 2000);
 
-        
+        // setTimeout(() => {
+        //     test2.removeVisibleVariable('F');
+        // }, 4000);
+
+        /*******Cambiar la barra numero 2 de tamaño*******/
+        // setTimeout(() => {
+        //     test2.changeSizeBar(2,80);
+        // }, 2000);
+
+        /*******Cambiar el color de la barra 1 7 después de 1 segundo restablece al color normal*******/
         // setTimeout(() => {
         //     test2.barColorChange(1);
         // }, 1000);

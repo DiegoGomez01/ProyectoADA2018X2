@@ -44,7 +44,7 @@
       
         $(document).ready(function(){
           $('.js--triggerAnimation').click(function(e){
-            testAnim('bounceInLeft');
+            testAnim('shake');
           });
         });
     </script> -->
@@ -52,7 +52,13 @@
     <div id = "algoControlSection" style="display: none">
         <table id="AlgorithmSpecificControls"> </table> 
     </div>
-                        
+    <!-- <button class="butt js--triggerAnimation">Animate it</button> -->
+    <div id="wrapVariables" class="d-flex align-content-start flex-wrap">
+        <!-- <div class="p-2 bd-highlight">X:[20]</div>
+        <div class="p-2 bd-highlight"><span id="animationSandbox" style="display: block;">X:[30]</span></div>
+        <div class="p-2 bd-highlight">X:[40]</div> -->
+    </div>
+    
     <canvas id="canvas" width="500" height="200"></canvas>
 
     <!-- <div id = "generalAnimationControlSection">
