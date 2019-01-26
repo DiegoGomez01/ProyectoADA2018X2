@@ -2,9 +2,11 @@ $(document).ready(function () {
 
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        // alert("algo");
-        $("#visualizationContainer").toggleClass("col-sm-7 d-none");
-        $("#editor").toggleClass("col-sm-5 col");
+        // $("#visualizationContainer").toggleClass("col-sm-7 d-none");
+        // $("#editor").toggleClass("col-sm-5 col");
+        var test2 = document.getElementById("iframeVisualizer").contentWindow;
+        console.log(test2);
+        test2.ComparisonSort.prototype.testn();
     });
     //---------------------------------------------------------------------------------------------------
 
