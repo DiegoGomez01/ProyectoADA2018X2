@@ -10,10 +10,45 @@ $(document).ready(function () {
     $("#headerBar").on("click", function () {
         $("#viewerCointainer").toggleClass("col-sm-7 d-none");
         $("#editor").toggleClass("col-sm-5 col");
+        var arr=[50,38,20,18,70,45,56,100];
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
-        // test2.testColorChange(1);
-        // test2.swap(2,3);
-        test2.bubbleSortCallback();
+        test2.init(arr);
+
+        /*******Agregar, quitar y animar una variable visible*******/
+        // test2.addVisibleVariable('V',50);
+        // test2.addVisibleVariable('F',30);
+        // test2.addVisibleVariable('G',560);
+        // test2.addVisibleVariable('M',80);
+
+        // setTimeout(() => {
+        //     test2.animationChangeVariable('G');
+        // }, 2000);
+
+        // setTimeout(() => {
+        //     test2.removeVisibleVariable('F');
+        // }, 4000);
+
+        /*******Cambiar la barra numero 2 de tamaño*******/
+        // setTimeout(() => {
+        //     test2.changeSizeBar(2,80);
+        // }, 2000);
+
+        /*******Cambiar el color de la barra 1, después de 1 segundo restablece al color normal*******/
+        // setTimeout(() => {
+        //     test2.barColorChange(1);
+        // }, 1000);
+        
+        // setTimeout(() => {
+        //     test2.resetbarColorChange(1);
+        // }, 2000);
+        
+        // setTimeout(() => {
+        //     test2.swap(2,3);
+        // }, 1000);
+
+        setTimeout(() => {
+            test2.bubbleSortCallback();
+        }, 1000);
     });
     //---------------------------------------------------------------------------------------------------
 

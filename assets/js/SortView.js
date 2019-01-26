@@ -1,11 +1,9 @@
-function ComparisonSort(am, w, h)
+function ComparisonSort(am, w, h, arr)
 {
-	this.init(am, w, h);
+	this.init(am, w, h, arr);
 }
 var thisGlobal;
-
-var ARRAY_Y_POS = 250;
-var ARRAY_LABEL_Y_POS = 260;
+var visibleVariables={};
 
 var BAR_FOREGROUND_COLOR = "#0000FF";
 var BAR_BACKGROUND_COLOR ="#AAAAFF";
@@ -17,35 +15,34 @@ ComparisonSort.prototype = new Algorithm();
 ComparisonSort.prototype.constructor = ComparisonSort;
 ComparisonSort.superclass = Algorithm.prototype;
 
-ComparisonSort.prototype.init = function(am, w, h)
+ComparisonSort.prototype.init = function(am, w, h, arr)
 {
 	var sc = ComparisonSort.superclass;
 	var fn = sc.init;
 	fn.call(this,am);
 	this.nextIndex = 0;
 	
-	this.setArraySize(true);
-	this.arrayData = new Array();
+	this.setArraySize();
+	this.array_size = arr.length;
+	this.arrayData = arr;
 
 	this.createVisualObjects();
 
 	thisGlobal = this;
 }
 	
-ComparisonSort.prototype.setArraySize = function (small)
-{
-    this.array_size = 6;
+ComparisonSort.prototype.setArraySize = function ()
+{ 
     this.array_width = 20;
     this.array_bar_width = 10;
     this.array_initial_x = 15;
-    this.array_y_pos = ARRAY_Y_POS;
-    this.array_label_y_pos = ARRAY_LABEL_Y_POS;
+    this.array_y_pos = 130;
+    this.array_label_y_pos = 140;
 }
 
-ComparisonSort.prototype.randomizeArray = function()
+ComparisonSort.prototype.showArray = function()
 {
     this.commands = new Array();
-    this.arrayData=[50,38,20,18,70,56];
 	for (var i = 0; i < this.array_size; i++)
 	{
 		this.oldData[i] = this.arrayData[i];
@@ -58,7 +55,6 @@ ComparisonSort.prototype.randomizeArray = function()
 	this.animationManager.clearHistory();
 	
 }
-
 
 ComparisonSort.prototype.createVisualObjects = function()
 {
@@ -96,7 +92,7 @@ ComparisonSort.prototype.createVisualObjects = function()
 	}
 	this.animationManager.StartNewAnimation(this.commands);
 	this.animationManager.skipForward();
-	this.randomizeArray();
+	this.showArray();
 	for (i = 0; i < this.array_size; i++)
 	{
 		this.obscureObject[i] = false;
@@ -127,11 +123,31 @@ function swap(index1, index2){
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
-function testColorChange(barNumber){
+function changeSizeBar(i,newSize){
+	thisGlobal.commands = new Array();
+	
+	thisGlobal.arrayData[i] = newSize;
+	thisGlobal.oldData[i] = thisGlobal.arrayData[i];
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i]);
+	thisGlobal.cmd("SetHeight", thisGlobal.barObjects[i], thisGlobal.arrayData[i]);
+	
+	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
+
+}
+
+function barColorChange(barNumber){
     thisGlobal.animationManager.clearHistory();
     thisGlobal.commands = new Array();
-    thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], "#2df900");
+    thisGlobal.cmd("SetForegroundColor", thisGlobal.barObjects[barNumber], HIGHLIGHT_BAR_COLOR);
     thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], HIGHLIGHT_BAR_BACKGROUND_COLOR);
+    thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
+}
+
+function resetbarColorChange(barNumber){
+    thisGlobal.animationManager.clearHistory();
+	thisGlobal.commands = new Array();
+	thisGlobal.cmd("SetForegroundColor", thisGlobal.barObjects[barNumber], BAR_FOREGROUND_COLOR);
+    thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[barNumber], BAR_BACKGROUND_COLOR);
     thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
@@ -161,10 +177,27 @@ function bubbleSortCallback(){
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
+function addVisibleVariable(key,value){
+	visibleVariables[key] = value;
+	console.log(visibleVariables);
+	$('#wrapVariables').append('<div id="divVariable'+key+'" class="p-2 bd-highlight"><span id="animationVariable'+key+'" style="display: block;">'+key+':['+value+']</span></div>');
+}
+
+function removeVisibleVariable(key){
+	delete visibleVariables[key];
+	console.log(visibleVariables);
+	document.getElementById("divVariable"+key).remove();
+}
+
+function animationChangeVariable(key){
+	$('#animationVariable'+key).removeClass().addClass('shake animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+		$(this).removeClass();
+	});
+}
+
 var currentAlg;
 
-function init()
-{
+function init(arr){
 	var animManag = initCanvas();
-	currentAlg = new ComparisonSort(animManag, canvas.width, canvas.height);
+	currentAlg = new ComparisonSort(animManag, canvas.width, canvas.height, arr);
 }
