@@ -1,66 +1,14 @@
 var parser;
-var editor;
 var program;
-var actLineSelected;
-var actErrorMarker;
-var isExecuting = false;
-var Range = ace.require('ace/range').Range;
+var actLog = [];
+var actSubprogram;
+var actStatement = [0];
+var subprogramsCalls = [];
 
-alertify.defaults = {
-    autoReset: true,
-    basic: false,
-    closable: false,
-    closableByDimmer: false,
-    frameless: false,
-    maintainFocus: true,
-    maximizable: false,
-    modal: true,
-    movable: false,
-    moveBounded: false,
-    overflow: true,
-    padding: false,
-    pinnable: true,
-    pinned: true,
-    preventBodyShift: false,
-    resizable: false,
-    startMaximized: false,
-    transition: 'pulse',
-    notifier: {
-        delay: 5,
-        position: 'bottom-right',
-        closeButton: false
-    },
-    glossary: {
-        title: 'AlertifyJS',
-        ok: 'OK',
-        cancel: 'Cancelar'
-    },
-    theme: {
-        input: 'ajs-input',
-        ok: 'ajs-ok', //btn btn-primario
-        cancel: 'ajs-cancel' //btn btn-secundario
-    }
-};
-
-$(document).ready(function () {
-    //Lee el archivo de la gramatica y crea el parser
-    $.get('http://localhost/ProyectoADA2018X2/assets/gramatica.pegjs', (gramatica) => {
-        parser = peg.generate(gramatica);
-    }, "text");
-
-    //Creación del editor de código
-    editor = ace.edit($("#editor")[0], {
-        theme: "ace/theme/chrome",
-        mode: "ace/mode/pseudo",
-        autoScrollEditorIntoView: true,
-        maxLines: 25,
-        minLines: 10
-    });
-
-    editor.on("change", function () {
-        analyzeProgram();
-    });
-});
+//Lee el archivo de la gramatica y crea el parser
+$.get('http://localhost/ProyectoADA2018X2/assets/gramatica.pegjs', (gramatica) => {
+    parser = peg.generate(gramatica);
+}, "text");
 
 //Análisis del pseudo-código
 function analyzeProgram() {
@@ -83,32 +31,25 @@ function analyzeProgram() {
 
 function startProgram(mainFunctionName) {
     alertify.alert().close();
-    selectLine(program.SUBPROGRAMS[mainFunctionName].body[0].line);
+    actSubprogram = program.SUBPROGRAMS[mainFunctionName];
+    selectLine(actSubprogram.body[0].line);
 }
 
-function selectLine(line) {
-    deleteMarker(actLineSelected);
-    actLineSelected = editor.getSession().addMarker(
-        new Range(line, 0, line, 1), "ace_selected_line", "fullLine"
-    );
-    editor.scrollToLine(line, true, true, undefined);
+function executeSubprogram(name) {
+    subprogramsCalls.push({subprogram:actSubprogram, NextStatement:actStatement, log:actLog});
+    actLog = [];
+    actStatement = [0];
+    actSubprogram = program.SUBPROGRAMS[name];
 }
 
-function deleteMarker(id) {
-    editor.getSession().removeMarker(id);
+function evalExpression(exp) {
+    switch (exp.type) {
+        case "Literal":
+            return exp.value;
+            break;
+    
+        default:
+            break;
+    }
 }
 
-//Código para mostrar una anotación en el editor
-/*  
-editor.session.clearAnnotations(); // Limpiar anotaciones
-editor.getSession().setAnnotations([{
-    row: 0,
-    column: 0,
-    text: "se ejecuto n",
-    type: "info" // (warning, info, error)
-}]);
-    //Propiedades del error
-    console.log(err.location); // Ubicación del error: {start:{offset:X,line:Y,column:Z},end:{offset:X,line:Y,column:Z}}
-    console.log(err.found); // Valor encontrado
-    console.log(err.message); // Mensaje de error
-*/
