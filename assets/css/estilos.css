@@ -23,11 +23,6 @@ button,
     font-size: 19px;
 }
 
-#visualizationContainer {
-    height: 500px;
-    background-color: #00B0FF;
-}
-
 .btnUI {
     position: fixed;
 }

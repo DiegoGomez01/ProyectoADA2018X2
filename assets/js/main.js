@@ -2,7 +2,8 @@ var parser;
 var program;
 var actLog = [];
 var actSubprogram;
-var actStatement = [0];
+var actStatementId = [0];
+var actParameters = [];
 var subprogramsCalls = [];
 
 //Lee el archivo de la gramatica y crea el parser
@@ -35,21 +36,61 @@ function startProgram(mainFunctionName) {
     selectLine(actSubprogram.body[0].line);
 }
 
-function executeSubprogram(name) {
-    subprogramsCalls.push({subprogram:actSubprogram, NextStatement:actStatement, log:actLog});
+function executeNextStatement() {
+    var Statement = getStatement();
+    switch (Statement.type) {
+        case "ForStatement":
+
+            break;
+        case "CallExpression":
+            callSubprogram(Statement.callee, Statement.arguments);
+            return;
+        default:
+            alert("falta: " + Statement.type);
+            break;
+    }
+    incLast(actStatementId);
+    if (last(actStatementId) == getStatement(-1).body.length) {
+        actStatementId.pop();
+    }
+    selectLine(getStatement().line);
+}
+
+function getStatement(p) {
+    if (p == undefined || p > 0) p = 0;
+    let Statement = actSubprogram;
+    for (let i = 0; i < actStatementId.length + p; i++) {
+        Statement = Statement.body[actStatementId[i]];
+    }
+    return Statement;
+}
+
+function callSubprogram(name, args) {
+    subprogramsCalls.push({
+        subprogram: actSubprogram,
+        actStatement: actStatementId,
+        log: actLog
+    });
     actLog = [];
-    actStatement = [0];
+    actStatementId = [0];
     actSubprogram = program.SUBPROGRAMS[name];
+    actParameters = []; /////////////////////
+    selectLine(actSubprogram.body[0].line);
 }
 
 function evalExpression(exp) {
     switch (exp.type) {
         case "Literal":
             return exp.value;
-            break;
-    
         default:
             break;
     }
 }
 
+function last(arr) {
+    return arr[arr.length - 1];
+}
+
+function incLast(arr) {
+    arr[arr.length - 1]++;
+}
