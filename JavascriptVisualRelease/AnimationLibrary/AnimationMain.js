@@ -249,10 +249,10 @@ function addControl(type, name, location) {
 	tableEntry.appendChild(element);
 	
 	
-    var controlBar = document.getElementById(tableEntry);
+    // var controlBar = document.getElementById(tableEntry);
 	
     //Append the element in page (in span).
-    controlBar.appendChild(element);
+    // controlBar.appendChild(element);
 	return element;
  
 }
@@ -273,10 +273,10 @@ function addControlToAnimationBar(type,name,containerType)
 	
 	tableEntry.appendChild(element);
 	
-    var controlBar = document.getElementById("GeneralAnimationControls");
+    // var controlBar = document.getElementById("GeneralAnimationControls");
 	
     //Append the element in page (in span).
-    controlBar.appendChild(tableEntry);
+    // controlBar.appendChild(tableEntry);
 	return element;
 	
 }
@@ -308,7 +308,7 @@ function initCanvas()
 	var tableEntry = document.createElement("td");
 	
 	
-    var controlBar = document.getElementById("GeneralAnimationControls");
+    // var controlBar = document.getElementById("GeneralAnimationControls");
 	
 	
 	
@@ -337,7 +337,7 @@ function initCanvas()
 	
 	
     //Append the element in page (in span).
-    controlBar.appendChild(tableEntry);
+    // controlBar.appendChild(tableEntry);
 		
     //tableEntry.appendChild(element);
 
@@ -404,7 +404,7 @@ function initCanvas()
 	tableEntry = document.createElement("td");
 	txtNode = document.createTextNode(" w:"); 
 	tableEntry.appendChild(txtNode);
-	controlBar.appendChild(tableEntry);
+	// controlBar.appendChild(tableEntry);
 
 
 	widthEntry = addControlToAnimationBar("Text", canvas.width);
@@ -415,7 +415,7 @@ function initCanvas()
 	tableEntry = document.createElement("td");
 	txtNode = document.createTextNode("       h:"); 
 	tableEntry.appendChild(txtNode);
-	controlBar.appendChild(tableEntry);
+	// controlBar.appendChild(tableEntry);
 	
 	heightEntry = addControlToAnimationBar("Text", canvas.height);
 	heightEntry.onkeydown = this.returnSubmit(heightEntry, animationManager.changeSize.bind(animationManager), 4, true);
