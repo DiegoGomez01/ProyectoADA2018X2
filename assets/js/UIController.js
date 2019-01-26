@@ -10,10 +10,26 @@ $(document).ready(function () {
     $("#headerBar").on("click", function () {
         // $("#visualizationContainer").toggleClass("col-sm-7 d-none");
         // $("#editor").toggleClass("col-sm-5 col");
+        var arr=[50,38,20,18,70,45,56,100];
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
-        // test2.testColorChange(1);
+        test2.init(arr);
+
+        // setTimeout(() => {
+        //     test2.changeBar(2,80);
+        // }, 2000);
+
+        
+        // setTimeout(() => {
+        //     test2.barColorChange(1);
+        // }, 1000);
+        
+        // setTimeout(() => {
+        //     test2.resetbarColorChange(1);
+        // }, 2000);
+        
+        
         // test2.swap(2,3);
-        test2.bubbleSortCallback();
+        // test2.bubbleSortCallback();
     });
     //---------------------------------------------------------------------------------------------------
 

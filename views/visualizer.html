@@ -10,6 +10,7 @@
 
     <!-- jqueury stuff.  Only used for the animation speed slider. -->
     <link rel="stylesheet" href="../JavascriptVisualRelease/ThirdParty/jquery-ui-1.8.11.custom.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
     <script src="../JavascriptVisualRelease/ThirdParty/jquery-1.5.2.min.js"></script>
     <script src="../JavascriptVisualRelease/ThirdParty/jquery-ui-1.8.11.custom.min.js"></script>
 
@@ -30,12 +31,29 @@
     <script src="../assets/js/SortView.js" type="text/javascript" charset="utf-8"></script>
     <title>Document</title>
 </head>
-<body onload="init();">
+<body>
+    
+    <!-- <span id="animationSandbox" style="display: block;"><h1 class="site__title mega">Animate.css</h1></span>
+    <button class="butt js--triggerAnimation">Animate it</button>
+    <script>
+        function testAnim(x) {
+          $('#animationSandbox').removeClass().addClass(x + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass();
+          });
+        };
+      
+        $(document).ready(function(){
+          $('.js--triggerAnimation').click(function(e){
+            testAnim('bounceInLeft');
+          });
+        });
+    </script> -->
+
     <div id = "algoControlSection" style="display: none">
         <table id="AlgorithmSpecificControls"> </table> 
     </div>
                         
-    <canvas id="canvas" width="500" height="300"></canvas>
+    <canvas id="canvas" width="500" height="200"></canvas>
 
     <!-- <div id = "generalAnimationControlSection">
         <table id="GeneralAnimationControls">  </table>		
