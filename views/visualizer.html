@@ -11,6 +11,7 @@
     <!-- jqueury stuff.  Only used for the animation speed slider. -->
     <link rel="stylesheet" href="../JavascriptVisualRelease/ThirdParty/jquery-ui-1.8.11.custom.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="../assets/css/estilos.css" />
     <script src="../JavascriptVisualRelease/ThirdParty/jquery-1.5.2.min.js"></script>
     <script src="../JavascriptVisualRelease/ThirdParty/jquery-ui-1.8.11.custom.min.js"></script>
 
@@ -29,35 +30,21 @@
 
     <script type = "text/javascript" src = "../JavascriptVisualRelease/AlgorithmLibrary/Algorithm.js"> </script>
     <script src="../assets/js/SortView.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/matrizView.js" type="text/javascript" charset="utf-8"></script>
     <title>Document</title>
 </head>
 <body>
     
-    <!-- <span id="animationSandbox" style="display: block;"><h1 class="site__title mega">Animate.css</h1></span>
-    <button class="butt js--triggerAnimation">Animate it</button>
-    <script>
-        function testAnim(x) {
-          $('#animationSandbox').removeClass().addClass(x + ' animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-            $(this).removeClass();
-          });
-        };
-      
-        $(document).ready(function(){
-          $('.js--triggerAnimation').click(function(e){
-            testAnim('shake');
-          });
-        });
-    </script> -->
-
     <div id = "algoControlSection" style="display: none">
         <table id="AlgorithmSpecificControls"> </table> 
     </div>
-    <!-- <button class="butt js--triggerAnimation">Animate it</button> -->
-    <div id="wrapVariables" class="d-flex align-content-start flex-wrap">
-        <!-- <div class="p-2 bd-highlight">X:[20]</div>
-        <div class="p-2 bd-highlight"><span id="animationSandbox" style="display: block;">X:[30]</span></div>
-        <div class="p-2 bd-highlight">X:[40]</div> -->
-    </div>
+
+    <div id="wrapVariables" class="d-flex align-content-start flex-wrap"></div>
+
+    <button onclick="drawMatriz()">CreateMatriz</button>
+    <button onclick="drawCell(1,1)">DrawMatriz</button>
+
+    <div id="wrapMatriz" class="d-flex align-content-start flex-wrap"></div>
     
     <canvas id="canvas" width="500" height="200"></canvas>
 
