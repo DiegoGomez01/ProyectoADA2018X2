@@ -2,6 +2,8 @@ var editor;
 var actLineSelected;
 var actErrorMarker;
 var Range = ace.require('ace/range').Range;
+var lineBreackpoints=[];
+var markerBreakpoints=[];
 
 $(document).ready(function () {
 
@@ -59,6 +61,23 @@ $(document).ready(function () {
         maxLines: 25,
         minLines: 25
     });
+
+    editor.on("gutterclick", function(e) { 
+        var region = e.editor.renderer.$gutterLayer.getRegion(e) 
+        if (region == "markers")  { 
+            e.stop() 
+            var line = e.getDocumentPosition().row;
+            var index = lineBreackpoints.indexOf(line);
+            if(index==-1){
+                selectLineBreackpoint(line);
+                lineBreackpoints.push(line);
+            }else{
+                deleteMarker(markerBreakpoints[index]);
+                markerBreakpoints.splice(index, 1);
+                lineBreackpoints.splice(index, 1);
+            }
+        } 
+    }, true);
 
     editor.on("change", function () {
         analyzeProgram();
@@ -160,6 +179,14 @@ function selectLine(line) {
         new Range(line, 0, line, 1), "ace_selected_line", "fullLine"
     );
     editor.scrollToLine(line, true, true, undefined);
+}
+
+function selectLineBreackpoint(line) {
+    var marker = editor.getSession().addMarker(
+        new Range(line, 0, line, 1), "ace_selected_line", "fullLine"
+    );
+    editor.scrollToLine(line, true, true, undefined);
+    markerBreakpoints.push(marker);
 }
 
 function deleteMarker(id) {
