@@ -28,7 +28,7 @@ ForStatement = {type:"ForStatement", varFor:"", iniValue:"", finValue:"", inc:""
 
 GLOBALS =  {"idVar":{value:"", dataType:""}}
 SUBPROGRAMS = {"idFunOrPro":{type:"procedure|function", params:params , *dataType:"", body:body}}
-PARAMSACT = params -> Parametros de la función o procedimiento actual (Variables locales)
+ACTSUBPROGRAMID = id -> id de la función o procedimiento actual
 
 buscar: "Limited" para encontrar las acciones que no se pueden realizar en un programa
 */
@@ -38,10 +38,43 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
 {
   var GLOBALS = {};
   var SUBPROGRAMS = {};
-  var PARAMSACT = undefined;
+  var ACTSUBPROGRAMID = undefined;
 
   function sizeObj(obj) {
     return Object.keys(obj).length;
+  }
+
+  function isPrimitive(dataType) {
+    return ["int", "float", "string", "char", "boolean"].indexOf(dataType) !== -1;
+  }
+
+  function isVariable(exp) {
+    return exp.type == "Variable";
+  }
+
+  function getVariable(id) {
+    if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id] !== "undefined") {
+       return SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id];
+    } else if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].params[id] !== "undefined") {
+      return SUBPROGRAMS[ACTSUBPROGRAMID].params[id];
+    } else if (typeof GLOBALS[id] !== "undefined") {
+      return GLOBALS[id];
+    } else {
+      error("No existe una variable con el id: " + id);
+    }
+  }
+
+  function getDefaultValue(dataType){
+    switch (dataType) {
+      case "string":
+      case "char":
+        return "";                  
+      case "float":
+      case "int":
+        return 0;
+      case "boolean":
+        return true;                    
+    }
   }
 
   function createArray(dimensions, value) {
@@ -119,6 +152,19 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     return [head].concat(extractList(tail, index));
   }
 
+  function createVariable(name, value) {
+    if (ACTSUBPROGRAMID == undefined) {
+      if (typeof GLOBALS[name] != "undefined") {
+        error("Ya existe una variable global con el id: " + name);
+      }
+      GLOBALS[name] = value;
+    } else if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].params[name] != "undefined" || typeof SUBPROGRAMS[ACTSUBPROGRAMID].localVars[name] != "undefined") {
+      error("Ya existe una variable local con el id: " + name);
+    } else {
+      SUBPROGRAMS[ACTSUBPROGRAMID].localVars[name] = value;
+    }
+  }
+
   function createSubProgram(type, dataType, id, paramsTokens) {
     var params = {};
     for (let index = 0; index < paramsTokens.length; index++) {
@@ -127,15 +173,16 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
           error("Ya existe un parametro con el id: " + element.id);
         }
         params[element.id] = {mode: element.mode, dataType: element.dataType, pos:index}
-    }
-    PARAMSACT = params;    
+    }  
     SUBPROGRAMS[id] = {
       type: type,
       params: params,
+      localVars: {}
     };
     if (dataType !== undefined) {
       SUBPROGRAMS[id].dataType = dataType;
     }
+    ACTSUBPROGRAMID = id;    
   }
 
   function buildNumericExpression(head, tail) {
@@ -167,8 +214,7 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
 
 //---------- Gramática ----------
 
-// start = __ VariableDeclaration //Pruebas
-start = __ SubProgramDeclaration (_f SubProgramDeclaration)* __ {
+start = __ VariableGlobalStatement? SubProgramDeclaration (_f SubProgramDeclaration)* __ {
   return {
     GLOBALS:GLOBALS,
     SUBPROGRAMS:SUBPROGRAMS
@@ -233,7 +279,8 @@ ReservedWord = VarToken / IfToken / ThenToken / ElseToken / EndIfToken / CaseOfT
   SalidaToken / ESToken / IntToken / FloatToken / BooleanToken / CharToken / StringToken / 
   TrueToken / FalseToken / PilaToken / ColaToken / ListaToken / NotToken / ReturnToken / 
   PisoToken / TechoToken / InfinitoToken / PushToken / PopToken / PeekToken / EnqueueToken / 
-  DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken
+  DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken / PrintToken / 
+  ShowToken / CharAtToken
 
 // Tokens  
 VarToken        = "var"i           !IdentifierPart 
@@ -284,6 +331,9 @@ IsEmptyToken    = "isempty"i       !IdentifierPart
 LengthToken     = "len"i           !IdentifierPart
 SizeToken       = "size"i          !IdentifierPart
 SwapToken       = "swap"i          !IdentifierPart
+PrintToken      = "print"i         !IdentifierPart
+ShowToken       = "show"i          !IdentifierPart
+CharAtToken     = "charat"i        !IdentifierPart
 
 PrimitiveTypesVar = IntToken / FloatToken / BooleanToken / CharToken / StringToken
 
@@ -294,17 +344,12 @@ TypesVar = PrimitiveTypesVar ("[" "]" ("[" "]")?)? {return text();}
 
 ModePar = EntradaToken / SalidaToken / ESToken
 
+// enviar arreglo como parametro
 // ----- Expresiones -----
 Expression = BooleanExpression / NumericExpression / CharExpression / StringExpression / VariableAccessExpression
 
 ExistingVariable = id:Identifier !"(" {
-  if (PARAMSACT == undefined || typeof PARAMSACT[id] == "undefined") {
-    if (typeof GLOBALS[id] == "undefined") {
-      error("No existe una variable con el id: " + id);
-    }
-    return [id, GLOBALS[id]];
-  }
-  return [id, PARAMSACT[id]];
+  return [id, getVariable(id)];
 }
 
 //Llamado a Variables
@@ -346,9 +391,42 @@ StringVariable "variable string" = varS:VariableAccessExpression !"." &{return v
 CharVariable "variable char" = varC:VariableAccessExpression !"." &{return varC.dataType == "char";} {return varC;}
 
 //Expresiones según su tipo
-CharExpression = CharLiteral / FunctionChar / CharVariable
+CharExpression = CharLiteral / FunctionChar / CharVariable / CharAtFunction
 
-StringExpression = StringLiteral / FunctionString / StringVariable
+CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpression _ ")" {
+  return {
+    type: "CharAtFunction",
+    dataType: "char",
+    strVar: strVar,
+    index: intexp
+  };
+}
+
+StringExpression = StringLiteral / FunctionString / StringVariable / StringConcatenation
+
+leftHandSideStringConcatenation = StringLiteral / StringVariable / NumericExpression / BooleanVariable / CharExpression
+
+StringConcatenation = head:leftHandSideStringConcatenation tail:(_ "+" _ leftHandSideStringConcatenation)+ {
+  var exps = buildList(head, tail, 3);
+  var isString = false;
+  for (let i = 0; i < exps.length; i++) {
+    const expDataType = getDataTypeofExpression(exps[i]);
+    if (!isPrimitive(expDataType)) {
+      error("No se puede concatenar " + expDataType + " a un String");
+    } else if (!isString && expDataType == "string") {
+      isString = true;
+    }
+  }
+  if (isString) {
+    return {
+      type: "StringConcatenation",
+      dataType: "string",
+      exps: exps
+    };
+  } else {
+    error("la concatenación no se puede convertir a string");
+  }
+}
 
 LeftHandSideNumericExpression = NumericLiteral / FunctionInt / FunctionFloat / IntVariable / FloatVariable
   / SpecialNumericFunctions / VariablesNumericFunctions
@@ -449,6 +527,9 @@ CallExpression = callee:SubProgramID args:Arguments {
     if (checkDataTypeExpressions(parameterCallee.dataType, getDataTypeofExpression(args[parameterCallee.pos]))) {
       error("El parámetro " + (parameterCallee.pos + 1) + " debe ser un " + parameterCallee.dataType);
     }
+    if ((parameterCallee.mode == "s" || parameterCallee.mode == "es") && !isVariable(args[parameterCallee.pos])) {
+      error("El parámetro " + (parameterCallee.pos + 1) + " debe ser una variable ya que es de salida");
+    }
   }
   return {type:"CallExpression", callee: callee, arguments: args};
 }
@@ -503,7 +584,7 @@ Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchState
 
 // Asignación de variables
 AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:Expression {
-  if (["int", "float", "string", "char", "boolean"].indexOf(left.dataType) === -1) { //Limited
+  if (!isPrimitive(left.dataType)) { //Limited
     error("No se pueden asignar estructuras de datos");
   }
   if (checkDataTypeExpressions(left.dataType, getDataTypeofExpression(right))) {
@@ -688,7 +769,7 @@ FinalFor = ToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral
   };
 }
 
-SpecialFunctions = SwapFunction
+SpecialFunctions = SwapFunction / PrintFunction / ShowFunction
 
 SwapFunction = SwapToken "(" _ vleft:VariableForSwap _ "," _ vright:VariableForSwap _ ")" {
   if (vleft.dataType !== vright.dataType) {
@@ -700,6 +781,26 @@ SwapFunction = SwapToken "(" _ vleft:VariableForSwap _ "," _ vright:VariableForS
     right: vright,
     line: location().start.line - 1
   };
+}
+
+PrintFunction = PrintToken "(" _ exp:Expression _ ")" {
+  var expDT = getDataTypeofExpression(exp);
+  if (isPrimitive(expDT)) {
+    return {
+      type: "PrintFunction",
+      exp: exp
+    };
+  } 
+}
+
+ShowFunction = ShowToken "(" _ exp:Expression _ ")" {
+  var expDT = getDataTypeofExpression(exp);
+  if (isPrimitive(expDT)) {
+    return {
+      type: "ShowFunction",
+      exp: exp
+    };
+  }   
 }
 
 VariableForSwap = Var:ExistingVariable !{if (Var[1].mode !== undefined && Var[1].mode !== "es") {error("La variable " + Var[0] + " se debe poder escribir y leer");}} VarAccess:(
@@ -732,8 +833,11 @@ VariableForSwap = Var:ExistingVariable !{if (Var[1].mode !== undefined && Var[1]
 }
 ) {return VarAccess;}
 
-//Declaración de Variables (solo globales)
-VariableStatement = VarToken _f VariableDeclaration* {return undefined;}  //Limited
+//Declaración de Variables (LOCALES)
+VariableStatement = VarToken _f VariableDeclaration* {return undefined;}
+
+//Declaración de Variables (GLOBALES)
+VariableGlobalStatement = VarToken _f "{" _f VariableDeclaration* "}" _f {return undefined;}
 
 VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valini:(AssignmentOperator _ valExp:(
     &{return dataType == "char";} L:CharLiteral {return L;}
@@ -742,26 +846,13 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
   / &{return dataType == "int";} L:IntLiteral {return L;}
   / &{return dataType == "float";} L:NumericLiteral {return L;}) {return valExp.value;})? _f {
   if (valini == null) {
-    switch (dataType) {
-      case "string":
-      case "char":
-        valini = "";                  
-      break;
-      case "float":
-      case "int":
-        valini = 0;                                               
-      break;
-      case "boolean":
-        valini = true;                    
-      break;
-    }
+    valini = getDefaultValue(dataType);
   }
   for (let index = 0; index < idList.length; index++) {
     const name = idList[index];
-    if (typeof GLOBALS[name] != "undefined") {
-      error("Ya existe una variable con el id: " + name);
-    }
-    GLOBALS[name] = {dataType: dataType, value: valini};
+    createVariable(name, {
+      dataType: dataType, 
+      value: valini});
   }
   return undefined;
 } 
@@ -773,20 +864,7 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
   / &{return dataType == "float";} array:ArrayLiteralFloat {return array;}) 
   {return valExp;})? _f {
     if (valini == null) {
-      switch (dataType) {
-        case "string":
-        case "char":
-          valini = "";                  
-        break;
-        case "float":
-        case "int":
-          valini = 0;                                               
-        break;
-        case "boolean":
-          valini = true;                    
-        break;
-      }
-      valini = createArray(arrayD, valini);
+      valini = createArray(arrayD, getDefaultValue(dataType));
     } else if (!checkArrayDimensions(valini, arrayD)) {
         error("Las dimensiones del arreglo no son correctas");
     }
@@ -795,51 +873,40 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
     }    
     for (let index = 0; index < idList.length; index++) {
       const name = idList[index];
-      if (typeof GLOBALS[name] != "undefined") {
-        error("Ya existe una variable con el id: " + name);
-      }
-      GLOBALS[name] = {
-      dataType: dataType, 
-      d: arrayD,
-      value: cloneArray(valini)};
+      createVariable(name, {
+        dataType: dataType, 
+        d: arrayD,
+        value: cloneArray(valini)
+        });
     }
-    return undefined;    
+    return undefined;      
   }
 / PilaToken "<" _ dataType:PrimitiveTypesVar _ ">" _ idList:IdentifierList _f {
     for (let index = 0; index < idList.length; index++) {
       const name = idList[index];
-      if (typeof GLOBALS[name] != "undefined") {
-        error("Ya existe una variable con el id: " + name);
-      }
-      GLOBALS[name] = {
-      dataType: "pila<" + dataType + ">",
-      value: []};
+      createVariable(name, {
+        dataType: "pila<" + dataType + ">",
+        value: []});
     }
-    return undefined; 
+    return undefined;    
   }
 / ColaToken "<" _ dataType:PrimitiveTypesVar _ ">" _ idList:IdentifierList _f {
     for (let index = 0; index < idList.length; index++) {
       const name = idList[index];
-      if (typeof GLOBALS[name] != "undefined") {
-        error("Ya existe una variable con el id: " + name);
-      }
-      GLOBALS[name] = {
-      dataType: "cola<" + dataType + ">",
-      value: []};
+      createVariable(name, {
+          dataType: "cola<" + dataType + ">",
+          value: []});
     }
-    return undefined; 
+    return undefined;    
   }
 / ListaToken "<" _ dataType:PrimitiveTypesVar _ ">" _ idList:IdentifierList _f {
     for (let index = 0; index < idList.length; index++) {
       const name = idList[index];
-      if (typeof GLOBALS[name] != "undefined") {
-        error("Ya existe una variable con el id: " + name);
-      }
-      GLOBALS[name] = {
-      dataType: "lista<" + dataType + ">",
-      value: []};
+      createVariable(name, {
+          dataType: "lista<" + dataType + ">",
+          value: []});
     }
-    return undefined; 
+    return undefined;    
   }    
 
 IdentifierList = head:Identifier _ tail:(_","_ Identifier)* {return buildList(head, tail, 3);};
@@ -882,24 +949,32 @@ ArrayLiteralBoolean = "[" head:ArrayLiteralBoolean tail:(_ "," _ ArrayLiteralBoo
 LiteralBooleanList = "[" head:BooleanLiteral tail:(_ "," _ (L:BooleanLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
 // Retorno
-ReturnStatement = ReturnToken _ expReturn:Expression { return expReturn;}
+ReturnStatement = ReturnToken _ expReturn:Expression { 
+  return {
+    type: "ReturnStatement",
+    exp: expReturn,
+    line: location().start.line - 1
+  };
+}
 
 // ----- Funciones, Procedimientos y Programas -----
 SubProgramDeclaration = 
-FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")" __
-VariableStatement? "{" _f !{createSubProgram("function", dataType, id, params);} body:Statements expReturn:ReturnStatement _f"}" {
+FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
+!{createSubProgram("function", dataType, id, params);} __ VariableStatement? 
+"{" _f body:Statements expReturn:ReturnStatement _f"}" {
   if (checkDataTypeExpressions(dataType, getDataTypeofExpression(expReturn))) {
     error("Se debe retornar un " + dataType);
   }
   SUBPROGRAMS[id].body = body;
-  SUBPROGRAMS[id].return = expReturn;
-  PARAMSACT = undefined;
+  SUBPROGRAMS[id].body.push(expReturn);
+  ACTSUBPROGRAMID = undefined;
 }
 / 
-ProcedureToken _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")" __ 
-VariableStatement? "{" _f !{createSubProgram("procedure", undefined, id, params);} body:Statements "}" {
+ProcedureToken _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
+!{createSubProgram("procedure", undefined, id, params);} __ VariableStatement? 
+"{" _f body:Statements "}" {
   SUBPROGRAMS[id].body = body;
-  PARAMSACT = undefined;
+  ACTSUBPROGRAMID = undefined;
 }
 
 SubProgramCreationID "nombre del subprograma" = id:Identifier {
