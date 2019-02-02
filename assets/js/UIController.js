@@ -2,7 +2,6 @@ var editor;
 var actLineSelected;
 var actErrorMarker;
 var Range = ace.require('ace/range').Range;
-var isExecuting = false;
 
 $(document).ready(function () {
 
@@ -83,37 +82,22 @@ $(document).ready(function () {
         }, 'text');
     });
 
-    $("#btnExe").on("click", function () {
-        if (isExecuting) {
-            $(this).text("Ejecutar");
-            $("#configBar").slideDown(1000, undefined);
-            $("#hubExecutionControllerContainer").fadeOut(1000, function () {
-                if ($("#btnPlay i").hasClass("fa-pause")) {
-                    $("#btnPlay").click();
-                }
-            });
-            editor.setReadOnly(false);
-            isExecuting = false;
-            deleteMarker(actLineSelected);
+    $("#btnRun").on("click", function () {
+        if ($(this).data("run") == "stop") {
+            hideRunningUI();
         } else if (program !== undefined) {
-            editor.setReadOnly(true);
-            $(this).text("Detener");
-            $("#configBar").slideUp(1000, undefined);
-            $("#hubExecutionControllerContainer").fadeIn(1000, undefined);
-            isExecuting = true;
             if (program.SUBPROGRAMS.main === undefined) {
                 alertify.alert(
-                    '<h4 class="text-center">¡Seleccione la función inicial (main)!</h4>' +
+                    '<h4 class="text-center">¡Seleccione la subrutina inicial (main)!</h4>' +
                     '<div class="btn-group-vertical w-100">' +
                     Object.keys(program.SUBPROGRAMS).reduce(function (buttons, nameAct) {
                         return buttons + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startProgram(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
                     }, "") +
                     '</div>'
-                ).set('basic', true);
+                ).set({'basic':true, 'closable':true});
             } else {
                 startProgram("main");
             }
-
         } else {
             alertify.error('El programa no se puede ejecutar.');
         }
@@ -146,10 +130,29 @@ $(document).ready(function () {
 
     $("#btnNextStep").on("click", function () {
         if (!$(this).hasClass('disabled')) {
-            executeNextStatement();
+            executeStatement();
         }
     });
 });
+
+function showRunningUI() {
+    $("#btnRun").text("Detener").data("run","stop");
+    $("#configBar").slideUp(1000, undefined);
+    $("#hubExecutionControllerContainer").fadeIn(1000, undefined);
+    editor.setReadOnly(true);
+}
+
+function hideRunningUI() {
+    $("#btnRun").text("Ejecutar").data("run","");
+    $("#configBar").slideDown(1000, undefined);
+    $("#hubExecutionControllerContainer").fadeOut(1000, function () {
+        if ($("#btnPlay i").hasClass("fa-pause")) {
+            $("#btnPlay i").toggleClass("fa-play fa-pause");
+        }
+    });
+    deleteMarker(actLineSelected);
+    editor.setReadOnly(false);
+}
 
 function selectLine(line) {
     deleteMarker(actLineSelected);
