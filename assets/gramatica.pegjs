@@ -109,19 +109,6 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     return true;
   }
 
-  function cloneArray(arr) {
-    if (Array.isArray(arr)) {
-      var i, copy;
-      copy = arr.slice(0);
-      for (i = 0; i < copy.length; i++) {
-          copy[i] = cloneArray(copy[i]);
-      }
-      return copy;
-    } else {
-      return arr;
-    }
-  }
-
   function getDataTypeofExpression(exp) {
     if (exp.dataType !== undefined) {
       return exp.dataType;
@@ -330,7 +317,7 @@ FrontToken      = "frente"i        !IdentifierPart
 IsEmptyToken    = "isempty"i       !IdentifierPart
 LengthToken     = "len"i           !IdentifierPart
 SizeToken       = "size"i          !IdentifierPart
-SwapToken       = "swap"i          !IdentifierPart
+SwapToken       = "swap"i          !IdentifierPart//----------------------------------------------
 PrintToken      = "print"i         !IdentifierPart
 ShowToken       = "show"i          !IdentifierPart
 CharAtToken     = "charat"i        !IdentifierPart
@@ -470,7 +457,7 @@ EqualityExpression = head:(LeftHandSideEqualityLogExpression) tail:(_ EqualityOp
   / "(" _ equExp:EqualityExpression _ ")" 
   {return equExp;}
 
-EqualityOperator = "===" / "!==" / "==" / "!="
+EqualityOperator = "==" / "!="
 
 LogicalANDExpression = head:EqualityExpression tail:(_ LogicalANDOperator _ EqualityExpression)*
 {return buildLogicalExpression(head, tail);}
@@ -745,7 +732,7 @@ VarDeclarationFor = varFor:IntVariable _ AssignmentOperator _ iniValue:IntExpres
 FinalFor = ToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral {return valInc;})? {
   if (valInc == null) {
     valInc = 1;
-  } else if (valInc.value < 0) {
+  } else if (valInc.value <= 0) {
     error("El incremento debe ser positivo");
   } else {
     valInc = valInc.value;
@@ -758,7 +745,7 @@ FinalFor = ToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral
 / DownToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral {return valInc;})? {
   if (valInc == null) {
     valInc = -1;
-  } else if (valInc.value > 0) {
+  } else if (valInc.value >= 0) {
     error("El incremento debe ser negativo");
   } else {
     valInc = valInc.value;
@@ -876,7 +863,10 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       createVariable(name, {
         dataType: dataType, 
         d: arrayD,
-        value: cloneArray(valini)
+        value: {
+          type: "ArrayLiteral",
+          arr: valini
+        }
         });
     }
     return undefined;      
@@ -886,7 +876,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
         dataType: "pila<" + dataType + ">",
-        value: []});
+        value: {type: "EmptyArray"}
+          });
     }
     return undefined;    
   }
@@ -895,7 +886,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
           dataType: "cola<" + dataType + ">",
-          value: []});
+          value: {type: "EmptyArray"}
+          });
     }
     return undefined;    
   }
@@ -904,7 +896,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
           dataType: "lista<" + dataType + ">",
-          value: []});
+          value: {type: "EmptyArray"}
+          });
     }
     return undefined;    
   }    
