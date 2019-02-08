@@ -1,5 +1,5 @@
 
-var matriz = [[1,2,3],[4,5,6],[4,5,6],[4,5,6],[4,5,6],[4,5,6],[4,5,6],[4,5,6]];
+var matriz = [[23,22,3],[4,5,3336],[24,5,6],[34,5,6],[44,55,6],[4,5555,6],[4,5,36],[4,5,6]];
 var idMatriz="testMatriz";
 
 function drawMatriz(){
@@ -12,7 +12,6 @@ function drawMatriz(){
         for(var j=0;j<matriz[0].length;j++){
             htmlMatriz += '<td id="'+idMatriz+'-'+i+'-'+j+'">'
             htmlMatriz += '<span id="animationVariableMatirz'+'-'+i+'-'+j+'" style="display: block;">'+matriz[i][j]+'</span>';
-            // htmlMatriz += matriz[i][j];
             htmlMatriz += '</td>'
         }
         htmlMatriz += '</tr>'
