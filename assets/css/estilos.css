@@ -1,8 +1,49 @@
+#btnTreeShowHide {
+    top: 55px;
+    left: 10px;
+    z-index: 1900;
+}
+
+#sideBarTree {
+    width: 390px;
+    padding: 20px;
+    position: fixed;
+    top: 0;
+    right: -390px;
+    height: 100vh;
+    z-index: 1100;
+    background: #fff;
+    transition: all 0.4s;
+    overflow-y: auto;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+}
+
+#sideBarTree[class=active] {
+    right: 0;
+}
+
+@media only screen and (max-width: 380px) {
+    #sideBarTree {
+        width: 90vw;
+        right: -90vw;
+    }
+}
+
+.overlay {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    background: #000000AA;
+    z-index: 1050;
+    display: none;
+}
+
 #headerBar {
     width: 100%;
     height: 50px;
     background-color: #cf000f;
     color: #fff;
+    z-index: 1000;
 }
 
 button,
@@ -21,10 +62,6 @@ button,
 #editor {
     font-family: 'Courier New', Courier, monospace;
     font-size: 19px;
-}
-
-.btnUI {
-    position: fixed;
 }
 
 #btnRun {

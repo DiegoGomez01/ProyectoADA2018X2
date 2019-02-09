@@ -76,12 +76,14 @@
                 </div>
             </div>
         </nav>
-        <button id="btnRun" class="btn btn-primary btnUI" type="button" data-run="">
+        <button id="btnRun" class="btn btn-primary position-fixed" type="button" data-run="">
             Ejecutar
         </button>
-        <button id="btnTreeA" class="btn btn-secondary btn-circle d-none" type="button">
+        <button id="btnTreeShowHide" class="btn btn-secondary position-fixed" type="button">
             <i class="fas fa-share-alt"></i>
         </button>
+        <div id="sideBarTree"></div>
+        <div class="overlay"></div>
         <div id="containerApp" class="row m-0">
             <div id="editor" class="col">//Comienza a escribir tu código</div>
             <div id="visualizationContainer"></div>

@@ -8,8 +8,8 @@ procedure bubbleSort(ES int[] a)
 var
 int i,j
 {
-    for i<-1 to a.len - 1 do 
-        for j<-1 to a.len - i - 1 do 
+    for i<-1 to a.len do 
+        for j<-1 to a.len - i do 
             if (a[j]>a[j+1]) then
                 swap(a[j], a[j+1])
             endif
@@ -19,7 +19,7 @@ int i,j
 
 procedure main()
 var
-int[9] a <- [1,2,3,4,5,6,7,8,9] // Ingresar el arreglo
+int[4] a <- [10,24,3,4] // Ingresar el arreglo
 {
     bubbleSort(a)
 }
