@@ -109,19 +109,6 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     return true;
   }
 
-  function cloneArray(arr) {
-    if (Array.isArray(arr)) {
-      var i, copy;
-      copy = arr.slice(0);
-      for (i = 0; i < copy.length; i++) {
-          copy[i] = cloneArray(copy[i]);
-      }
-      return copy;
-    } else {
-      return arr;
-    }
-  }
-
   function getDataTypeofExpression(exp) {
     if (exp.dataType !== undefined) {
       return exp.dataType;
@@ -129,11 +116,9 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     switch (exp.type) {
       case "CallExpression":
         return SUBPROGRAMS[exp.callee].dataType;
-      break;
       case "CeilingFunction":
       case "FloorFunction":
         return "int";
-      break;
       default:
         return exp.type;
       break;            
@@ -330,7 +315,7 @@ FrontToken      = "frente"i        !IdentifierPart
 IsEmptyToken    = "isempty"i       !IdentifierPart
 LengthToken     = "len"i           !IdentifierPart
 SizeToken       = "size"i          !IdentifierPart
-SwapToken       = "swap"i          !IdentifierPart
+SwapToken       = "swap"i          !IdentifierPart//----------------------------------------------
 PrintToken      = "print"i         !IdentifierPart
 ShowToken       = "show"i          !IdentifierPart
 CharAtToken     = "charat"i        !IdentifierPart
@@ -391,7 +376,7 @@ StringVariable "variable string" = varS:VariableAccessExpression !"." &{return v
 CharVariable "variable char" = varC:VariableAccessExpression !"." &{return varC.dataType == "char";} {return varC;}
 
 //Expresiones según su tipo
-CharExpression = CharLiteral / FunctionChar / CharVariable / CharAtFunction
+CharExpression = CharLiteral / CharVariable / CharAtFunction
 
 CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpression _ ")" {
   return {
@@ -402,7 +387,7 @@ CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpressio
   };
 }
 
-StringExpression = StringLiteral / FunctionString / StringVariable / StringConcatenation
+StringExpression = StringLiteral / StringVariable / StringConcatenation
 
 leftHandSideStringConcatenation = StringLiteral / StringVariable / NumericExpression / BooleanVariable / CharExpression
 
@@ -428,7 +413,7 @@ StringConcatenation = head:leftHandSideStringConcatenation tail:(_ "+" _ leftHan
   }
 }
 
-LeftHandSideNumericExpression = NumericLiteral / FunctionInt / FunctionFloat / IntVariable / FloatVariable
+LeftHandSideNumericExpression = NumericLiteral / IntVariable / FloatVariable
   / SpecialNumericFunctions / VariablesNumericFunctions
   / "(" _ numExp:NumericExpression _ ")" {return numExp;}
 
@@ -449,7 +434,7 @@ RelationalExpression = head:NumericExpression tail:(_ RelationalOperator _ Numer
 
 RelationalOperator = "<=" / ">=" / $("<") / $(">")
 
-LeftHandSideEqualityLogExpression = BooleanLiteral / FunctionBoolean / BooleanVariable
+LeftHandSideEqualityLogExpression = BooleanLiteral / BooleanVariable
   / "(" _ logExp:BooleanExpression _ ")" {return logExp;} 
   / RelationalExpression
   / NotToken _ argument:BooleanExpression { 
@@ -470,7 +455,7 @@ EqualityExpression = head:(LeftHandSideEqualityLogExpression) tail:(_ EqualityOp
   / "(" _ equExp:EqualityExpression _ ")" 
   {return equExp;}
 
-EqualityOperator = "===" / "!==" / "==" / "!="
+EqualityOperator = "==" / "!="
 
 LogicalANDExpression = head:EqualityExpression tail:(_ LogicalANDOperator _ EqualityExpression)*
 {return buildLogicalExpression(head, tail);}
@@ -557,20 +542,10 @@ FunctionCall = callExp:CallExpression {
   return callExp;
 }
 
-FunctionChar = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "char"} {return callFun;}
-
-FunctionString = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "string"} {return callFun;}
-
-FunctionBoolean = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "boolean"} {return callFun;}
-
-FunctionInt = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "int"} {return callFun;}
-
-FunctionFloat = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "float"} {return callFun;}
-
 //LLamado a un procedimiento
 ProcedureCallStatement = callExp:CallExpression {
   if (SUBPROGRAMS[callExp.callee].type !== "procedure") {
-    error(callExp.callee + " es una función (debe utilizarse solo en una asignación o una expresión)");
+    error(callExp.callee + " es una función (debe utilizarse solo en una asignaciones)");
   }
   callExp.line = location().start.line - 1;
   return callExp;
@@ -583,7 +558,7 @@ Statements = SList:(head:Statement tail:(_f Statement)* _f {return buildList(hea
 Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchStatement / ProcedureCallStatement / SpecialFunctions
 
 // Asignación de variables
-AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:Expression {
+AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:(Expression / FunctionCall) {
   if (!isPrimitive(left.dataType)) { //Limited
     error("No se pueden asignar estructuras de datos");
   }
@@ -745,7 +720,7 @@ VarDeclarationFor = varFor:IntVariable _ AssignmentOperator _ iniValue:IntExpres
 FinalFor = ToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral {return valInc;})? {
   if (valInc == null) {
     valInc = 1;
-  } else if (valInc.value < 0) {
+  } else if (valInc.value <= 0) {
     error("El incremento debe ser positivo");
   } else {
     valInc = valInc.value;
@@ -758,7 +733,7 @@ FinalFor = ToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral
 / DownToToken _ finExp:IntExpression valInc:(_ IncToken _ valInc:IntLiteral {return valInc;})? {
   if (valInc == null) {
     valInc = -1;
-  } else if (valInc.value > 0) {
+  } else if (valInc.value >= 0) {
     error("El incremento debe ser negativo");
   } else {
     valInc = valInc.value;
@@ -876,7 +851,10 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       createVariable(name, {
         dataType: dataType, 
         d: arrayD,
-        value: cloneArray(valini)
+        value: {
+          type: "ArrayLiteral",
+          arr: valini
+        }
         });
     }
     return undefined;      
@@ -886,7 +864,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
         dataType: "pila<" + dataType + ">",
-        value: []});
+        value: {type: "EmptyArray"}
+          });
     }
     return undefined;    
   }
@@ -895,7 +874,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
           dataType: "cola<" + dataType + ">",
-          value: []});
+          value: {type: "EmptyArray"}
+          });
     }
     return undefined;    
   }
@@ -904,7 +884,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
           dataType: "lista<" + dataType + ">",
-          value: []});
+          value: {type: "EmptyArray"}
+          });
     }
     return undefined;    
   }    
@@ -962,7 +943,7 @@ SubProgramDeclaration =
 FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
 !{createSubProgram("function", dataType, id, params);} __ VariableStatement? 
 "{" _f body:Statements expReturn:ReturnStatement _f"}" {
-  if (checkDataTypeExpressions(dataType, getDataTypeofExpression(expReturn))) {
+  if (checkDataTypeExpressions(dataType, getDataTypeofExpression(expReturn.exp))) {
     error("Se debe retornar un " + dataType);
   }
   SUBPROGRAMS[id].body = body;
