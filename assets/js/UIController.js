@@ -47,9 +47,9 @@ $(document).ready(function () {
         //     test2.swap(2,3);
         // }, 1000);
 
-        setTimeout(() => {
-            test2.bubbleSortCallback();
-        }, 1000);
+        // setTimeout(() => {
+        //     test2.bubbleSortCallback();
+        // }, 1000);
     });
     //---------------------------------------------------------------------------------------------------
 
@@ -155,6 +155,18 @@ $(document).ready(function () {
             executeStatement();
         }
     });
+
+    $('#btnTreeShowHide').on('click', function (evt) {
+        evt.preventDefault();
+        if ($("#sideBarTree").hasClass("active")) {
+            $('#sideBarTree').removeClass('active');
+            $('.overlay').fadeOut();
+        } else {
+            $('#sideBarTree').addClass('active');
+            $('.overlay').fadeIn();
+        }
+    });
+
 });
 
 function showRunningUI() {

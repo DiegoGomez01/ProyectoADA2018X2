@@ -3,6 +3,8 @@ var program;
 var callStack = [];
 var auxReturnFunction;
 
+var test2;
+
 //Variable de ambiente
 var subprogram = {
     name: undefined,
@@ -107,9 +109,12 @@ function executeStatement() {
     var Statement = subprogram.actStatement();
     switch (Statement.type) {
         case "IfStatement":
+        console.log(getVariableValue("j"));
             if (evalExpression(Statement.test)) {
+                subprogram.incStatement();
                 subprogram.addBlock(Statement.consequent);
             } else if (Statement.alternate !== undefined) {
+                subprogram.incStatement();
                 subprogram.addBlock(Statement.alternate);
             } else {
                 subprogram.nextStatement();
@@ -190,6 +195,8 @@ function callSubprogram(name, args) {
     subprogram.name = name;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
     subprogram.addBlock(actSubprogram.body);
+    test2 = document.getElementById("iframeVisualizer").contentWindow;
+    test2.init(cloneArray(getVariableValue("a")));
 }
 
 function evalArgs(args) {
@@ -214,7 +221,7 @@ function createLocalVariables(localVars, params, args, argsValues) {
             value: argsValues[param.pos]
         };
         if (param.mode == "s" || param.mode == "es") {
-            subprogram.parameters.id = args[param.pos].id;
+            subprogram.parameters.id = args[param.pos].id; // params: {idAct:idinCaller}
         }
     }
 }
@@ -229,6 +236,9 @@ function returnSubprogram() {
         subprogram.name = callerSubprogram.name;
         subprogram.statementsBlockStack = callerSubprogram.statementsBlockStack;
         subprogram.statementIndex = callerSubprogram.statementIndex;
+        // for (let [idAct, idCaller] of Object.entries(subprogram.parameters)) {
+        //     callerSubprogram.localVariables[idCaller].value = subprogram.localVariables[idAct].value;
+        // }
         subprogram.localVariables = callerSubprogram.localVariables;
         subprogram.parameters = callerSubprogram.parameters;
         subprogram.log = callerSubprogram.log;
@@ -363,6 +373,9 @@ function AssignmentFunction(left, right) {
 }
 
 function swapVariables(left, right) {
+    console.log("swap: " +  getVariableValue("j"));
+    test2.swap(getVariableValue("j") - 1, getVariableValue("j"));
+    console.log("swap des: " +  getVariableValue("j"));
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);
