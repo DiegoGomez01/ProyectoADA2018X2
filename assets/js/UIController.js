@@ -2,8 +2,8 @@ var editor;
 var actLineSelected;
 var actErrorMarker;
 var Range = ace.require('ace/range').Range;
-var lineBreackpoints=[];
-var markerBreakpoints=[];
+var lineBreackpoints = [];
+var markerBreakpoints = [];
 
 $(document).ready(function () {
 
@@ -11,7 +11,7 @@ $(document).ready(function () {
     $("#headerBar").on("click", function () {
         $("#viewerCointainer").toggleClass("col-sm-7 d-none");
         $("#editor").toggleClass("col-sm-5 col");
-        var arr=[50,38,20,18,70,45,56,100];
+        var arr = [50, 38, 20, 18, 70, 45, 56, 100];
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
         test2.init(arr);
 
@@ -38,11 +38,11 @@ $(document).ready(function () {
         // setTimeout(() => {
         //     test2.barColorChange(1);
         // }, 1000);
-        
+
         // setTimeout(() => {
         //     test2.resetbarColorChange(1);
         // }, 2000);
-        
+
         // setTimeout(() => {
         //     test2.swap(2,3);
         // }, 1000);
@@ -62,21 +62,21 @@ $(document).ready(function () {
         minLines: 25
     });
 
-    editor.on("gutterclick", function(e) { 
-        var region = e.editor.renderer.$gutterLayer.getRegion(e) 
-        if (region == "markers")  { 
-            e.stop() 
+    editor.on("gutterclick", function (e) {
+        var region = e.editor.renderer.$gutterLayer.getRegion(e)
+        if (region == "markers") {
+            e.stop()
             var line = e.getDocumentPosition().row;
             var index = lineBreackpoints.indexOf(line);
-            if(index==-1){
+            if (index == -1) {
                 selectLineBreackpoint(line);
                 lineBreackpoints.push(line);
-            }else{
+            } else {
                 deleteMarker(markerBreakpoints[index]);
                 markerBreakpoints.splice(index, 1);
                 lineBreackpoints.splice(index, 1);
             }
-        } 
+        }
     }, true);
 
     editor.on("change", function () {
@@ -113,7 +113,10 @@ $(document).ready(function () {
                         return buttons + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startProgram(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
                     }, "") +
                     '</div>'
-                ).set({'basic':true, 'closable':true});
+                ).set({
+                    'basic': true,
+                    'closable': true
+                });
             } else {
                 startProgram("main");
             }
@@ -155,16 +158,18 @@ $(document).ready(function () {
 });
 
 function showRunningUI() {
-    $("#btnRun").text("Detener").data("run","stop");
+    $("#hubExecutionControllerContainer button").prop('disabled', false);
+    $("#btnRun").text("Detener").data("run", "stop");
     $("#configBar").slideUp(1000, undefined);
-    $("#hubExecutionControllerContainer").fadeIn(1000, undefined);
+    $("#hubExecutionControllerContainer").fadeIn(500, undefined);
     editor.setReadOnly(true);
 }
 
 function hideRunningUI() {
-    $("#btnRun").text("Ejecutar").data("run","");
+    $("#hubExecutionControllerContainer button").prop('disabled', true);
+    $("#btnRun").text("Ejecutar").data("run", "");
     $("#configBar").slideDown(1000, undefined);
-    $("#hubExecutionControllerContainer").fadeOut(1000, function () {
+    $("#hubExecutionControllerContainer").fadeOut(500, function () {
         if ($("#btnPlay i").hasClass("fa-pause")) {
             $("#btnPlay i").toggleClass("fa-play fa-pause");
         }

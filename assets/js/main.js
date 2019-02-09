@@ -1,8 +1,9 @@
 var parser;
 var program;
-
-//Variables de ambiente
 var callStack = [];
+var auxReturnFunction;
+
+//Variable de ambiente
 var subprogram = {
     name: undefined,
     statementsBlockStack: [],
@@ -94,6 +95,7 @@ function startProgram(mainName) {
     } else {
         alertify.alert().close();
         showRunningUI();
+        callStack = [];
         subprogram.reset();
         subprogram.name = mainName;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params);
@@ -105,8 +107,13 @@ function executeStatement() {
     var Statement = subprogram.actStatement();
     switch (Statement.type) {
         case "IfStatement":
-            subprogram.incStatement();
-            subprogram.addBlock(Statement.consequent);
+            if (evalExpression(Statement.test)) {
+                subprogram.addBlock(Statement.consequent);
+            } else if (Statement.alternate !== undefined) {
+                subprogram.addBlock(Statement.alternate);
+            } else {
+                subprogram.nextStatement();
+            }
             return;
         case "ForStatement":
             subprogram.incStatement();
@@ -140,6 +147,10 @@ function executeStatement() {
             }
             subprogram.addBlock(Statement.body);
             return;
+        case "AssignmentStatement":
+            if (!AssignmentFunction(Statement.left, Statement.right)) {
+                return;
+            }
         case "CallExpression":
             subprogram.incStatement();
             callSubprogram(Statement.callee, Statement.arguments);
@@ -147,8 +158,12 @@ function executeStatement() {
         case "SwapFunction":
             swapVariables(Statement.left, Statement.right);
             break;
+        case "ReturnStatement":
+            auxReturnFunction = evalExpression(Statement.exp);
+            returnSubprogram();
+            return;
         default:
-            alert("falta: " + Statement.type);
+            alert("falta Statement: " + Statement.type);
             break;
     }
     subprogram.nextStatement();
@@ -167,7 +182,7 @@ function locateNextStatement() {
     }
 }
 
-function callSubprogram(name, args) { // args [exp,exp,....]
+function callSubprogram(name, args) {
     var actSubprogram = program.SUBPROGRAMS[name];
     var argsValues = evalArgs(args);
     callStack.push(subprogram.getAct());
@@ -175,6 +190,15 @@ function callSubprogram(name, args) { // args [exp,exp,....]
     subprogram.name = name;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
     subprogram.addBlock(actSubprogram.body);
+}
+
+function evalArgs(args) {
+    var argsValues = [];
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        argsValues[i] = evalExpression(arg);
+    }
+    return argsValues;
 }
 
 function createLocalVariables(localVars, params, args, argsValues) {
@@ -199,6 +223,7 @@ function returnSubprogram() {
     var callerSubprogram = callStack.pop();
     if (callerSubprogram == undefined) {
         hideRunningUI();
+        console.log(getVariableValue("a"));
         alertify.success("¡Fin del programa!");
     } else {
         subprogram.name = callerSubprogram.name;
@@ -212,7 +237,10 @@ function returnSubprogram() {
 }
 
 function throwException(txt) {
-    alertify.error(txt + " linea: " + (subprogram.actStatement().line + 1));
+    hideRunningUI();
+    alertify.error(txt + " linea: " + (subprogram.actStatement().line + 1), 15);
+    alertify.warning("¡Cierre forzado del programa!");
+    throw txt + " linea: " + (subprogram.actStatement().line + 1);
 }
 
 function evalExpression(exp) {
@@ -224,6 +252,8 @@ function evalExpression(exp) {
             return exp.value;
         case "Variable":
             return getVariableValue(exp.id);
+        case "ArrayAccess":
+            return getArrayAccessValue(exp.id, exp.index);
         case "ArrayLiteral":
             return cloneArray(exp.arr);
         case "EmptyArray":
@@ -240,6 +270,8 @@ function evalExpression(exp) {
             return Math.ceil(evalExpression(exp.exp));
         case "ArrayLengthFunction":
             return getVariableValue(exp.arrVar.id).length;
+        case "StringConcatenation":
+            return evalStringConcatenation(exp.exps);
         default:
             alert("Falta la expresión: " + exp.type);
             break;
@@ -259,7 +291,7 @@ function evalIntExpression(IntExp) {
         case "%":
             return parseInt(evalExpression(IntExp.left) % evalExpression(IntExp.right));
         default:
-            alert("falta: " + IntExp.operator + "operator int");
+            alert("falta op: " + IntExp.operator);
             break;
     }
 }
@@ -277,7 +309,7 @@ function evalFloatExpression(floatExp) {
         case "%":
             return parseFloat(evalExpression(floatExp.left) % evalExpression(floatExp.right));
         default:
-            alert("falta: " + floatExp.operator + "operator float");
+            alert("falta op: " + floatExp.operator);
             break;
     }
 }
@@ -303,23 +335,31 @@ function evalBooleanExpression(booleanExp) {
         case "not":
             return !evalExpression(booleanExp.argument);
         default:
-            alert("falta: " + booleanExp.operator + "operator");
+            alert("falta op: " + booleanExp.operator);
             break;
     }
 }
 
-
-function evalArgs(args) {
-    var argsValues = [];
-    for (let i = 0; i < args.length; i++) {
-        const arg = args[i];
-        argsValues[i] = evalExpression(arg);
+function evalStringConcatenation(exps) {
+    var str = "";
+    for (let i = 0; i < exps.length; i++) {
+        const exp = exps[i];
+        str += evalExpression(exp);
     }
-    return argsValues;
+    return str;
 }
 
 function AssignmentFunction(left, right) {
-    changeValueExpVariableAccess(left, evalExpression(right));
+    if (right.callee == undefined) {
+        changeValueExpVariableAccess(left, evalExpression(right));
+    } else if (auxReturnFunction == undefined) {
+        callSubprogram(right.callee, right.arguments);
+        return false;
+    } else {
+        changeValueExpVariableAccess(left, auxReturnFunction);
+        auxReturnFunction = undefined;
+    }
+    return true;
 }
 
 function swapVariables(left, right) {
@@ -342,9 +382,9 @@ function getValueExpVariableAccess(exp) {
 
 function changeValueExpVariableAccess(exp, value) {
     if (exp.type == "ArrayAccess") {
-        return changeArrayAccessValue(exp.id, exp.index, value);
+        changeArrayAccessValue(exp.id, exp.index, value);
     } else {
-        return changeVariableValue(exp.id);
+        changeVariableValue(exp.id, value);
     }
 }
 

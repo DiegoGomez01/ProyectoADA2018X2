@@ -116,11 +116,9 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     switch (exp.type) {
       case "CallExpression":
         return SUBPROGRAMS[exp.callee].dataType;
-      break;
       case "CeilingFunction":
       case "FloorFunction":
         return "int";
-      break;
       default:
         return exp.type;
       break;            
@@ -378,7 +376,7 @@ StringVariable "variable string" = varS:VariableAccessExpression !"." &{return v
 CharVariable "variable char" = varC:VariableAccessExpression !"." &{return varC.dataType == "char";} {return varC;}
 
 //Expresiones según su tipo
-CharExpression = CharLiteral / FunctionChar / CharVariable / CharAtFunction
+CharExpression = CharLiteral / CharVariable / CharAtFunction
 
 CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpression _ ")" {
   return {
@@ -389,7 +387,7 @@ CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpressio
   };
 }
 
-StringExpression = StringLiteral / FunctionString / StringVariable / StringConcatenation
+StringExpression = StringLiteral / StringVariable / StringConcatenation
 
 leftHandSideStringConcatenation = StringLiteral / StringVariable / NumericExpression / BooleanVariable / CharExpression
 
@@ -415,7 +413,7 @@ StringConcatenation = head:leftHandSideStringConcatenation tail:(_ "+" _ leftHan
   }
 }
 
-LeftHandSideNumericExpression = NumericLiteral / FunctionInt / FunctionFloat / IntVariable / FloatVariable
+LeftHandSideNumericExpression = NumericLiteral / IntVariable / FloatVariable
   / SpecialNumericFunctions / VariablesNumericFunctions
   / "(" _ numExp:NumericExpression _ ")" {return numExp;}
 
@@ -436,7 +434,7 @@ RelationalExpression = head:NumericExpression tail:(_ RelationalOperator _ Numer
 
 RelationalOperator = "<=" / ">=" / $("<") / $(">")
 
-LeftHandSideEqualityLogExpression = BooleanLiteral / FunctionBoolean / BooleanVariable
+LeftHandSideEqualityLogExpression = BooleanLiteral / BooleanVariable
   / "(" _ logExp:BooleanExpression _ ")" {return logExp;} 
   / RelationalExpression
   / NotToken _ argument:BooleanExpression { 
@@ -544,20 +542,10 @@ FunctionCall = callExp:CallExpression {
   return callExp;
 }
 
-FunctionChar = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "char"} {return callFun;}
-
-FunctionString = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "string"} {return callFun;}
-
-FunctionBoolean = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "boolean"} {return callFun;}
-
-FunctionInt = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "int"} {return callFun;}
-
-FunctionFloat = callFun:FunctionCall &{return SUBPROGRAMS[callFun.callee].dataType == "float"} {return callFun;}
-
 //LLamado a un procedimiento
 ProcedureCallStatement = callExp:CallExpression {
   if (SUBPROGRAMS[callExp.callee].type !== "procedure") {
-    error(callExp.callee + " es una función (debe utilizarse solo en una asignación o una expresión)");
+    error(callExp.callee + " es una función (debe utilizarse solo en una asignaciones)");
   }
   callExp.line = location().start.line - 1;
   return callExp;
@@ -570,7 +558,7 @@ Statements = SList:(head:Statement tail:(_f Statement)* _f {return buildList(hea
 Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchStatement / ProcedureCallStatement / SpecialFunctions
 
 // Asignación de variables
-AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:Expression {
+AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:(Expression / FunctionCall) {
   if (!isPrimitive(left.dataType)) { //Limited
     error("No se pueden asignar estructuras de datos");
   }
@@ -955,7 +943,7 @@ SubProgramDeclaration =
 FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
 !{createSubProgram("function", dataType, id, params);} __ VariableStatement? 
 "{" _f body:Statements expReturn:ReturnStatement _f"}" {
-  if (checkDataTypeExpressions(dataType, getDataTypeofExpression(expReturn))) {
+  if (checkDataTypeExpressions(dataType, getDataTypeofExpression(expReturn.exp))) {
     error("Se debe retornar un " + dataType);
   }
   SUBPROGRAMS[id].body = body;
