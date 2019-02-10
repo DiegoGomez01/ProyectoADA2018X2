@@ -27,6 +27,7 @@
 
 <body>
     <div class="container-fluid p-0">
+        <div id="overlay"></div>
         <header id="headerBar" class="row m-0">
             <h3 class="align-self-center ml-1 mb-0">Proyecto ADA 2018-2</h3>
         </header>
@@ -75,26 +76,50 @@
                     </div>
                 </div>
             </div>
+            <button id="btnRun" class="btn btn-primary align-self-end" type="button">Ejecutar</button>
         </nav>
-        <button id="btnRun" class="btn btn-primary position-fixed" type="button" data-run="">
-            Ejecutar
-        </button>
-        <button id="btnTreeShowHide" class="btn btn-secondary position-fixed" type="button">
-            <i class="fas fa-share-alt"></i>
-        </button>
-        <div id="sideBarTree"></div>
-        <div class="overlay"></div>
+        <div id="sideBarTree">
+            <div class="d-flex">
+                <a id="btnCloseTree" class="btn" type="button">
+                    <i class="fas fa-times fa-2x"></i>
+                </a>
+            </div>
+            <iframe class="embed-responsive embed-responsive-21by9" src="./treeView.html"></iframe>
+        </div>
         <div id="containerApp" class="row m-0">
-            <div id="editor" class="col">//Comienza a escribir tu código</div>
-            <div id="visualizationContainer"></div>
-            <div id="viewerCointainer" class="embed-responsive embed-responsive-21by9 d-none">
-                <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
+            <div id="editorContainer" class="col-lg p-0">
+                <div id="editor">//Comienza a escribir tu código</div>
+            </div>
+            <div id="viewerCointainer" class="col-lg p-0" style="display: none;">
+                <div id="containerTree" class="embed-responsive embed-responsive-21by9">
+                    <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
+                </div>
+                <div id="containerVariables" style="display: none;">
+                    Aqui van las Variables!!!!!!!!!!
+                </div>
+            </div>
+            <div id="containerSideBtns" class="mt-5" style="display: none;">
+                <div id="btnShowTree" class="btnTabVisualization mt-1">
+                    <i class="fas fa-share-alt"></i><span class="border-left pl-1">Ambientes</span>
+                </div>
+                <div class="tab btnTabVisualization mt-1" data-tab="1">
+                    <i class="fas fa-list-ul"></i><span class="border-left pl-1">Variables</span>
+                </div>
+                <div class="tab btnTabVisualization mt-1 disabled" data-tab="2">
+                    <i class="fab fa-stack-overflow"></i><span class="border-left pl-1">Visualizador</span>
+                </div>
             </div>
         </div>
         <div id="hubExecutionControllerContainer" style="display:none;" class="row m-0">
-            <div class="col"></div>
+            <div class="col">
+                <div class="d-flex flex-row-reverse">
+                    <button id="btnStop" class="btn btn-secondary" type="button">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                </div>
+            </div>
             <div class="col-2">
-                <div class="row justify-content-md-center">
+                <div class="row d-flex flex-nowrap justify-content-md-center">
                     <button id="btnBackStep" class="btn btn-secondary" type="button">
                         <i class="fas fa-backward"></i>
                     </button>
@@ -107,11 +132,11 @@
                 </div>
             </div>
             <div class="col">
-                <div id="spdSelector" class="btn-group dropup">
+                <div id="spdSelector" class="btn-group dropup" style="display: none;">
                     <div type="button" class="btn btn-secondary">
                         <i class="fas fa-tachometer-alt"></i>
                     </div>
-                    <button type="button" class="btn btn-secondary dropdown-toggle disabled" data-toggle="dropdown"
+                    <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                         normal
                     </button>
@@ -129,12 +154,11 @@
             </div>
         </div>
     </div>
-
-    <iframe class="embed-responsive embed-responsive-21by9" src="./treeView.html"></iframe>
+    <!-- <iframe class="embed-responsive embed-responsive-21by9" src="./treeView.html"></iframe> -->
     <!-- <div class="embed-responsive embed-responsive-21by9 d-none">
         <iframe class="embed-responsive-item" src="./treeView.html"></iframe>
     </div> -->
-    
+
 </body>
 
 </html>
