@@ -1,15 +1,9 @@
-#btnTreeShowHide {
-    top: 55px;
-    left: 10px;
-    z-index: 1900;
-}
-
 #sideBarTree {
-    width: 390px;
-    padding: 20px;
+    width: 1000px;
+    padding: 5px;
     position: fixed;
-    top: 0;
-    right: -390px;
+    top: 0px;
+    right: -1000px;
     height: 100vh;
     z-index: 1100;
     background: #fff;
@@ -18,24 +12,28 @@
     box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
 }
 
-#sideBarTree[class=active] {
+#sideBarTree.active {
     right: 0;
 }
 
-@media only screen and (max-width: 380px) {
+@media only screen and (max-width: 900px) {
     #sideBarTree {
         width: 90vw;
         right: -90vw;
     }
 }
 
-.overlay {
+#overlay {
     position: fixed;
-    width: 100vw;
-    height: 100vh;
-    background: #000000AA;
-    z-index: 1050;
     display: none;
+    width: 100%; 
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1050; 
 }
 
 #headerBar {
@@ -43,7 +41,6 @@
     height: 50px;
     background-color: #cf000f;
     color: #fff;
-    z-index: 1000;
 }
 
 button,
@@ -55,20 +52,43 @@ button,
     font-family: 'Source Sans Pro', sans-serif;
 }
 
-#containerApp div {
-    transition: width 2s;
-}
-
 #editor {
     font-family: 'Courier New', Courier, monospace;
-    font-size: 19px;
+    font-size: 16px;
 }
 
-#btnRun {
-    width: 90px;
-    top: 55px;
-    right: 10px;
-    z-index: 1900;
+#containerSideBtns {
+    position: fixed;
+    right: -150px;
+}
+
+.btnTabVisualization {
+    position: relative;
+    width: 190px;
+    padding: 5px 10px 5px 10px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    background-color: #cf000f;
+    color: #fff;
+    opacity: 1;
+}
+
+.tab.disabled {
+    background-color: gray;
+}
+
+.btnTabVisualization i {
+    width: 35px;
+    font-size: 24px;
+}
+
+.btnTabVisualization span {
+    width: 155px;
+}
+
+.btnTabVisualization:not(.disabled):hover {
+    left: -110px;
+    cursor: pointer;
 }
 
 #hubExecutionControllerContainer {
@@ -76,7 +96,7 @@ button,
     bottom: 1px;
     left: 0px;
     width: 100vw;
-    z-index: 1901;
+    z-index: 1049;
 }
 
 .ace_selected_line {

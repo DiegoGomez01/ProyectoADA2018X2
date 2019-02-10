@@ -2,6 +2,7 @@ var parser;
 var program;
 var callStack = [];
 var auxReturnFunction;
+var autoExecuteID;
 
 var test2;
 
@@ -105,11 +106,39 @@ function startProgram(mainName) {
     }
 }
 
+function startAutoExecute() {
+    var exeSpd = getUISpeed();
+    autoExecuteID = setInterval(autoExecute, exeSpd);
+}
+
+function changeSpeed(spd) {
+    var exeSpd = VELOCIDADNORMALMS / spd;
+    pauseAutoExecute();
+    autoExecuteID = setInterval(autoExecute, exeSpd);
+}
+
+function pauseAutoExecute() {
+    clearInterval(autoExecuteID);
+    autoExecuteID = undefined;
+}
+
+function autoExecute() {
+    executeStatement();
+}
+
+function stopExecution() {
+    if (autoExecuteID !== undefined) {
+        pauseAutoExecute();
+        pauseUI();
+    }
+    hideRunningUI();
+}
+
 function executeStatement() {
     var Statement = subprogram.actStatement();
     switch (Statement.type) {
         case "IfStatement":
-        console.log(getVariableValue("j"));
+            console.log(getVariableValue("j"));
             if (evalExpression(Statement.test)) {
                 subprogram.incStatement();
                 subprogram.addBlock(Statement.consequent);
@@ -229,7 +258,7 @@ function createLocalVariables(localVars, params, args, argsValues) {
 function returnSubprogram() {
     var callerSubprogram = callStack.pop();
     if (callerSubprogram == undefined) {
-        hideRunningUI();
+        stopExecution();
         console.log(getVariableValue("a"));
         alertify.success("¡Fin del programa!");
     } else {
@@ -247,7 +276,7 @@ function returnSubprogram() {
 }
 
 function throwException(txt) {
-    hideRunningUI();
+    stopExecution();
     alertify.error(txt + " linea: " + (subprogram.actStatement().line + 1), 15);
     alertify.warning("¡Cierre forzado del programa!");
     throw txt + " linea: " + (subprogram.actStatement().line + 1);
@@ -373,9 +402,9 @@ function AssignmentFunction(left, right) {
 }
 
 function swapVariables(left, right) {
-    console.log("swap: " +  getVariableValue("j"));
+    console.log("swap: " + getVariableValue("j"));
     test2.swap(getVariableValue("j") - 1, getVariableValue("j"));
-    console.log("swap des: " +  getVariableValue("j"));
+    console.log("swap des: " + getVariableValue("j"));
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);

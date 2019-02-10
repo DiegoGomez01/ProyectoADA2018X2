@@ -1,3 +1,7 @@
+//---------------------------CONSTANTES---------------------------
+const VELOCIDADNORMALMS = 1000;
+const VELOCIDADUINORMALMS = 500;
+
 var editor;
 var actLineSelected;
 var actErrorMarker;
@@ -6,11 +10,8 @@ var lineBreackpoints = [];
 var markerBreakpoints = [];
 
 $(document).ready(function () {
-
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        $("#viewerCointainer").toggleClass("col-sm-7 d-none");
-        $("#editor").toggleClass("col-sm-5 col");
         var arr = [50, 38, 20, 18, 70, 45, 56, 100];
         var test2 = document.getElementById("iframeVisualizer").contentWindow;
         test2.init(arr);
@@ -58,8 +59,8 @@ $(document).ready(function () {
         theme: "ace/theme/chrome",
         mode: "ace/mode/pseudo",
         autoScrollEditorIntoView: true,
-        maxLines: 25,
-        minLines: 25
+        maxLines: 30,
+        minLines: 30
     });
 
     editor.on("gutterclick", function (e) {
@@ -102,9 +103,7 @@ $(document).ready(function () {
     });
 
     $("#btnRun").on("click", function () {
-        if ($(this).data("run") == "stop") {
-            hideRunningUI();
-        } else if (program !== undefined) {
+        if (program !== undefined) {
             if (program.SUBPROGRAMS.main === undefined) {
                 alertify.alert(
                     '<h4 class="text-center">¡Seleccione la subrutina inicial (main)!</h4>' +
@@ -136,12 +135,24 @@ $(document).ready(function () {
             } else {
                 $('#spdSelector button').text("x" + spd);
             }
+            changeSpeed(spd);
         }
     });
 
+    $("#btnStop").on("click", function () {
+        stopExecution();
+    });
+
     $("#btnPlay").on("click", function () {
+        if (autoExecuteID == undefined) {
+            $("#spdSelector").fadeIn(VELOCIDADUINORMALMS);
+            startAutoExecute();
+        } else {
+            $("#spdSelector").fadeOut(VELOCIDADUINORMALMS);
+            pauseAutoExecute();
+        }
+        $("#btnBackStep, #btnNextStep").toggleClass("disabled");
         $("i", this).toggleClass("fa-play fa-pause");
-        $("#btnBackStep, #btnNextStep, #spdSelector button").toggleClass("disabled");
     });
 
     $("#btnBackStep").on("click", function () {
@@ -156,38 +167,68 @@ $(document).ready(function () {
         }
     });
 
-    $('#btnTreeShowHide').on('click', function (evt) {
-        evt.preventDefault();
-        if ($("#sideBarTree").hasClass("active")) {
-            $('#sideBarTree').removeClass('active');
-            $('.overlay').fadeOut();
-        } else {
-            $('#sideBarTree').addClass('active');
-            $('.overlay').fadeIn();
+    $("#containerSideBtns .tab").on('click', function () {
+        if (!$(this).hasClass("disabled")) {
+            $("#containerSideBtns div.tab.disabled").removeClass("disabled");
+            $(this).addClass("disabled");
+            switch ($(this).data("tab")) {
+                case 1:
+                    $("#containerTree").fadeOut(250, function () {
+                        $("#containerVariables").fadeIn(250);
+                    });
+                    break;
+                case 2:
+                    $("#containerVariables").fadeOut(250, function () {
+                        $("#containerTree").fadeIn(250);
+                    });
+                    break;
+                default:
+                    alert("error");
+                    break;
+            }
         }
     });
 
+    $('#btnShowTree').on('click', function (evt) {
+        evt.preventDefault();
+        $('#sideBarTree').addClass('active');
+        $('#overlay').fadeIn(VELOCIDADUINORMALMS);
+    });
+
+    $('#btnCloseTree').on('click', function (evt) {
+        evt.preventDefault();
+        $('#sideBarTree, #btnShowTree').removeClass('active');
+        $('#overlay').fadeOut(VELOCIDADUINORMALMS);
+    });
 });
 
 function showRunningUI() {
     $("#hubExecutionControllerContainer button").prop('disabled', false);
-    $("#btnRun").text("Detener").data("run", "stop");
-    $("#configBar").slideUp(1000, undefined);
-    $("#hubExecutionControllerContainer").fadeIn(500, undefined);
+    $("#containerSideBtns").fadeIn(VELOCIDADUINORMALMS);
+    $("#viewerCointainer").fadeIn(VELOCIDADUINORMALMS);
+    $("#configBar").slideUp(VELOCIDADUINORMALMS);
+    $("#hubExecutionControllerContainer").fadeIn(VELOCIDADUINORMALMS);
     editor.setReadOnly(true);
+    editor.setOption("maxLines", 33);
+    editor.resize();
 }
 
 function hideRunningUI() {
     $("#hubExecutionControllerContainer button").prop('disabled', true);
-    $("#btnRun").text("Ejecutar").data("run", "");
-    $("#configBar").slideDown(1000, undefined);
-    $("#hubExecutionControllerContainer").fadeOut(500, function () {
-        if ($("#btnPlay i").hasClass("fa-pause")) {
-            $("#btnPlay i").toggleClass("fa-play fa-pause");
-        }
-    });
+    $("#containerSideBtns").fadeOut(VELOCIDADUINORMALMS);
+    $("#viewerCointainer").fadeOut(VELOCIDADUINORMALMS);
+    $("#configBar").slideDown(VELOCIDADUINORMALMS);
+    $("#hubExecutionControllerContainer").fadeOut(VELOCIDADUINORMALMS);
     deleteMarker(actLineSelected);
     editor.setReadOnly(false);
+    editor.setOption("maxLines", 30);
+    editor.resize();
+}
+
+function pauseUI() {
+    $("#spdSelector").fadeOut(VELOCIDADUINORMALMS);
+    $("#btnBackStep, #btnNextStep").toggleClass("disabled");
+    $("#btnPlay i").toggleClass("fa-play fa-pause");
 }
 
 function selectLine(line) {
@@ -208,6 +249,10 @@ function selectLineBreackpoint(line) {
 
 function deleteMarker(id) {
     editor.getSession().removeMarker(id);
+}
+
+function getUISpeed() {
+    return (VELOCIDADNORMALMS / parseFloat($('#spdSelector a.active').attr("data-vel")));
 }
 
 //Código para mostrar una anotación en el editor
