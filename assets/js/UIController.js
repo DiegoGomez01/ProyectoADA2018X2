@@ -1,6 +1,8 @@
 //---------------------------CONSTANTES---------------------------
 const VELOCIDADNORMALMS = 1000;
 const VELOCIDADUINORMALMS = 500;
+const VELOCIDADUICAMBIOSMS = 250;
+//----------------------------------------------------------------
 
 var editor;
 var actLineSelected;
@@ -13,9 +15,8 @@ $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
         var arr = [50, 38, 20, 18, 70, 45, 56, 100];
-        var test2 = document.getElementById("iframeVisualizer").contentWindow;
-        test2.init(arr);
-
+        // var test2 = document.getElementById("iframeVisualizer").contentWindow;
+        // test2.init(arr);
         /*******Agregar, quitar y animar una variable visible*******/
         // test2.addVisibleVariable('V',50);
         // test2.addVisibleVariable('F',30);
@@ -173,13 +174,13 @@ $(document).ready(function () {
             $(this).addClass("disabled");
             switch ($(this).data("tab")) {
                 case 1:
-                    $("#containerTree").fadeOut(250, function () {
-                        $("#containerVariables").fadeIn(250);
+                    $("#containerTree").fadeOut(VELOCIDADUICAMBIOSMS, function () {
+                        $("#containerVariables").fadeIn(VELOCIDADUICAMBIOSMS);
                     });
                     break;
                 case 2:
-                    $("#containerVariables").fadeOut(250, function () {
-                        $("#containerTree").fadeIn(250);
+                    $("#containerVariables").fadeOut(VELOCIDADUICAMBIOSMS, function () {
+                        $("#containerTree").fadeIn(VELOCIDADUICAMBIOSMS);
                     });
                     break;
                 default:
@@ -215,14 +216,19 @@ function showRunningUI() {
 
 function hideRunningUI() {
     $("#hubExecutionControllerContainer button").prop('disabled', true);
+    $("#hubExecutionControllerContainer").fadeOut(VELOCIDADUINORMALMS);
     $("#containerSideBtns").fadeOut(VELOCIDADUINORMALMS);
     $("#viewerCointainer").fadeOut(VELOCIDADUINORMALMS);
     $("#configBar").slideDown(VELOCIDADUINORMALMS);
-    $("#hubExecutionControllerContainer").fadeOut(VELOCIDADUINORMALMS);
     deleteMarker(actLineSelected);
     editor.setReadOnly(false);
     editor.setOption("maxLines", 30);
     editor.resize();
+}
+
+function disableExecutionUI() {
+    tryPauseAutoExecute();
+    $("#executionBtns button").prop('disabled', true);
 }
 
 function pauseUI() {

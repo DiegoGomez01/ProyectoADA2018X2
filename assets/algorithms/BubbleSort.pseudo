@@ -22,4 +22,5 @@ var
 int[4] a <- [10,24,3,4] // Ingresar el arreglo
 {
     bubbleSort(a)
+    print(a)
 }
