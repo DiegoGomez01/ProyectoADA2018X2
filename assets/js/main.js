@@ -152,6 +152,7 @@ function stopExecution() {
 
 function executeStatement() {
     var Statement = subprogram.actStatement();
+    countLine(Statement.line);
     switch (Statement.type) {
         case "IfStatement":
             if (evalExpression(Statement.test)) {
@@ -303,6 +304,7 @@ function returnSubprogram(returnExpValue) {
     var callerSubprogram = callStack.pop();
     if (callerSubprogram == undefined) {
         disableExecutionUI();
+        console.log(lineCounting);
         alertify.success("¡Fin del programa!",5);
     } else {
         subprogram.name = callerSubprogram.name;

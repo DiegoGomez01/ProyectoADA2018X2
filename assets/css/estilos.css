@@ -116,6 +116,11 @@ button,
     background-color: #f64747;
 }
 
+.ace_breakpoint_line {
+    position: absolute;
+    background-color: blue;
+}
+
 .ace_underline_error {
     position: absolute;
     border-bottom: 1px solid red;

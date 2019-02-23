@@ -565,7 +565,12 @@ CallExpression = callee:SubProgramID args:Arguments {
       error("El parámetro " + (parameterCallee.pos + 1) + " debe ser una variable ya que es de salida");
     }
   }
-  return {type:"CallExpression", callee: callee, arguments: args};
+  return {
+    type:"CallExpression", 
+    callee: callee, 
+    arguments: args,
+    line: location().start.line - 1
+  };
 }
 
 SubProgramID "nombre del subprograma" = id:Identifier "(" {
@@ -596,7 +601,6 @@ ProcedureCallStatement = callExp:CallExpression {
   if (SUBPROGRAMS[callExp.callee].type !== "procedure") {
     error(callExp.callee + " es una función (debe utilizarse solo en una asignaciones)");
   }
-  callExp.line = location().start.line - 1;
   return callExp;
 }
 
