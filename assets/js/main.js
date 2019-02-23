@@ -1,10 +1,8 @@
 var parser;
 var program;
 var callStack = [];
-var auxReturnFunction;
+var auxSwitchExpValue;
 var autoExecuteID;
-
-var test2;
 
 //Variable de ambiente
 var subprogram = {
@@ -13,6 +11,7 @@ var subprogram = {
     statementIndex: [],
     localVariables: {},
     parameters: {},
+    returnVariable: undefined,
     log: [],
     getAct: function () {
         return {
@@ -21,6 +20,7 @@ var subprogram = {
             statementIndex: this.statementIndex,
             localVariables: this.localVariables,
             parameters: this.parameters,
+            returnVariable: this.returnVariable,
             log: this.log
         };
     },
@@ -30,20 +30,28 @@ var subprogram = {
         this.statementIndex = [];
         this.localVariables = {};
         this.parameters = {};
+        this.returnVariable = undefined;
         this.log = [];
+    },
+    actStatement: function () {
+        return last(this.statementsBlockStack)[last(this.statementIndex)];
     },
     addBlock: function (block) {
         this.statementsBlockStack.push(block);
         this.statementIndex.push(0);
         this.validateNextStatement();
     },
-    actStatement: function () {
-        return last(this.statementsBlockStack)[last(this.statementIndex)];
-    },
-    finishBlock: function () {
+    popBlock: function () {
         this.statementsBlockStack.pop();
         this.statementIndex.pop();
+    },
+    finishBlock: function () {
+        this.popBlock();
         locateNextStatement();
+    },
+    changeBlock: function (newBlock) {
+        this.popBlock();
+        this.addBlock(newBlock);
     },
     hasStatements: function () {
         return this.statementsBlockStack.length > 0;
@@ -96,6 +104,9 @@ function startProgram(mainName) {
     if (sizeObj(actSubprogram.params) > 0) {
         alertify.error('La subrutina inicial no debe tener parametros.');
     } else {
+        for (var idVar in program.GLOBALS) {
+            program.GLOBALS[idVar].value = evalExpression(program.GLOBALS[idVar].value);
+        }
         alertify.alert().close();
         showRunningUI();
         callStack = [];
@@ -103,6 +114,7 @@ function startProgram(mainName) {
         subprogram.name = mainName;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params);
         subprogram.addBlock(actSubprogram.body);
+        showAllVariables();
     }
 }
 
@@ -117,6 +129,13 @@ function changeSpeed(spd) {
     autoExecuteID = setInterval(autoExecute, exeSpd);
 }
 
+function tryPauseAutoExecute() {
+    if (autoExecuteID !== undefined) {
+        pauseAutoExecute();
+        pauseUI();
+    }
+}
+
 function pauseAutoExecute() {
     clearInterval(autoExecuteID);
     autoExecuteID = undefined;
@@ -127,10 +146,7 @@ function autoExecute() {
 }
 
 function stopExecution() {
-    if (autoExecuteID !== undefined) {
-        pauseAutoExecute();
-        pauseUI();
-    }
+    tryPauseAutoExecute();
     hideRunningUI();
 }
 
@@ -138,17 +154,39 @@ function executeStatement() {
     var Statement = subprogram.actStatement();
     switch (Statement.type) {
         case "IfStatement":
-            console.log(getVariableValue("j"));
             if (evalExpression(Statement.test)) {
                 subprogram.incStatement();
                 subprogram.addBlock(Statement.consequent);
+                return;
             } else if (Statement.alternate !== undefined) {
                 subprogram.incStatement();
                 subprogram.addBlock(Statement.alternate);
-            } else {
-                subprogram.nextStatement();
+                return;
             }
+            break;
+        case "SwitchStatement":
+            auxSwitchExpValue = evalExpression(Statement.exp);
+            subprogram.incStatement();
+            subprogram.addBlock(Statement.cases);
             return;
+        case "CaseSwitchStatement":
+            if (Statement.caseVal == auxSwitchExpValue) {
+                auxSwitchExpValue = undefined;
+                subprogram.changeBlock(Statement.block);
+                return;
+            }
+            break;
+        case "DefaultCaseSwitchStatement":
+            auxSwitchExpValue = undefined;
+            subprogram.changeBlock(Statement.block);
+            return;
+        case "WhileStatement":
+        case "RepeatUntilStatement":
+            if (evalExpression(Statement.test)) {
+                subprogram.addBlock(Statement.body);
+                return;
+            }
+            break;
         case "ForStatement":
             subprogram.incStatement();
             AssignmentFunction(Statement.varFor, Statement.iniValue);
@@ -185,6 +223,7 @@ function executeStatement() {
             if (!AssignmentFunction(Statement.left, Statement.right)) {
                 return;
             }
+            break;
         case "CallExpression":
             subprogram.incStatement();
             callSubprogram(Statement.callee, Statement.arguments);
@@ -193,9 +232,14 @@ function executeStatement() {
             swapVariables(Statement.left, Statement.right);
             break;
         case "ReturnStatement":
-            auxReturnFunction = evalExpression(Statement.exp);
-            returnSubprogram();
+            returnSubprogram(evalExpression(Statement.exp));
             return;
+        case "PrintFunction":
+            PrintFunction(evalExpression(Statement.exp));
+            break;
+        case "ShowFunction":
+            ShowFunction(evalExpression(Statement.exp));
+            break;
         default:
             alert("falta Statement: " + Statement.type);
             break;
@@ -224,8 +268,7 @@ function callSubprogram(name, args) {
     subprogram.name = name;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
     subprogram.addBlock(actSubprogram.body);
-    test2 = document.getElementById("iframeVisualizer").contentWindow;
-    test2.init(cloneArray(getVariableValue("a")));
+    updateLocalVariables();
 }
 
 function evalArgs(args) {
@@ -238,48 +281,59 @@ function evalArgs(args) {
 }
 
 function createLocalVariables(localVars, params, args, argsValues) {
+    for (let [id, param] of Object.entries(params)) {
+        subprogram.localVariables[id] = {
+            dataType: param.dataType,
+            value: argsValues[param.pos]
+        };
+        subprogram.parameters[id] = {
+            idCaller: args[param.pos].id,
+            mode: param.mode
+        };
+    }
     for (let [key, lVar] of Object.entries(localVars)) {
         subprogram.localVariables[key] = {
             dataType: lVar.dataType,
             value: evalExpression(lVar.value)
         };
     }
-    for (let [id, param] of Object.entries(params)) {
-        subprogram.localVariables[id] = {
-            dataType: param.dataType,
-            value: argsValues[param.pos]
-        };
-        if (param.mode == "s" || param.mode == "es") {
-            subprogram.parameters.id = args[param.pos].id; // params: {idAct:idinCaller}
-        }
-    }
 }
 
-function returnSubprogram() {
+function returnSubprogram(returnExpValue) {
     var callerSubprogram = callStack.pop();
     if (callerSubprogram == undefined) {
-        stopExecution();
-        console.log(getVariableValue("a"));
-        alertify.success("¡Fin del programa!");
+        disableExecutionUI();
+        alertify.success("¡Fin del programa!",5);
     } else {
         subprogram.name = callerSubprogram.name;
         subprogram.statementsBlockStack = callerSubprogram.statementsBlockStack;
         subprogram.statementIndex = callerSubprogram.statementIndex;
-        // for (let [idAct, idCaller] of Object.entries(subprogram.parameters)) {
-        //     callerSubprogram.localVariables[idCaller].value = subprogram.localVariables[idAct].value;
-        // }
+        for (let [idAct, param] of Object.entries(subprogram.parameters)) {
+            if (param.mode == "s" || param.mode == "es") {
+                callerSubprogram.localVariables[param.idCaller].value = subprogram.localVariables[idAct].value;
+            }
+        }
         subprogram.localVariables = callerSubprogram.localVariables;
         subprogram.parameters = callerSubprogram.parameters;
         subprogram.log = callerSubprogram.log;
+        if (returnExpValue !== undefined) {
+            changeValueExpVariableAccess(callerSubprogram.returnVariable, returnExpValue);
+            subprogram.returnVariable = undefined;
+        }
         locateNextStatement();
+        updateLocalVariables();
     }
 }
 
 function throwException(txt) {
     stopExecution();
-    alertify.error(txt + " linea: " + (subprogram.actStatement().line + 1), 15);
+    var linea = "";
+    if (subprogram.hasStatements()) {
+        linea = " linea: " + (subprogram.actStatement().line + 1);
+    }
+    alertify.error(txt + linea, 15);
     alertify.warning("¡Cierre forzado del programa!");
-    throw txt + " linea: " + (subprogram.actStatement().line + 1);
+    throw txt + linea;
 }
 
 function evalExpression(exp) {
@@ -289,28 +343,38 @@ function evalExpression(exp) {
     switch (exp.type) {
         case "Literal":
             return exp.value;
-        case "Variable":
-            return getVariableValue(exp.id);
-        case "ArrayAccess":
-            return getArrayAccessValue(exp.id, exp.index);
         case "ArrayLiteral":
             return cloneArray(exp.arr);
         case "EmptyArray":
             return [];
+        case "Variable":
+            return getVariableValue(exp.id);
+        case "ArrayAccess":
+            return getArrayAccessValue(exp.id, exp.index);
         case "int":
-            return evalIntExpression(exp);
+            return getValidatedNumberExpression(evalIntExpression(exp));
         case "float":
-            return evalFloatExpression(exp);
+            return getValidatedNumberExpression(evalFloatExpression(exp));
         case "boolean":
             return evalBooleanExpression(exp);
         case "FloorFunction":
             return Math.floor(evalExpression(exp.exp));
         case "CeilingFunction":
             return Math.ceil(evalExpression(exp.exp));
+        case "CastingIntFunction":
+            return parseInt(evalExpression(exp.exp));
+        case "PowFunction":
+            return powFunction(evalExpression(exp.base), evalExpression(exp.exp));
+        case "SqrtFunction":
+            return sqrtFunction(evalExpression(exp.base));
         case "ArrayLengthFunction":
             return getVariableValue(exp.arrVar.id).length;
+        case "StringLengthFunction":
+            return getVariableValue(exp.strVar.id).length;
         case "StringConcatenation":
             return evalStringConcatenation(exp.exps);
+        case "CharAtFunction":
+            return getCharAt(exp);
         default:
             alert("Falta la expresión: " + exp.type);
             break;
@@ -353,6 +417,21 @@ function evalFloatExpression(floatExp) {
     }
 }
 
+function powFunction(x, y) {
+    return getValidatedNumberExpression(Math.pow(x, y));
+}
+
+function sqrtFunction(x) {
+    return getValidatedNumberExpression(Math.sqrt(x));
+}
+
+function getValidatedNumberExpression(num) {
+    if (isNaN(num)) {
+        throwException("La expresión no es numérica.");
+    }
+    return num;
+}
+
 function evalBooleanExpression(booleanExp) {
     switch (booleanExp.operator) {
         case "<=":
@@ -388,23 +467,36 @@ function evalStringConcatenation(exps) {
     return str;
 }
 
+function getCharAt(exp) {
+    var strV = getVariableValue(exp.strVar.id);
+    var index = evalExpression(exp.index);
+    if (index <= 0) {
+        throwException("No puede acceder a un indice menor a 0");
+    }
+    return strV.charAt(index - 1);
+}
+
+function PrintFunction(exp) {
+    console.log(exp);
+}
+
+function ShowFunction(text) {
+    alertify.alert("Alert", '<p class="text-center">' + text + '</p>');
+}
+
 function AssignmentFunction(left, right) {
     if (right.callee == undefined) {
         changeValueExpVariableAccess(left, evalExpression(right));
-    } else if (auxReturnFunction == undefined) {
+        return true;
+    } else {
+        subprogram.incStatement();
+        subprogram.returnVariable = left;
         callSubprogram(right.callee, right.arguments);
         return false;
-    } else {
-        changeValueExpVariableAccess(left, auxReturnFunction);
-        auxReturnFunction = undefined;
     }
-    return true;
 }
 
 function swapVariables(left, right) {
-    console.log("swap: " + getVariableValue("j"));
-    test2.swap(getVariableValue("j") - 1, getVariableValue("j"));
-    console.log("swap des: " + getVariableValue("j"));
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);
@@ -431,11 +523,12 @@ function changeValueExpVariableAccess(exp, value) {
 }
 
 function changeVariableValue(id, value) {
-    getVariableParent(id)[id].value = value;
+    getVariable(id).value = value;
+    updateVariableValue(id);
 }
 
 function changeArrayAccessValue(id, index, value) {
-    var arrV = getVariableParent(id)[id].value;
+    var arrV = getVariable(id).value;
     for (let i = 0; i < index.length; i++) {
         const intExp = index[i];
         const valIndex = evalExpression(intExp);
@@ -450,14 +543,15 @@ function changeArrayAccessValue(id, index, value) {
             arrV = arrV[valIndex - 1];
         }
     }
+    updateVariableValue(id);
 }
 
 function getVariableValue(id) {
-    return getVariableParent(id)[id].value;
+    return getVariable(id).value;
 }
 
 function getArrayAccessValue(id, index) {
-    var arrV = getVariableParent(id)[id].value;
+    var arrV = getVariable(id).value;
     for (let i = 0; i < index.length; i++) {
         const intExp = index[i];
         const valIndex = evalExpression(intExp);
@@ -472,12 +566,19 @@ function getArrayAccessValue(id, index) {
     return arrV;
 }
 
-function getVariableParent(id) {
-    if (typeof subprogram.localVariables[id] !== "undefined") {
-        return subprogram.localVariables;
-    } else {
-        return program.GLOBALS;
+function getVariable(id) {
+    var Var = subprogram.localVariables[id];
+    if (typeof Var == "undefined") {
+        Var = program.GLOBALS[id];
     }
+    return Var;
+}
+
+function getVariableScope(id) {
+    if (typeof subprogram.localVariables[id] !== "undefined") {
+        return "L";
+    }
+    return "G";
 }
 
 function last(arr) {

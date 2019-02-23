@@ -53,15 +53,18 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
   }
 
   function getVariable(id) {
-    if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id] !== "undefined") {
-       return SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id];
-    } else if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].params[id] !== "undefined") {
-      return SUBPROGRAMS[ACTSUBPROGRAMID].params[id];
-    } else if (typeof GLOBALS[id] !== "undefined") {
+
+    if (ACTSUBPROGRAMID != undefined) {
+      if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id] !== "undefined") {
+        return SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id];
+      } else if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].params[id] !== "undefined") {
+        return SUBPROGRAMS[ACTSUBPROGRAMID].params[id];
+      }
+    } 
+    if (typeof GLOBALS[id] !== "undefined") {
       return GLOBALS[id];
-    } else {
-      error("No existe una variable con el id: " + id);
     }
+    error("No existe una variable con el id: " + id);
   }
 
   function getDefaultValue(dataType){
@@ -118,7 +121,11 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
         return SUBPROGRAMS[exp.callee].dataType;
       case "CeilingFunction":
       case "FloorFunction":
+      case "CastingIntFunction":
         return "int";
+      case "PowFunction":
+      case "SqrtFunction":
+        return "float";
       default:
         return exp.type;
       break;            
@@ -126,6 +133,9 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
   }
 
   function checkDataTypeExpressions(expLeftDataType, expRightDataType) {
+    if (expLeftDataType == "int" && expRightDataType == "float") {
+      error("Posible conversión con pérdida de float a int (utilice casteo int)");
+    }
     return ((expLeftDataType != expRightDataType) && !(expLeftDataType == "float" && expRightDataType == "int"));
   }
   
@@ -198,7 +208,6 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
 }
 
 //---------- Gramática ----------
-
 start = __ VariableGlobalStatement? SubProgramDeclaration (_f SubProgramDeclaration)* __ {
   return {
     GLOBALS:GLOBALS,
@@ -265,7 +274,7 @@ ReservedWord = VarToken / IfToken / ThenToken / ElseToken / EndIfToken / CaseOfT
   TrueToken / FalseToken / PilaToken / ColaToken / ListaToken / NotToken / ReturnToken / 
   PisoToken / TechoToken / InfinitoToken / PushToken / PopToken / PeekToken / EnqueueToken / 
   DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken / PrintToken / 
-  ShowToken / CharAtToken
+  ShowToken / CharAtToken / PowToken / SqrtToken
 
 // Tokens  
 VarToken        = "var"i           !IdentifierPart 
@@ -314,11 +323,13 @@ DequeueToken    = "desencolar"i    !IdentifierPart
 FrontToken      = "frente"i        !IdentifierPart
 IsEmptyToken    = "isempty"i       !IdentifierPart
 LengthToken     = "len"i           !IdentifierPart
-SizeToken       = "size"i          !IdentifierPart
-SwapToken       = "swap"i          !IdentifierPart//----------------------------------------------
+SizeToken       = "size"i          !IdentifierPart//----------------------------------------------
+SwapToken       = "swap"i          !IdentifierPart
 PrintToken      = "print"i         !IdentifierPart
 ShowToken       = "show"i          !IdentifierPart
 CharAtToken     = "charat"i        !IdentifierPart
+PowToken        = "pow"i           !IdentifierPart
+SqrtToken       = "sqrt"i          !IdentifierPart
 
 PrimitiveTypesVar = IntToken / FloatToken / BooleanToken / CharToken / StringToken
 
@@ -331,11 +342,9 @@ ModePar = EntradaToken / SalidaToken / ESToken
 
 // enviar arreglo como parametro
 // ----- Expresiones -----
-Expression = BooleanExpression / NumericExpression / CharExpression / StringExpression / VariableAccessExpression
+Expression = CharExpression / StringExpression / NumericExpression / BooleanExpression / ExpressionNoPrimitive
 
-ExistingVariable = id:Identifier !"(" {
-  return [id, getVariable(id)];
-}
+ExpressionNoPrimitive = VariableAccessExpression
 
 //Llamado a Variables
 VariableAccessExpression = Var:ExistingVariable !{if (Var[1].mode === "s") {error("La variable " + Var[0] + " no se puede leer");}} VarAccess:(
@@ -365,6 +374,10 @@ VariableAccessExpression = Var:ExistingVariable !{if (Var[1].mode === "s") {erro
 }
 ) {return VarAccess;}
 
+ExistingVariable = id:Identifier !"(" {
+  return [id, getVariable(id)];
+}
+
 IntVariable "variable entera" = varN:VariableAccessExpression !"." &{return varN.dataType == "int";} {return varN;}
 
 FloatVariable "variable real" = varN:VariableAccessExpression !"." &{return varN.dataType == "float";} {return varN;}
@@ -376,9 +389,9 @@ StringVariable "variable string" = varS:VariableAccessExpression !"." &{return v
 CharVariable "variable char" = varC:VariableAccessExpression !"." &{return varC.dataType == "char";} {return varC;}
 
 //Expresiones según su tipo
-CharExpression = CharLiteral / CharVariable / CharAtFunction
+CharExpression = char:CharLiteral NotConcatenationString {return char;} / char:CharVariable NotConcatenationString {return char;} / CharAtFunction
 
-CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpression _ ")" {
+CharAtFunction = strVar:VariableAccessExpression &{return strVar.dataType == "string";} "." CharAtToken "(" _ intexp:IntExpression _ ")" {
   return {
     type: "CharAtFunction",
     dataType: "char",
@@ -387,12 +400,14 @@ CharAtFunction = strVar:StringVariable "." CharAtToken "(" _ intexp:IntExpressio
   };
 }
 
-StringExpression = StringLiteral / StringVariable / StringConcatenation
+StringExpression = str:StringLiteral NotConcatenationString {return str;} / str:StringVariable NotConcatenationString {return str;} / StringConcatenation
 
-leftHandSideStringConcatenation = StringLiteral / StringVariable / NumericExpression / BooleanVariable / CharExpression
+NotConcatenationString = !(_ "+")
 
-StringConcatenation = head:leftHandSideStringConcatenation tail:(_ "+" _ leftHandSideStringConcatenation)+ {
-  var exps = buildList(head, tail, 3);
+LeftHandStringConcatenation = NumericLiteral / CharLiteral / BooleanLiteral / StringLiteral / StringVariable / VariableAccessExpression
+
+StringConcatenation = exps:(head:LeftHandStringConcatenation _ tail:(_ "+" _ LeftHandStringConcatenation)+ _ {return buildList(head, tail, 3);})
+&{
   var isString = false;
   for (let i = 0; i < exps.length; i++) {
     const expDataType = getDataTypeofExpression(exps[i]);
@@ -402,15 +417,14 @@ StringConcatenation = head:leftHandSideStringConcatenation tail:(_ "+" _ leftHan
       isString = true;
     }
   }
-  if (isString) {
-    return {
-      type: "StringConcatenation",
-      dataType: "string",
-      exps: exps
-    };
-  } else {
-    error("la concatenación no se puede convertir a string");
-  }
+  return isString;
+}
+{
+  return {
+    type: "StringConcatenation",
+    dataType: "string",
+    exps: exps
+  };
 }
 
 LeftHandSideNumericExpression = NumericLiteral / IntVariable / FloatVariable
@@ -425,9 +439,14 @@ MultiplicativeOperator = $("*") / $("/") / $("%")
 NumericExpression = head:MultiplicativeNumericExpression tail:(_ AdditiveOperator _ MultiplicativeNumericExpression)*
 {return buildNumericExpression(head, tail);}
 
-IntExpression "expresión entera" = numExp:NumericExpression &{return getDataTypeofExpression(numExp) == "int";} {return numExp;}
+IntExpression "expresión entera" = numExp:NumericExpression &{
+  if (getDataTypeofExpression(numExp) == "int") {
+    return true;
+  }
+    error("Posible conversión con pérdida de float a int (utilice casteo int)");
+  } {return numExp;}
 
-AdditiveOperator = ($("+") / $("-")) {return text();}
+AdditiveOperator = $("+") / $("-")
 
 RelationalExpression = head:NumericExpression tail:(_ RelationalOperator _ NumericExpression)+
 {return buildLogicalExpression(head, tail);}
@@ -469,9 +488,9 @@ LogicalOROperator = "or"i {return "or";}
 
 //--- Funciones especiales (Numéricas) --- 
 
-SpecialNumericFunctions = FloorFunction / CeilingFunction / InfinityLiteral
+SpecialNumericFunctions = FloorFunction / CeilingFunction / CastingIntFunction / InfinityLiteral / PowFunction / SqrtFunction
 
-VariablesNumericFunctions = ArrayLengthFunction
+VariablesNumericFunctions = StringLengthFunction / ArrayLengthFunction
 
 FloorFunction = PisoToken "(" _ numExp:NumericExpression _ ")" {
   return {
@@ -483,6 +502,28 @@ FloorFunction = PisoToken "(" _ numExp:NumericExpression _ ")" {
 CeilingFunction = TechoToken "(" _ numExp:NumericExpression _ ")" {
   return {
     type: "CeilingFunction",
+    exp: numExp
+  };
+}
+
+PowFunction = PowToken "(" numExp:NumericExpression "," exp:NumericExpression ")" {
+  return {
+    type: "PowFunction",
+    base: numExp,
+    exp: exp
+  };
+}
+
+SqrtFunction = SqrtToken "(" numExp:NumericExpression ")" {
+  return {
+    type: "SqrtFunction",
+    base: numExp
+  };
+}
+
+CastingIntFunction = "(" _ IntToken _ ")" _ numExp:NumericExpression {
+  return {
+    type: "CastingIntFunction",
     exp: numExp
   };
 }
@@ -499,6 +540,14 @@ ArrayLengthFunction = ArrVar:VariableAccessExpression "." LengthToken {
     dataType: "int",
     arrVar: ArrVar
   };  
+}
+
+StringLengthFunction = strVar:VariableAccessExpression &{return strVar.dataType == "string";} "." LengthToken {
+  return {
+    type: "StringLengthFunction",
+    dataType: "int",
+    strVar: strVar
+  };
 }
 
 //Llamado a un subprograma
@@ -623,19 +672,21 @@ IfStatement = IfToken _ "(" _ test:BooleanExpression _ ")" _ ThenToken _f conseq
 }
 
 SwitchStatement = CaseOfToken _ Exp:IntExpression _f
-cases:(caseVal:IntLiteral ":" _f block:Statements {return {caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:location().start.line - 1}})? EndCaseToken {
+cases:(caseVal:IntLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
+  if (defaultCase !== null) {
+    cases.push(defaultCase);
+  }
   return {
     type: "SwitchStatement", 
     exp: Exp,
     cases:cases,
-    defaultCase:defaultCase,
     line: location().start.line - 1      
   };
 }
 /CaseOfToken _ Exp:NumericExpression _f
-cases:(caseVal:NumericLiteral ":" _f block:Statements {return {caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:location().start.line - 1}})? EndCaseToken {
+cases:(caseVal:NumericLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
   return {
     type: "SwitchStatement", 
     exp: Exp,
@@ -645,8 +696,8 @@ defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:loc
   };
 }
 / CaseOfToken _ Exp:BooleanExpression _f
-cases:(caseVal:BooleanLiteral ":" _f block:Statements {return {caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:location().start.line - 1}})? EndCaseToken {
+cases:(caseVal:BooleanLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
   return {
     type: "SwitchStatement", 
     exp: Exp,
@@ -656,8 +707,8 @@ defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:loc
   };
 }
 / CaseOfToken _ Exp:StringExpression _f
-cases:(caseVal:StringLiteral ":" _f block:Statements {return {caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:location().start.line - 1}})? EndCaseToken {
+cases:(caseVal:StringLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
   return {
     type: "SwitchStatement", 
     exp: Exp,
@@ -667,8 +718,8 @@ defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:loc
   };
 }
 / CaseOfToken _ Exp:CharExpression _f
-cases:(caseVal:CharLiteral ":" _f block:Statements {return {caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {block:block, line:location().start.line - 1}})? EndCaseToken {
+cases:(caseVal:CharLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
   return {
     type: "SwitchStatement", 
     exp: Exp,
@@ -759,13 +810,11 @@ SwapFunction = SwapToken "(" _ vleft:VariableForSwap _ "," _ vright:VariableForS
 }
 
 PrintFunction = PrintToken "(" _ exp:Expression _ ")" {
-  var expDT = getDataTypeofExpression(exp);
-  if (isPrimitive(expDT)) {
-    return {
-      type: "PrintFunction",
-      exp: exp
-    };
-  } 
+  return {
+    type: "PrintFunction",
+    exp: exp,
+    line: location().start.line - 1
+  };
 }
 
 ShowFunction = ShowToken "(" _ exp:Expression _ ")" {
@@ -773,9 +822,12 @@ ShowFunction = ShowToken "(" _ exp:Expression _ ")" {
   if (isPrimitive(expDT)) {
     return {
       type: "ShowFunction",
-      exp: exp
+      exp: exp,
+      line: location().start.line - 1
     };
-  }   
+  } else {
+    error("Solo se pueden mostrar tipos de datos primitivos");
+  }
 }
 
 VariableForSwap = Var:ExistingVariable !{if (Var[1].mode !== undefined && Var[1].mode !== "es") {error("La variable " + Var[0] + " se debe poder escribir y leer");}} VarAccess:(
@@ -815,11 +867,11 @@ VariableStatement = VarToken _f VariableDeclaration* {return undefined;}
 VariableGlobalStatement = VarToken _f "{" _f VariableDeclaration* "}" _f {return undefined;}
 
 VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valini:(AssignmentOperator _ valExp:(
-    &{return dataType == "char";} L:CharLiteral {return L;}
-  / &{return dataType == "string";} L:StringLiteral {return L;}
-  / &{return dataType == "boolean";} L:BooleanLiteral {return L;}
-  / &{return dataType == "int";} L:IntLiteral {return L;}
-  / &{return dataType == "float";} L:NumericLiteral {return L;}) {return valExp.value;})? _f {
+    &{return dataType == "char";} L:CharExpression {return L;}
+  / &{return dataType == "string";} L:StringExpression {return L;}
+  / &{return dataType == "boolean";} L:BooleanExpression {return L;}
+  / &{return dataType == "int";} L:IntExpression {return L;}
+  / &{return dataType == "float";} L:NumericExpression {return L;}) {return valExp;})? _f {
   if (valini == null) {
     valini = getDefaultValue(dataType);
   }
@@ -904,27 +956,27 @@ ArrayIndex = index:("[" _ arrayId:IntExpression _ "]" {return arrayId;})+ !{
     error("Solo hay arreglos unidimensionales o bidimiensionales");
   }} {return index;}
 
-ArrayLiteralInt = "[" head:ArrayLiteralInt tail:(_ "," _ ArrayLiteralInt)* "]" {return buildList(head.value, tail, 3);}
+ArrayLiteralInt = "[" head:ArrayLiteralInt tail:(_ "," _ ArrayLiteralInt)* "]" {return buildList(head, tail, 3);}
   / LiteralIntList
 
 LiteralIntList = "[" head:IntLiteral tail:(_ "," _ (L:IntLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
-ArrayLiteralFloat = "[" head:ArrayLiteralFloat tail:(_ "," _ ArrayLiteralFloat)* "]" {return buildList(head.value, tail, 3);}
+ArrayLiteralFloat = "[" head:ArrayLiteralFloat tail:(_ "," _ ArrayLiteralFloat)* "]" {return buildList(head, tail, 3);}
   / LiteralFloatList
 
 LiteralFloatList = "[" head:NumericLiteral tail:(_ "," _ (L:NumericLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
-ArrayLiteralChar = "[" head:ArrayLiteralChar tail:(_ "," _ ArrayLiteralChar)* "]" {return buildList(head.value, tail, 3);}
+ArrayLiteralChar = "[" head:ArrayLiteralChar tail:(_ "," _ ArrayLiteralChar)* "]" {return buildList(head, tail, 3);}
   / LiteralCharList
 
 LiteralCharList = "[" head:CharLiteral tail:(_ "," _ (L:CharLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
-ArrayLiteralString = "[" head:ArrayLiteralString tail:(_ "," _ ArrayLiteralString)* "]" {return buildList(head.value, tail, 3);}
+ArrayLiteralString = "[" head:ArrayLiteralString tail:(_ "," _ ArrayLiteralString)* "]" {return buildList(head, tail, 3);}
   / LiteralStringList
 
 LiteralStringList = "[" head:StringLiteral tail:(_ "," _ (L:StringLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
-ArrayLiteralBoolean = "[" head:ArrayLiteralBoolean tail:(_ "," _ ArrayLiteralBoolean)* "]" {return buildList(head.value, tail, 3);}
+ArrayLiteralBoolean = "[" head:ArrayLiteralBoolean tail:(_ "," _ ArrayLiteralBoolean)* "]" {return buildList(head, tail, 3);}
   / LiteralBooleanList
 
 LiteralBooleanList = "[" head:BooleanLiteral tail:(_ "," _ (L:BooleanLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}

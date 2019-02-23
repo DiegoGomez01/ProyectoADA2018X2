@@ -9,7 +9,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
         var keywords = (
             "if|then|else|endif|case|of|default|endcase|" +
             "while|do|endwhile|repeat|until|for|to|inc|downto|endfor|" +
-            "var|return|print|show|charat"            
+            "var|return|print|show|charat|pow|sqrt"            
         );
 
         var builtinConstants = (
