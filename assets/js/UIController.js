@@ -8,8 +8,7 @@ var editor;
 var actLineSelected;
 var actErrorMarker;
 var Range = ace.require('ace/range').Range;
-var lineBreackpoints = [];
-var markerBreakpoints = [];
+var breakPoints = {};
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
@@ -64,20 +63,17 @@ $(document).ready(function () {
         minLines: 30
     });
 
-    editor.on("gutterclick", function (e) {
-        var region = e.editor.renderer.$gutterLayer.getRegion(e)
-        if (region == "markers") {
-            e.stop()
-            var line = e.getDocumentPosition().row;
-            var index = lineBreackpoints.indexOf(line);
-            if (index == -1) {
-                selectLineBreackpoint(line);
-                lineBreackpoints.push(line);
-            } else {
-                deleteMarker(markerBreakpoints[index]);
-                markerBreakpoints.splice(index, 1);
-                lineBreackpoints.splice(index, 1);
-            }
+    editor.on("guttermousedown", function (e) {
+        e.stop();
+    }, true);
+
+    editor.on("gutterdblclick", function (e) {
+        e.stop();
+        var line = parseInt(e.getDocumentPosition().row);
+        if (breakPoints[line] == undefined) {
+            createBreakPoint(line);
+        } else {
+            deleteBreakPoint(line);
         }
     }, true);
 
@@ -245,12 +241,17 @@ function selectLine(line) {
     editor.scrollToLine(line, true, true, undefined);
 }
 
-function selectLineBreackpoint(line) {
+function createBreakPoint(line) {
     var marker = editor.getSession().addMarker(
-        new Range(line, 0, line, 1), "ace_selected_line", "fullLine"
+        new Range(line, 0, line, 1), "ace_breakpoint_line", "fullLine"
     );
-    editor.scrollToLine(line, true, true, undefined);
-    markerBreakpoints.push(marker);
+    breakPoints[line] = marker;
+    alertify.message('Punto de ruptura: Línea: ' + (line + 1));
+}
+
+function deleteBreakPoint(line) {
+    deleteMarker(breakPoints[line]);
+    delete breakPoints[line];
 }
 
 function deleteMarker(id) {
