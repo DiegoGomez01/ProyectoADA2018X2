@@ -14,6 +14,10 @@ $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
         var arr = [50, 38, 20, 18, 70, 45, 56, 100];
+        var test2 = document.getElementById("iframeVisualizer").contentWindow;
+        test2.init(arr,'canvas');
+        test2.init(arr,'canvas2');
+        // test2.swap(2,3);
         // var test2 = document.getElementById("iframeVisualizer").contentWindow;
         // test2.init(arr);
         /*******Agregar, quitar y animar una variable visible*******/

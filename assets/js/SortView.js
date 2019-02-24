@@ -95,9 +95,10 @@ ComparisonSort.prototype.createVisualObjects = function () {
 function swap(index1, index2) {
 	thisGlobal.commands = new Array();
 	thisGlobal.animationManager.clearHistory();
-	var tmp = thisGlobal.arrayData[index1];
-	thisGlobal.arrayData[index1] = thisGlobal.arrayData[index2];
-	thisGlobal.arrayData[index2] = tmp;
+
+	// var tmp = thisGlobal.arrayData[index1];
+	// thisGlobal.arrayData[index1] = thisGlobal.arrayData[index2];
+	// thisGlobal.arrayData[index2] = tmp;
 
 	tmp = thisGlobal.barObjects[index1];
 	thisGlobal.barObjects[index1] = thisGlobal.barObjects[index2];
@@ -169,6 +170,13 @@ function bubbleSortCallback() {
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
+function createCanvas(id){
+	htmlCanvas= '<canvas id="'+id+'" width="300" height="200"></canvas>';
+	$('#wrapContent').append(htmlCanvas);
+	var arr = [50, 38, 20, 18, 70, 45, 56, 100];
+	init(arr,id);
+}
+
 function addVisibleVariable(key, value) {
 	visibleVariables[key] = value;
 	console.log(visibleVariables);
@@ -189,7 +197,7 @@ function animationChangeVariable(key) {
 
 var currentAlg;
 
-function init(arr) {
-	var animManag = initCanvas();
+function init(arr,id) {
+	var animManag = initCanvas(id);
 	currentAlg = new ComparisonSort(animManag, canvas.width, canvas.height, arr);
 }
