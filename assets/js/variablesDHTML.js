@@ -29,7 +29,7 @@ function updateLocalVariables() {
                 if (param !== undefined) {
                     parametersInfo += "<tr>" +
                         '<th scope="row">' + idVar + '</th>' +
-                        '<td> Param [' + (param.mode).toUpperCase() + '] <br>' + Var.dataType + '</td>' +
+                        '<td> Parámetro [' + (param.mode).toUpperCase() + ']: <br>' + Var.dataType + '</td>' +
                         '<td id="value_' + idVar + 'L">' + getStringValue(Var.dataType, Var.value) + '</td>' +
                         "</tr>";
                 } else {

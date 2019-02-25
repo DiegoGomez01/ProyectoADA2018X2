@@ -59,9 +59,11 @@ $(document).ready(function () {
     //---------------------------------------------------------------------------------------------------
 
     //Creación del editor de código
+    ace.require("ace/ext/language_tools");
     editor = ace.edit($("#editor")[0], {
         theme: "ace/theme/chrome",
         mode: "ace/mode/pseudo",
+        enableBasicAutocompletion: true,
         autoScrollEditorIntoView: true,
         maxLines: 30,
         minLines: 30

@@ -310,7 +310,7 @@ function returnSubprogram(returnExpValue) {
     if (callerSubprogram == undefined) {
         disableExecutionUI();
         console.log(lineCounting);
-        alertify.success("¡Fin del programa!",5);
+        alertify.success("¡Fin del programa!", 5);
     } else {
         subprogram.name = callerSubprogram.name;
         subprogram.statementsBlockStack = callerSubprogram.statementsBlockStack;
@@ -351,13 +351,19 @@ function evalExpression(exp) {
         case "Literal":
             return exp.value;
         case "ArrayLiteral":
-            return cloneArray(exp.arr);
+            var arr = cloneArray(exp.arr);
+            if (checkArrayDimensions(arr, getArrayIndex(exp.d))) {
+                return arr;
+            }
+            return throwException("Las dimensiones no coinciden");
         case "EmptyArray":
             return [];
+        case "ArrayCreation":
+            return createNewArray(getArrayIndex(exp.d), exp.valueDefault);
         case "Variable":
             return getVariableValue(exp.id);
         case "ArrayAccess":
-            return getArrayAccessValue(exp.id, exp.index);
+            return getArrayAccessValue(exp.id, getArrayIndex(exp.index));
         case "int":
             return getValidatedNumberExpression(evalIntExpression(exp));
         case "float":
@@ -516,7 +522,7 @@ function incVariable(id, inc) {
 
 function getValueExpVariableAccess(exp) {
     if (exp.type == "ArrayAccess") {
-        return getArrayAccessValue(exp.id, exp.index);
+        return getArrayAccessValue(exp.id, getArrayIndex(exp.index));
     } else {
         return getVariableValue(exp.id);
     }
@@ -524,7 +530,7 @@ function getValueExpVariableAccess(exp) {
 
 function changeValueExpVariableAccess(exp, value) {
     if (exp.type == "ArrayAccess") {
-        changeArrayAccessValue(exp.id, exp.index, value);
+        changeArrayAccessValue(exp.id, getArrayIndex(exp.index), value);
     } else {
         changeVariableValue(exp.id, value);
     }
@@ -538,17 +544,15 @@ function changeVariableValue(id, value) {
 function changeArrayAccessValue(id, index, value) {
     var arrV = getVariable(id).value;
     for (let i = 0; i < index.length; i++) {
-        const intExp = index[i];
-        const valIndex = evalExpression(intExp);
-        if (valIndex < 1) {
+        if (index[i] < 1) {
             throwException("La primera posición de los arreglos es 1.");
-        } else if (valIndex > arrV.length) {
+        } else if (index[i] > arrV.length) {
             throwException("El indice sobrepasa la longitud del arreglo.");
         }
         if (i === index.length - 1) {
-            arrV[valIndex - 1] = value;
+            arrV[index[i] - 1] = value;
         } else {
-            arrV = arrV[valIndex - 1];
+            arrV = arrV[index[i] - 1];
         }
     }
     updateVariableValue(id);
@@ -561,14 +565,12 @@ function getVariableValue(id) {
 function getArrayAccessValue(id, index) {
     var arrV = getVariable(id).value;
     for (let i = 0; i < index.length; i++) {
-        const intExp = index[i];
-        const valIndex = evalExpression(intExp);
-        if (valIndex < 1) {
+        if (index[i] < 1) {
             throwException("La primera posición de los arreglos es 1.");
-        } else if (valIndex > arrV.length) {
+        } else if (index[i] > arrV.length) {
             throwException("El indice sobrepasa la longitud del arreglo.");
         } else {
-            arrV = arrV[valIndex - 1];
+            arrV = arrV[index[i] - 1];
         }
     }
     return arrV;
@@ -612,4 +614,49 @@ function cloneArray(arr) {
     } else {
         return arr;
     }
+}
+
+function getArrayIndex(index) {
+    var newIndex = [];
+    for (let i = 0; i < index.length; i++) {
+        const indexExp = index[i];
+        newIndex[i] = evalExpression(indexExp);
+    }
+    return newIndex;
+}
+
+function createNewArray(dimensions, value) {
+    if (dimensions.length > 0) {
+        var dim = dimensions[0];
+        var rest = dimensions.slice(1);
+        var newArray = new Array();
+        if (dim > 0) {
+            for (var i = 0; i < dim; i++) {
+                newArray[i] = createNewArray(rest, value);
+            }
+        } else {
+            throwException("No se puede crear un arreglo con tamaño menor a 1");
+        }
+        return newArray;
+    } else {
+        return value;
+    }
+}
+
+function checkArrayDimensions(array, dimensions) {
+    var dim = dimensions[0];
+    var rest = dimensions.slice(1);
+    if (array.length != dim) {
+        return false;
+    }
+    for (var i = 0; i < dim; i++) {
+        if (rest.length > 0 && Array.isArray(array[i])) {
+            if (!checkArrayDimensions(array[i], rest)) {
+                return false;
+            }
+        } else if (Array.isArray(array[i])) {
+            return false;
+        }
+    }
+    return true;
 }
