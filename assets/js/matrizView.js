@@ -53,9 +53,9 @@ function changeValueCell(i,j,value){
 }
 
 function addMatrizView(htmlMatriz){
-    $('#wrapMatriz').append(htmlMatriz);
+    $('#wrapContent').append(htmlMatriz);
 }
 
-function removeMatrizView(idMatriz){
-    $('#wrapMatriz').remove(idMatriz);
+function removeViewContent(idMatriz){
+    $('#'+idMatriz).remove();
 }

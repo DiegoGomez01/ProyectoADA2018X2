@@ -42,14 +42,14 @@
 //           an assert-like structure that can be turned off for production?)
 //       2.  Refactor this code so that it uses the same object syntax (with 
 //           prototypes) as te rest of the code.  (low priority)
-function ObjectManager()
+function ObjectManager(id)
 {
 	this.Nodes = [];
 	this.Edges = [];
 	this.BackEdges = [];
 	this.activeLayers = [];
 	this.activeLayers[0] = true;
-	this.ctx = document.getElementById('canvas').getContext('2d');
+	this.ctx = document.getElementById(id).getContext('2d');
 	this.framenum = 0;
 	this.width = 0;
 	this.height = 0;
