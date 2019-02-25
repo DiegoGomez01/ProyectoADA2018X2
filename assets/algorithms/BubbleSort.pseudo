@@ -1,17 +1,13 @@
-/*--- Algoritmo de ordenamiento de burbuja ---
-es un sencillo algoritmo de ordenamiento. 
-Funciona revisando cada elemento de la lista que va a ser ordenada con el siguiente, 
-intercambiándolos de posición si están en el orden equivocado
-*/
+/*Algoritmo de ordenamiento de burbuja (Bubblesort)*/
 
-procedure bubbleSort(ES int[] a)
+procedure BubbleSort(ES int[] A)
 var
 int i,j
 {
-    for i<-1 to a.len do 
-        for j<-1 to a.len - i do 
-            if (a[j]>a[j+1]) then
-                swap(a[j], a[j+1])
+    for i <- 1 to A.len do 
+        for j <- 1 to A.len - i do 
+            if (A[j] > A[j + 1]) then
+                swap(A[j], A[j + 1])
             endif
         endfor
     endfor
@@ -19,8 +15,7 @@ int i,j
 
 procedure main()
 var
-int[4] a <- [10,24,3,4] // Ingresar el arreglo
+int[4] A <- [10, 24, 3, 4] // Ingresar el arreglo
 {
-    bubbleSort(a)
-    print(a)
+    BubbleSort(A)
 }

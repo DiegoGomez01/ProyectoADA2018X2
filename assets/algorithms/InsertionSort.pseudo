@@ -1,26 +1,23 @@
-/*--- Algoritmo de ordenamiento por inserción (baraja) ---
-es una manera muy natural de ordenar para un ser humano, 
-y puede usarse fácilmente para ordenar un mazo de cartas numeradas en forma arbitraria.
-*/
+/*--- Algoritmo de ordenamiento por inserción o de la baraja (InsertionSort) */
 
-procedure insertionSort(ES int[] a)
+procedure InsertionSort(ES int[] A)
 var
-int i,j,x,y
+int i,j,x
 {
-    for i<-2 to a.len do 
-        x <- a[i]
+    for i<-2 to A.len do 
+        x <- A[i]
         j <- i - 1
-        while ((j>0) and (a[j]>x)) do 
-            a[j+1] <- a[j]
-            y <- y - 1
+        while ((j>0) and (A[j]>x)) do 
+            A[j+1] <- A[j]
+            j <- j - 1
         endwhile
-        a[j+1] <- x
+        A[j+1] <- x
     endfor
 }
 
 procedure main()
 var
-int[9] a <- [1,2,3,4,5,6,7,8,9] // Ingresar el arreglo
+int[9] A <- [100,24,23,4,5,6,7,8,9] // Ingresar el arreglo
 {
-    insertionSort(a)
+    InsertionSort(A)
 }

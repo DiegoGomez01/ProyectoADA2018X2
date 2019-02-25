@@ -1,38 +1,3 @@
-/*
------- Data Type (Tipado Fuerte) ------
-"int" , "float" , "boolean" , "string", "char"
-DataType[][] (Arreglos)
-pila<DataType> (Pilas)
-cola<DataType> (Colas)
-lista<DataType> (Listas)
------- Data Structure ------
-params = {id:{mode:"e|s|es",dataType:"",pos""}}
-FormalParameterList = [{id:"", mode:"", dataType:""}]
-literal = {type:"Literal", dataType:"", value:""}
-variable = {type:"Variable", id:"", dataType:""}
-expression = {type:"int|float|boolean", operator:"", left:"", right:""} | Variable | Literal | FunctionCall (CallExpression)
-NegationExpression = {type:"boolean", operator: "not", argument: Expression (Boolean)}
-callexpression = {type:"CallExpression", callee:id, arguments:arguments}
-ArrayAccess = {type:"ArrayAccess", id:"", index:[], dataType:""}
-arguments = [expression,expression...]
-statements = [statement,statement...]
----Statements---
-AssignmentStatement = {type:"AssignmentStatement", left:"", right:"", line:""}
-IfStatement = {type:"IfStatement", test:"", consequent:"", *alternate:"", line:""}
-SwitchStatement = {type:"SwitchStatement", exp: "", cases:[], *defaultCase:"", line:""}
-defaultCase = {block:"", line:""}
-cases = {caseVal:"", block:"", line:""}
-RepeatUntilStatement = {type:"RepeatUntilStatement", body:"", test:"", line:""}
-WhileStatement = {type:"WhileStatement", test:"", body:"", line:""}
-ForStatement = {type:"ForStatement", varFor:"", iniValue:"", finValue:"", inc:"" ,body:"" , line:""}
-
-GLOBALS =  {"idVar":{value:"", dataType:""}}
-SUBPROGRAMS = {"idFunOrPro":{type:"procedure|function", params:params , *dataType:"", body:body}}
-ACTSUBPROGRAMID = id -> id de la función o procedimiento actual
-
-buscar: "Limited" para encontrar las acciones que no se pueden realizar en un programa
-*/
-
 /*Código javascript que se ejecuta antes del parsing. 
 Variables y funciones declaradas aquí se pueden acceder en la gramática*/
 {
@@ -53,7 +18,6 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
   }
 
   function getVariable(id) {
-
     if (ACTSUBPROGRAMID != undefined) {
       if (typeof SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id] !== "undefined") {
         return SUBPROGRAMS[ACTSUBPROGRAMID].localVars[id];
@@ -78,38 +42,6 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
       case "boolean":
         return true;                    
     }
-  }
-
-  function createArray(dimensions, value) {
-    if (dimensions.length > 0) {
-        var dim = dimensions[0];
-        var rest = dimensions.slice(1);
-        var newArray = new Array();
-        for (var i = 0; i < dim; i++) {
-            newArray[i] = createArray(rest, value);
-        }
-        return newArray;
-     } else {
-        return value;
-     }
-  }
-
-  function checkArrayDimensions(array, dimensions) {
-    var dim = dimensions[0];
-    var rest = dimensions.slice(1);
-    if (array.length != dim) {
-      return false;
-    }
-    for (var i = 0; i < dim; i++) {
-      if (rest.length > 0 && Array.isArray(array[i])) {
-        if (!checkArrayDimensions(array[i], rest)) {
-          return false;
-        }
-      } else if (Array.isArray(array[i])) {
-        return false;
-      }
-    }    
-    return true;
   }
 
   function getDataTypeofExpression(exp) {
@@ -234,7 +166,7 @@ MultiLineComment = "/*" (!"*/" SourceCharacter)* "*/"
 
 SingleLineComment = "//" (!LineTerminator SourceCharacter)*
 
-Identifier "Id" = !ReservedWord [a-z] IdentifierPart* {return text();}
+Identifier "Id" = !ReservedWord [A-Za-z] IdentifierPart* {return text();}
 
 IdentifierPart = [a-zA-Z0-9_]
 
@@ -563,6 +495,8 @@ CallExpression = callee:SubProgramID args:Arguments {
     }
     if ((parameterCallee.mode == "s" || parameterCallee.mode == "es") && !isVariable(args[parameterCallee.pos])) {
       error("El parámetro " + (parameterCallee.pos + 1) + " debe ser una variable ya que es de salida");
+    } else if ((parameterCallee.mode == "s" || parameterCallee.mode == "es") && getVariable(args[parameterCallee.pos].id).mode == "e") {
+      error("El variable '" + args[parameterCallee.pos].id + "' es de solo lectura, no se puede enviar como parámetro de escritura");
     }
   }
   return {
@@ -887,7 +821,7 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
   }
   return undefined;
 } 
-/ dataType:PrimitiveTypesVar arrayD:arrayDimensionsDeclaration _ idList:IdentifierList _ valini:(AssignmentOperator _ valExp:(
+/ dataType:PrimitiveTypesVar arrayD:ArrayIndex _ idList:IdentifierList _ valini:(AssignmentOperator _ valExp:(
     &{return dataType == "char";} array:ArrayLiteralChar {return array;}
   / &{return dataType == "string";} array:ArrayLiteralString {return array;}
   / &{return dataType == "boolean";} array:ArrayLiteralBoolean {return array;}
@@ -895,9 +829,17 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
   / &{return dataType == "float";} array:ArrayLiteralFloat {return array;}) 
   {return valExp;})? _f {
     if (valini == null) {
-      valini = createArray(arrayD, getDefaultValue(dataType));
-    } else if (!checkArrayDimensions(valini, arrayD)) {
-        error("Las dimensiones del arreglo no son correctas");
+      valini = {
+        type: "ArrayCreation",
+        valueDefault: getDefaultValue(dataType),
+        d: arrayD
+      };
+    } else {
+      valini = {
+        type: "ArrayLiteral",
+        d: arrayD,
+        arr: valini
+      };
     }
     for (let i = 0; i < arrayD.length; i++) {
       dataType = dataType + "[]";        
@@ -905,12 +847,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
     for (let index = 0; index < idList.length; index++) {
       const name = idList[index];
       createVariable(name, {
-        dataType: dataType, 
-        d: arrayD,
-        value: {
-          type: "ArrayLiteral",
-          arr: valini
-        }
+        dataType: dataType,
+        value: valini
         });
     }
     return undefined;      
@@ -947,13 +885,6 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
   }    
 
 IdentifierList = head:Identifier _ tail:(_","_ Identifier)* {return buildList(head, tail, 3);};
-
-arrayDimensionsDeclaration = index:("[" _ arrayId:ArrayN _ "]" {return arrayId;})+ !{
-  if(index.length > 2) {
-    error("Solo hay arreglos unidimensionales o bidimiensionales");
-  }} {return index;}
-
-ArrayN = NonZeroDigit DecimalDigit* {return parseInt(text());}
 
 ArrayIndex = index:("[" _ arrayId:IntExpression _ "]" {return arrayId;})+ !{
   if(index.length > 2) { //Limited
@@ -1025,3 +956,61 @@ FormalParameterList = params:(head:Parameter tail:(__ "," __ Parameter)* {return
 {if (params == null) {return {};} else {return params;}}
 
 Parameter = mode:ModePar _ dataType:TypesVar _ id:Identifier {return {mode: mode, dataType: dataType, id: id};}
+
+//---------------------------------------------------------------------------------------------------------
+
+/*
+------ Data Type (Tipado Fuerte) ------
+"int" , "float" , "boolean" , "string", "char"
+DataType[][] (Arreglos)
+pila<DataType> (Pilas)
+cola<DataType> (Colas)
+lista<DataType> (Listas)
+------ Data Structure ------
+params = {id:{mode:"e|s|es",dataType:"",pos""}}
+FormalParameterList = [{id:"", mode:"", dataType:""}]
+literal = {type:"Literal", dataType:"", value:""}
+variable = {type:"Variable", id:"", dataType:""}
+expression = {type:"int|float|boolean", operator:"", left:"", right:""} | Variable | Literal | FunctionCall (CallExpression)
+NegationExpression = {type:"boolean", operator: "not", argument: Expression (Boolean)}
+callexpression = {type:"CallExpression", callee:id, arguments:arguments}
+ArrayAccess = {type:"ArrayAccess", id:"", index:[], dataType:""}
+arguments = [expression,expression...]
+statements = [statement,statement...]
+---Statements---
+AssignmentStatement = {type:"AssignmentStatement", left:"", right:"", line:""}
+IfStatement = {type:"IfStatement", test:"", consequent:"", *alternate:"", line:""}
+SwitchStatement = {type:"SwitchStatement", exp: "", cases:[], *defaultCase:"", line:""}
+defaultCase = {block:"", line:""}
+cases = {caseVal:"", block:"", line:""}
+RepeatUntilStatement = {type:"RepeatUntilStatement", body:"", test:"", line:""}
+WhileStatement = {type:"WhileStatement", test:"", body:"", line:""}
+ForStatement = {type:"ForStatement", varFor:"", iniValue:"", finValue:"", inc:"" ,body:"" , line:""}
+
+GLOBALS =  {"idVar":{value:"", dataType:""}}
+SUBPROGRAMS = {"idFunOrPro":{type:"procedure|function", params:params , *dataType:"", body:body}}
+ACTSUBPROGRAMID = id -> id de la función o procedimiento actual
+
+buscar: "Limited" para encontrar las acciones que no se pueden realizar en un programa
+
+
+
+
+function checkArrayDimensions(array, dimensions) {
+    var dim = dimensions[0];
+    var rest = dimensions.slice(1);
+    if (array.length != dim) {
+        return false;
+    }
+    for (var i = 0; i < dim; i++) {
+        if (rest.length > 0 && Array.isArray(array[i])) {
+            if (!checkArrayDimensions(array[i], rest)) {
+                return false;
+            }
+        } else if (Array.isArray(array[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+*/
