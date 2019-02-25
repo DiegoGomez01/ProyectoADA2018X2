@@ -56,6 +56,6 @@ function addMatrizView(htmlMatriz){
     $('#wrapContent').append(htmlMatriz);
 }
 
-function removeMatrizView(idMatriz){
-    $('#wrapContent').remove(idMatriz);
+function removeViewContent(idMatriz){
+    $('#'+idMatriz).remove();
 }

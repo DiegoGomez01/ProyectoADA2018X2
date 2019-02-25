@@ -232,8 +232,8 @@ function executeStatement() {
             callSubprogram(Statement.callee, Statement.arguments);
             return;
         case "SwapFunction":            
-            test2 = document.getElementById("iframeVisualizer").contentWindow;
-            test2.init(getVariableValue("a"),'canvas');
+            // test2 = document.getElementById("iframeVisualizer").contentWindow;
+            // test2.init(getVariableValue("a"),'canvas');
             swapVariables(Statement.left, Statement.right);
             break;
         case "ReturnStatement":
@@ -504,7 +504,7 @@ function AssignmentFunction(left, right) {
 }
 
 function swapVariables(left, right) {
-    test2.swap(getVariableValue("j") - 1, getVariableValue("j"));
+    // test2.swap(getVariableValue("j") - 1, getVariableValue("j"));
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);

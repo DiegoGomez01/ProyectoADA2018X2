@@ -171,7 +171,7 @@ function bubbleSortCallback() {
 }
 
 function createCanvas(id){
-	htmlCanvas= '<canvas id="'+id+'" width="300" height="200"></canvas>';
+	htmlCanvas= '<canvas id="'+id+'" width="250" height="180"></canvas>';
 	$('#wrapContent').append(htmlCanvas);
 	var arr = [50, 38, 20, 18, 70, 45, 56, 100];
 	init(arr,id);
