@@ -149,8 +149,8 @@ function animWaiting()
 	{
 		stepBackButton.disabled = false;
 	}
-	objectManager.statusReport.setText("Animation Paused");
-	objectManager.statusReport.setForegroundColor("#FF0000");
+	//objectManager.statusReport.setText("Animation Paused");
+	//objectManager.statusReport.setForegroundColor("#FF0000");
 }
 
 function animStarted()
@@ -159,8 +159,8 @@ function animStarted()
 	skipBackButton.disabled = false;
 	stepForwardButton.disabled = true;
 	stepBackButton.disabled = true;
-	objectManager.statusReport.setText("Animation Running");
-	objectManager.statusReport.setForegroundColor("#009900");
+	//objectManager.statusReport.setText("Animation Running");
+	//objectManager.statusReport.setForegroundColor("#009900");
 }
 
 function animEnded()
@@ -171,8 +171,8 @@ function animEnded()
 	{
 		stepBackButton.disabled = false;		
 	}
-	objectManager.statusReport.setText("Animation Completed");
-	objectManager.statusReport.setForegroundColor("#000000");
+	//objectManager.statusReport.setText("Animation Completed");
+	//objectManager.statusReport.setForegroundColor("#000000");
 }
 
 
@@ -429,7 +429,7 @@ function initCanvas(id)
         swapButton = addControlToAnimationBar("Button", "Move Controls");
         swapButton.onclick = swapControlDiv;	
 	
-	
+	objectManager.statusReport.setText(id);
 	animationManager.addListener("AnimationStarted", this, animStarted);
 	animationManager.addListener("AnimationEnded", this, this.animEnded);
 	animationManager.addListener("AnimationWaiting", this, this.animWaiting);

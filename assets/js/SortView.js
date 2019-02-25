@@ -170,11 +170,10 @@ function bubbleSortCallback() {
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
-function createCanvas(id){
-	htmlCanvas= '<canvas id="'+id+'" width="250" height="180"></canvas>';
+function createCanvas(id, arr) {
+	htmlCanvas = '<canvas id="' + id + '" width="250" height="180"></canvas>';
 	$('#wrapContent').append(htmlCanvas);
-	var arr = [50, 38, 20, 18, 70, 45, 56, 100];
-	init(arr,id);
+	init(arr, id);
 }
 
 function addVisibleVariable(key, value) {
@@ -197,7 +196,7 @@ function animationChangeVariable(key) {
 
 var currentAlg;
 
-function init(arr,id) {
+function init(arr, id) {
 	var animManag = initCanvas(id);
 	currentAlg = new ComparisonSort(animManag, canvas.width, canvas.height, arr);
 }
