@@ -282,10 +282,10 @@ function addControlToAnimationBar(type,name,containerType)
 }
 
 
-function initCanvas()
+function initCanvas(id)
 {
-	canvas =  document.getElementById("canvas");
-	objectManager = new ObjectManager();
+	canvas =  document.getElementById(id);
+	objectManager = new ObjectManager(id);
 	animationManager = new AnimationManager(objectManager);
 	
 	skipBackButton = addControlToAnimationBar("Button", "Skip Back");

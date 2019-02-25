@@ -4,6 +4,8 @@ var callStack = [];
 var auxSwitchExpValue;
 var autoExecuteID;
 
+var test2;
+
 //Variable de ambiente
 var subprogram = {
     name: undefined,
@@ -229,7 +231,9 @@ function executeStatement() {
             subprogram.incStatement();
             callSubprogram(Statement.callee, Statement.arguments);
             return;
-        case "SwapFunction":
+        case "SwapFunction":            
+            // test2 = document.getElementById("iframeVisualizer").contentWindow;
+            // test2.init(getVariableValue("a"),'canvas');
             swapVariables(Statement.left, Statement.right);
             break;
         case "ReturnStatement":
@@ -246,6 +250,7 @@ function executeStatement() {
             break;
     }
     subprogram.nextStatement();
+    
 }
 
 function locateNextStatement() {
@@ -499,6 +504,7 @@ function AssignmentFunction(left, right) {
 }
 
 function swapVariables(left, right) {
+    // test2.swap(getVariableValue("j") - 1, getVariableValue("j"));
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);
