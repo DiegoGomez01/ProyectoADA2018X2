@@ -9,6 +9,8 @@ var actLineSelected;
 var actErrorMarker;
 var Range = ace.require('ace/range').Range;
 var breakPoints = {};
+var visualizerIF;
+var VarsVisualized = [];
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
@@ -97,6 +99,8 @@ $(document).ready(function () {
         }
     });
 
+    visualizerIF = document.getElementById("iframeVisualizer").contentWindow;
+
     //escoger un algoritmo para cargarlo
     $('#examplesChooser a').on('click', function (evt) {
         evt.preventDefault();
@@ -111,8 +115,8 @@ $(document).ready(function () {
                 alertify.alert(
                     '<h4 class="text-center">¡Seleccione la subrutina inicial (main)!</h4>' +
                     '<div class="btn-group-vertical w-100">' +
-                    Object.keys(program.SUBPROGRAMS).reduce(function (buttons, nameAct) {
-                        return buttons + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startProgram(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
+                    Object.keys(program.SUBPROGRAMS).reduce(function (VarList, nameAct) {
+                        return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startProgram(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
                     }, "") +
                     '</div>'
                 ).set({
@@ -266,6 +270,55 @@ function deleteMarker(id) {
 
 function getUISpeed() {
     return (VELOCIDADNORMALMS / parseFloat($('#spdSelector a.active').attr("data-vel")));
+}
+
+function showSelectionVarsVisualizer() {
+    var paused = tryPauseAutoExecute();
+    alertify.alert(
+        '<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>' +
+        '<div class="btn-group-vertical w-100">' +
+        Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
+            return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
+        }, "") +
+        '</div>'
+    ).set('onok', function () {
+        showVariablesVisualizer();
+        if (paused){
+            $("#btnPlay").click();
+        }
+    });
+}
+
+function selectVariableToShow(id, button) {
+    var index = VarsVisualized.indexOf(id);
+    if (index == -1) {
+        VarsVisualized.push(id);
+    } else {
+        VarsVisualized.splice(index, 1);
+    }
+    $(button).toggleClass("btn-secondary btn-primary");
+}
+
+function createArrayCanvas(id) {
+    visualizerIF.createCanvas(id, getVariableValue(id));
+}
+
+function showVariablesVisualizer() {
+    for (let i = 0; i < VarsVisualized.length; i++) {
+        const varId = VarsVisualized[i];
+        createArrayCanvas(varId);
+    }
+}
+
+function swapArrayCanvas(left, right) {
+    if (left.type == "ArrayAccess" && right.type == "ArrayAccess" && left.id == right.id) {
+        visualizerIF.init(getVariableValue(left.id), left.id);
+        visualizerIF.swap(getArrayIndex(left.index)[0] - 1, getArrayIndex(right.index)[0] - 1);
+    }
+}
+
+function removeViewContent(id) {
+    visualizerIF.removeViewContent(id);
 }
 
 //Código para mostrar una anotación en el editor
