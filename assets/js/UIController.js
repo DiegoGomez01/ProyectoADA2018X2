@@ -283,7 +283,7 @@ function showSelectionVarsVisualizer() {
         '</div>'
     ).set('onok', function () {
         showVariablesVisualizer();
-        if (paused){
+        if (paused) {
             $("#btnPlay").click();
         }
     });
@@ -312,9 +312,29 @@ function showVariablesVisualizer() {
 
 function swapArrayCanvas(left, right) {
     if (left.type == "ArrayAccess" && right.type == "ArrayAccess" && left.id == right.id) {
-        visualizerIF.init(getVariableValue(left.id), left.id);
-        visualizerIF.swap(getArrayIndex(left.index)[0] - 1, getArrayIndex(right.index)[0] - 1);
+        SelectCanvas(left.id);
+        var i = getArrayIndex(left.index)[0] - 1;
+        var j = getArrayIndex(right.index)[0] - 1;
+        // selectIndexArray(left.id, i);
+        // selectIndexArray(left.id, j);
+        visualizerIF.swap(i, j);
+        // unselectIndexArray(left.id, i);
+        // unselectIndexArray(left.id, j);
     }
+}
+
+function SelectCanvas(id) {
+    visualizerIF.init(getVariableValue(id), id);
+}
+
+function selectIndexArray(id, index) {
+    SelectCanvas(id);
+    visualizerIF.barColorChange(index);
+}
+
+function unselectIndexArray(id, index) {
+    SelectCanvas(id);
+    visualizerIF.resetbarColorChange(index);
 }
 
 function removeViewContent(id) {

@@ -573,6 +573,7 @@ function getArrayAccessValue(id, index) {
             arrV = arrV[index[i] - 1];
         }
     }
+    //--------------------------------------------------------
     return arrV;
 }
 
