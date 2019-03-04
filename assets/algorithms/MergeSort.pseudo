@@ -1,6 +1,6 @@
-/*Algoritmo de ordenamiento Merge Sort*/
+/*Algoritmo de ordenamiento por mezcla (MergeSort)*/
 
-procedure merge(ES int[] A, E int p, E int q, E int r)
+procedure Merge(ES int[] A, E int p, E int q, E int r)
 var
 int n1 <- q - p + 1
 int n2 <- r - q
@@ -8,12 +8,12 @@ int[n1 + 1] L
 int[n2 + 1] R
 int i, j, k
 {
-    for i<-1 to n1 do
-        L[i] <- A[p + i -1]
+    for i <- 1 to n1 do
+        L[i] <- A[p + i - 1]
     endfor
     
-    for j<-1 to n2 do
-        L[j] <- A[q + j]
+    for j <- 1 to n2 do
+        R[j] <- A[q + j]
     endfor    
     
     L[n1 + 1] <- infinito
@@ -22,7 +22,7 @@ int i, j, k
     i <- 1
     j <- 1
     
-    for k<-p to r do
+    for k <- p to r do
         if (L[i] <= R[j]) then
             A[k] <- L[i]
             i <- i + 1
@@ -41,7 +41,7 @@ int q
         q <- piso((p+r)/2)
         Merge_Sort(A, p, q)
         Merge_Sort(A, q + 1, r)
-        merge(A, p, q, r)
+        Merge(A, p, q, r)
     endif
 }
 

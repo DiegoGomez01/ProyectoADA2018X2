@@ -9,18 +9,18 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
         var keywords = (
             "if|then|else|endif|case|of|default|endcase|" +
             "while|do|endwhile|repeat|until|for|to|inc|downto|endfor|" +
-            "var|return|print|show|charat|pow|sqrt"            
+            "and|or|var|return|function|procedure"            
         );
 
         var builtinConstants = (
-            "infinito|true|false|not|function|procedure|e|s|es|" +
-            "piso|techo|apilar|desapilar|cima|encolar|desencolar|frente|" +
-            "isempty|len|size|and|or"
+            "infinito|true|false|not|e|s|es|" +
+            "int|float|boolean|char|string|pila|cola|lista"
         );
 
         var builtinFunctions = (
-            "int|float|boolean|char|string|" +
-            "pila|cola|lista|swap"
+            "print|show|swap|charat|" +
+            "piso|techo|apilar|desapilar|cima|encolar|desencolar|frente|size|isempty|" +
+            "pow|sqrt|len"
         );
 
         var keywordMapper = this.createKeywordMapper({

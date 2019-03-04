@@ -2,9 +2,9 @@ var parser;
 var program;
 var callStack = [];
 var auxSwitchExpValue;
+var auxLineCreation;
 var autoExecuteID;
-
-var test2;
+var log;
 
 //Variable de ambiente
 var subprogram = {
@@ -14,7 +14,6 @@ var subprogram = {
     localVariables: {},
     parameters: {},
     returnVariable: undefined,
-    log: [],
     getAct: function () {
         return {
             name: this.name,
@@ -23,7 +22,6 @@ var subprogram = {
             localVariables: this.localVariables,
             parameters: this.parameters,
             returnVariable: this.returnVariable,
-            log: this.log
         };
     },
     reset: function () {
@@ -33,7 +31,6 @@ var subprogram = {
         this.localVariables = {};
         this.parameters = {};
         this.returnVariable = undefined;
-        this.log = [];
     },
     actStatement: function () {
         return last(this.statementsBlockStack)[last(this.statementIndex)];
@@ -120,15 +117,19 @@ function startProgram(mainName) {
     }
 }
 
+var executionControl = {
+
+};
+
 function startAutoExecute() {
     var exeSpd = getUISpeed();
-    autoExecuteID = setInterval(autoExecute, exeSpd);
+    autoExecuteID = setInterval(executeStatement, exeSpd);
 }
 
 function changeSpeed(spd) {
     var exeSpd = VELOCIDADNORMALMS / spd;
     pauseAutoExecute();
-    autoExecuteID = setInterval(autoExecute, exeSpd);
+    autoExecuteID = setInterval(executeStatement, exeSpd);
 }
 
 function tryPauseAutoExecute() {
@@ -142,10 +143,6 @@ function tryPauseAutoExecute() {
 function pauseAutoExecute() {
     clearInterval(autoExecuteID);
     autoExecuteID = undefined;
-}
-
-function autoExecute() {
-    executeStatement();
 }
 
 function stopExecution() {
@@ -232,7 +229,7 @@ function executeStatement() {
             subprogram.incStatement();
             callSubprogram(Statement.callee, Statement.arguments);
             return;
-        case "SwapFunction":            
+        case "SwapFunction":
             swapVariables(Statement.left, Statement.right);
             break;
         case "ReturnStatement":
@@ -249,7 +246,7 @@ function executeStatement() {
             break;
     }
     subprogram.nextStatement();
-    
+
 }
 
 function locateNextStatement() {
@@ -287,9 +284,15 @@ function evalArgs(args) {
 
 function createLocalVariables(localVars, params, args, argsValues) {
     for (let [id, param] of Object.entries(params)) {
+        let value;
+        if (param.mode == "s") {
+            value = getDefaultValueToParam(param.dataType, argsValues[param.pos]);
+        } else {
+            value = argsValues[param.pos];
+        }
         subprogram.localVariables[id] = {
             dataType: param.dataType,
-            value: argsValues[param.pos]
+            value: value
         };
         subprogram.parameters[id] = {
             idCaller: args[param.pos].id,
@@ -297,12 +300,14 @@ function createLocalVariables(localVars, params, args, argsValues) {
         };
     }
     for (let [key, lVar] of Object.entries(localVars)) {
+        auxLineCreation = lVar.line;
         subprogram.localVariables[key] = {
             dataType: lVar.dataType,
             value: evalExpression(lVar.value)
         };
     }
-    showSelectionVarsVisualizer();
+    auxLineCreation = undefined;
+    //showSelectionVarsVisualizer();
 }
 
 function returnSubprogram(returnExpValue) {
@@ -322,7 +327,6 @@ function returnSubprogram(returnExpValue) {
         }
         subprogram.localVariables = callerSubprogram.localVariables;
         subprogram.parameters = callerSubprogram.parameters;
-        subprogram.log = callerSubprogram.log;
         if (returnExpValue !== undefined) {
             changeValueExpVariableAccess(callerSubprogram.returnVariable, returnExpValue);
             subprogram.returnVariable = undefined;
@@ -334,9 +338,11 @@ function returnSubprogram(returnExpValue) {
 
 function throwException(txt) {
     stopExecution();
-    var linea = "";
+    let linea;
     if (subprogram.hasStatements()) {
-        linea = " linea: " + (subprogram.actStatement().line + 1);
+        linea = " línea: " + (subprogram.actStatement().line + 1);
+    } else {
+        linea = " línea: " + (auxLineCreation + 1);
     }
     alertify.error(txt + linea, 15);
     alertify.warning("¡Cierre forzado del programa!");
@@ -377,9 +383,9 @@ function evalExpression(exp) {
         case "CastingIntFunction":
             return parseInt(evalExpression(exp.exp));
         case "PowFunction":
-            return powFunction(evalExpression(exp.base), evalExpression(exp.exp));
+            return getValidatedNumberExpression(powFunction(evalExpression(exp.base), evalExpression(exp.exp)));
         case "SqrtFunction":
-            return sqrtFunction(evalExpression(exp.base));
+            return getValidatedNumberExpression(sqrtFunction(evalExpression(exp.base)));
         case "ArrayLengthFunction":
             return getVariableValue(exp.arrVar.id).length;
         case "StringLengthFunction":
@@ -431,11 +437,11 @@ function evalFloatExpression(floatExp) {
 }
 
 function powFunction(x, y) {
-    return getValidatedNumberExpression(Math.pow(x, y));
+    return Math.pow(x, y);
 }
 
 function sqrtFunction(x) {
-    return getValidatedNumberExpression(Math.sqrt(x));
+    return Math.sqrt(x);
 }
 
 function getValidatedNumberExpression(num) {
@@ -510,7 +516,7 @@ function AssignmentFunction(left, right) {
 }
 
 function swapVariables(left, right) {
-    swapArrayCanvas(left, right);
+    // swapArrayCanvas(left, right);
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);
@@ -630,7 +636,7 @@ function createNewArray(dimensions, value) {
     if (dimensions.length > 0) {
         var dim = dimensions[0];
         var rest = dimensions.slice(1);
-        var newArray = new Array();
+        var newArray = [];
         if (dim > 0) {
             for (var i = 0; i < dim; i++) {
                 newArray[i] = createNewArray(rest, value);
@@ -660,4 +666,33 @@ function checkArrayDimensions(array, dimensions) {
         }
     }
     return true;
+}
+
+function getArrayDimensions(array) {
+    let dimensions = [];
+    dimensions[0] = array.length;
+    if (Array.isArray(array[0])) {
+        dimensions[1] = array[0].length;
+    }
+    return dimensions;
+}
+
+function getDefaultValueToParam(dataType, value) {
+    switch (dataType) {
+        case "string":
+        case "char":
+            return "";
+        case "float":
+        case "int":
+            return 0;
+        case "boolean":
+            return true;
+    }
+    if (dataType.includes("lista") || dataType.includes("pila") || dataType.includes("cola")) {
+        return [];
+    } else if (dataType.includes("[][]")) {
+        return createNewArray(getArrayDimensions(value), getDefaultValueToParam(dataType.slice(0, -4)));
+    } else if (dataType.includes("[]")) {
+        return createNewArray(getArrayDimensions(value), getDefaultValueToParam(dataType.slice(0, -2)));
+    }
 }

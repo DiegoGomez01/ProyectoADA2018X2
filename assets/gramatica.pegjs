@@ -31,7 +31,7 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     error("No existe una variable con el id: " + id);
   }
 
-  function getDefaultValue(dataType){
+  function getDefaultValue(dataType) {
     switch (dataType) {
       case "string":
       case "char":
@@ -64,9 +64,9 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     }
   }
 
-  function checkDataTypeExpressions(expLeftDataType, expRightDataType) {
+  function expressionsHaveDifferentDataTypes(expLeftDataType, expRightDataType) {
     if (expLeftDataType == "int" && expRightDataType == "float") {
-      error("Posible conversión con pérdida de float a int (utilice casteo int)");
+      error("Posible conversión con pérdida de float a int (intente utilizar casteo int)");
     }
     return ((expLeftDataType != expRightDataType) && !(expLeftDataType == "float" && expRightDataType == "int"));
   }
@@ -279,7 +279,7 @@ Expression = CharExpression / StringExpression / NumericExpression / BooleanExpr
 ExpressionNoPrimitive = VariableAccessExpression
 
 //Llamado a Variables
-VariableAccessExpression = Var:ExistingVariable !{if (Var[1].mode === "s") {error("La variable " + Var[0] + " no se puede leer");}} VarAccess:(
+VariableAccessExpression = Var:ExistingVariable VarAccess:(
 !"[" {
   return {
     type:"Variable",
@@ -442,14 +442,16 @@ PowFunction = PowToken "(" numExp:NumericExpression "," exp:NumericExpression ")
   return {
     type: "PowFunction",
     base: numExp,
-    exp: exp
+    exp: exp,
+    line: location().start.line - 1
   };
 }
 
 SqrtFunction = SqrtToken "(" numExp:NumericExpression ")" {
   return {
     type: "SqrtFunction",
-    base: numExp
+    base: numExp,
+    line: location().start.line - 1
   };
 }
 
@@ -490,13 +492,11 @@ CallExpression = callee:SubProgramID args:Arguments {
   }
   for (var idparam in paramsCallee) {
     let parameterCallee = paramsCallee[idparam];
-    if (checkDataTypeExpressions(parameterCallee.dataType, getDataTypeofExpression(args[parameterCallee.pos]))) {
+    if (expressionsHaveDifferentDataTypes(parameterCallee.dataType, getDataTypeofExpression(args[parameterCallee.pos]))) {
       error("El parámetro " + (parameterCallee.pos + 1) + " debe ser un " + parameterCallee.dataType);
     }
     if ((parameterCallee.mode == "s" || parameterCallee.mode == "es") && !isVariable(args[parameterCallee.pos])) {
       error("El parámetro " + (parameterCallee.pos + 1) + " debe ser una variable ya que es de salida");
-    } else if ((parameterCallee.mode == "s" || parameterCallee.mode == "es") && getVariable(args[parameterCallee.pos].id).mode == "e") {
-      error("El variable '" + args[parameterCallee.pos].id + "' es de solo lectura, no se puede enviar como parámetro de escritura");
     }
   }
   return {
@@ -549,7 +549,7 @@ AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:(Expr
   if (!isPrimitive(left.dataType)) { //Limited
     error("No se pueden asignar estructuras de datos");
   }
-  if (checkDataTypeExpressions(left.dataType, getDataTypeofExpression(right))) {
+  if (expressionsHaveDifferentDataTypes(left.dataType, getDataTypeofExpression(right))) {
     error("En la asignación se esperaba un " + left.dataType);
   }
   return {
@@ -560,7 +560,7 @@ AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:(Expr
   };
 }
 
-AssignableVariable = Var:ExistingVariable !{if (Var[1].mode === "e") {error("En la variable " + Var[0] + " no se puede escribir");}} AssignableVar:(
+AssignableVariable = Var:ExistingVariable AssignableVar:(
 !"[" {
   return {
     type:"Variable",
@@ -609,8 +609,9 @@ IfStatement = IfToken _ "(" _ test:BooleanExpression _ ")" _ ThenToken _f conseq
   };
 }
 
-SwitchStatement = CaseOfToken _ Exp:IntExpression _f
-cases:(caseVal:IntLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+SwitchStatement = CaseOfToken _ Exp:Expression _f
+cases:(caseVal:(BooleanLiteral / CharLiteral / StringLiteral / NumericLiteral) !{if (expressionsHaveDifferentDataTypes(getDataTypeofExpression(Exp), caseVal.dataType)) {error("Se esperaba un valor de tipo: " + getDataTypeofExpression(Exp))}} ":" _f block:Statements 
+{return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
 defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
   if (defaultCase !== null) {
     cases.push(defaultCase);
@@ -619,50 +620,6 @@ defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwi
     type: "SwitchStatement", 
     exp: Exp,
     cases:cases,
-    line: location().start.line - 1      
-  };
-}
-/CaseOfToken _ Exp:NumericExpression _f
-cases:(caseVal:NumericLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
-  return {
-    type: "SwitchStatement", 
-    exp: Exp,
-    cases:cases,
-    defaultCase:defaultCase,
-    line: location().start.line - 1      
-  };
-}
-/ CaseOfToken _ Exp:BooleanExpression _f
-cases:(caseVal:BooleanLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
-  return {
-    type: "SwitchStatement", 
-    exp: Exp,
-    cases:cases,
-    defaultCase:defaultCase,
-    line: location().start.line - 1      
-  };
-}
-/ CaseOfToken _ Exp:StringExpression _f
-cases:(caseVal:StringLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
-  return {
-    type: "SwitchStatement", 
-    exp: Exp,
-    cases:cases,
-    defaultCase:defaultCase,
-    line: location().start.line - 1      
-  };
-}
-/ CaseOfToken _ Exp:CharExpression _f
-cases:(caseVal:CharLiteral ":" _f block:Statements {return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
-defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
-  return {
-    type: "SwitchStatement", 
-    exp: Exp,
-    cases:cases,
-    defaultCase:defaultCase,
     line: location().start.line - 1      
   };
 }
@@ -768,7 +725,7 @@ ShowFunction = ShowToken "(" _ exp:Expression _ ")" {
   }
 }
 
-VariableForSwap = Var:ExistingVariable !{if (Var[1].mode !== undefined && Var[1].mode !== "es") {error("La variable " + Var[0] + " se debe poder escribir y leer");}} VarAccess:(
+VariableForSwap = Var:ExistingVariable VarAccess:(
 !"[" {
   return {
     type:"Variable",
@@ -817,7 +774,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
     const name = idList[index];
     createVariable(name, {
       dataType: dataType, 
-      value: valini});
+      value: valini,
+      line: location().start.line - 1});
   }
   return undefined;
 } 
@@ -848,7 +806,8 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
       const name = idList[index];
       createVariable(name, {
         dataType: dataType,
-        value: valini
+        value: valini,
+        line: location().start.line - 1
         });
     }
     return undefined;      
@@ -929,8 +888,8 @@ ReturnStatement = ReturnToken _ expReturn:Expression {
 SubProgramDeclaration = 
 FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
 !{createSubProgram("function", dataType, id, params);} __ VariableStatement? 
-"{" _f body:Statements expReturn:ReturnStatement _f"}" {
-  if (checkDataTypeExpressions(dataType, getDataTypeofExpression(expReturn.exp))) {
+"{" _f body:Statements expReturn:ReturnStatement _f "}" {
+  if (expressionsHaveDifferentDataTypes(dataType, getDataTypeofExpression(expReturn.exp))) {
     error("Se debe retornar un " + dataType);
   }
   SUBPROGRAMS[id].body = body;
@@ -956,61 +915,3 @@ FormalParameterList = params:(head:Parameter tail:(__ "," __ Parameter)* {return
 {if (params == null) {return {};} else {return params;}}
 
 Parameter = mode:ModePar _ dataType:TypesVar _ id:Identifier {return {mode: mode, dataType: dataType, id: id};}
-
-//---------------------------------------------------------------------------------------------------------
-
-/*
------- Data Type (Tipado Fuerte) ------
-"int" , "float" , "boolean" , "string", "char"
-DataType[][] (Arreglos)
-pila<DataType> (Pilas)
-cola<DataType> (Colas)
-lista<DataType> (Listas)
------- Data Structure ------
-params = {id:{mode:"e|s|es",dataType:"",pos""}}
-FormalParameterList = [{id:"", mode:"", dataType:""}]
-literal = {type:"Literal", dataType:"", value:""}
-variable = {type:"Variable", id:"", dataType:""}
-expression = {type:"int|float|boolean", operator:"", left:"", right:""} | Variable | Literal | FunctionCall (CallExpression)
-NegationExpression = {type:"boolean", operator: "not", argument: Expression (Boolean)}
-callexpression = {type:"CallExpression", callee:id, arguments:arguments}
-ArrayAccess = {type:"ArrayAccess", id:"", index:[], dataType:""}
-arguments = [expression,expression...]
-statements = [statement,statement...]
----Statements---
-AssignmentStatement = {type:"AssignmentStatement", left:"", right:"", line:""}
-IfStatement = {type:"IfStatement", test:"", consequent:"", *alternate:"", line:""}
-SwitchStatement = {type:"SwitchStatement", exp: "", cases:[], *defaultCase:"", line:""}
-defaultCase = {block:"", line:""}
-cases = {caseVal:"", block:"", line:""}
-RepeatUntilStatement = {type:"RepeatUntilStatement", body:"", test:"", line:""}
-WhileStatement = {type:"WhileStatement", test:"", body:"", line:""}
-ForStatement = {type:"ForStatement", varFor:"", iniValue:"", finValue:"", inc:"" ,body:"" , line:""}
-
-GLOBALS =  {"idVar":{value:"", dataType:""}}
-SUBPROGRAMS = {"idFunOrPro":{type:"procedure|function", params:params , *dataType:"", body:body}}
-ACTSUBPROGRAMID = id -> id de la función o procedimiento actual
-
-buscar: "Limited" para encontrar las acciones que no se pueden realizar en un programa
-
-
-
-
-function checkArrayDimensions(array, dimensions) {
-    var dim = dimensions[0];
-    var rest = dimensions.slice(1);
-    if (array.length != dim) {
-        return false;
-    }
-    for (var i = 0; i < dim; i++) {
-        if (rest.length > 0 && Array.isArray(array[i])) {
-            if (!checkArrayDimensions(array[i], rest)) {
-                return false;
-            }
-        } else if (Array.isArray(array[i])) {
-            return false;
-        }
-    }
-    return true;
-}
-*/

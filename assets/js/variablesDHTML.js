@@ -18,11 +18,11 @@ function showAllVariables() {
 }
 
 function updateLocalVariables() {
-    $("#tbodyLocalVars").find("tr:gt(0)").remove();
     $("#titleActSubprogram").text(subprogram.name);
     var parametersInfo = "";
     var variablesInfo = "";
     $('#tbodyLocalVars').fadeOut(VELOCIDADUICAMBIOSMS, function () {
+        $("#tbodyLocalVars").find("tr:gt(0)").remove();
         if (sizeObj(subprogram.localVariables) > 0) {
             for (let [idVar, Var] of Object.entries(subprogram.localVariables)) {
                 var param = subprogram.parameters[idVar];
