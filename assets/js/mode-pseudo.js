@@ -18,9 +18,10 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
         );
 
         var builtinFunctions = (
-            "print|show|swap|charat|" +
-            "piso|techo|apilar|desapilar|cima|encolar|desencolar|frente|size|isempty|" +
-            "pow|sqrt|len"
+            "print|show|swap|charat|piso|techo|" +
+            "push|pop|peek|enqueue|dequeue|front|size|isempty|" +
+            "add|addfirst|addlast|index|get|getfirst|getlast|remove|removeindex|removefirst|removelast|" +
+            "pow|sqrt|len|contains"
         );
 
         var keywordMapper = this.createKeywordMapper({

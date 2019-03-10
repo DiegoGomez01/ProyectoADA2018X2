@@ -225,6 +225,15 @@ function executeStatement() {
                 return;
             }
             break;
+        case "PushStatement":
+        case "EnqueueStatement":
+        case "AddStatement":
+        case "AddLastStatement":
+            DataStructurePush(Statement.DSVar.id, Statement.exp);
+            break;
+        case "AddFirstStatement":
+            DataStructureAddFirst(Statement.DSVar.id, Statement.exp);
+            break;
         case "CallExpression":
             subprogram.incStatement();
             callSubprogram(Statement.callee, Statement.arguments);
@@ -241,12 +250,14 @@ function executeStatement() {
         case "ShowFunction":
             ShowFunction(evalExpression(Statement.exp));
             break;
+        case "ExpressionStatement":
+            evalExpression(Statement.exp);
+            break;
         default:
             alert("falta Statement: " + Statement.type);
             break;
     }
     subprogram.nextStatement();
-
 }
 
 function locateNextStatement() {
@@ -289,6 +300,9 @@ function createLocalVariables(localVars, params, args, argsValues) {
             value = getDefaultValueToParam(param.dataType, argsValues[param.pos]);
         } else {
             value = argsValues[param.pos];
+            if (param.mode == "e" && Array.isArray(value)) {
+                value = cloneArray(value);
+            }
         }
         subprogram.localVariables[id] = {
             dataType: param.dataType,
@@ -394,6 +408,38 @@ function evalExpression(exp) {
             return evalStringConcatenation(exp.exps);
         case "CharAtFunction":
             return getCharAt(exp);
+        case "SizeFunction":
+            return getVariableValue(exp.DSVar.id).length;
+        case "IsEmptyFunction":
+            return IsEmptyDataStructureFunction(getVariableValue(exp.DSVar.id));
+        case "PopExpression":
+            return RemoveLastDSFunction(exp.StackVar.id, "La pila está vacía");
+        case "PeekExpression":
+            return GetLastDSFunction(exp.StackVar.id, "La pila está vacía");
+        case "DequeueExpression":
+            return RemoveFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
+        case "FrontExpression":
+            return GetFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
+        case "IndexFunction":
+            return IndexOfFunction(getVariableValue(exp.ListVar.id), evalExpression(exp.element));
+        case "RemoveElementByIndexExpression":
+            return RemoveElementByIndexFunction(exp.ListVar.id, evalExpression(exp.index));
+        case "RemoveElementExpression":
+            return RemoveElementFunction(exp.ListVar.id, evalExpression(exp.element));
+        case "RemoveFirstExpression":
+            return RemoveFirstDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "RemoveLastExpression":
+            return RemoveLastDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "GetElementByIndexExpression":
+            return GetElementByIndexFunction(getVariableValue(exp.ListVar.id), evalExpression(exp.index));
+        case "GetFirstExpression":
+            return GetFirstDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "GetLastExpression":
+            return GetLastDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "DSContainsFunction":
+            return ContainsFunction(getVariableValue(exp.DSVar.id), evalExpression(exp.element));
+        case "StringContainsFunction":
+            return getVariableValue(strVar.id).includes(evalExpression(exp.strExp));
         default:
             alert("Falta la expresión: " + exp.type);
             break;
@@ -466,9 +512,15 @@ function evalBooleanExpression(booleanExp) {
         case "!=":
             return evalExpression(booleanExp.left) != evalExpression(booleanExp.right);
         case "and":
-            return evalExpression(booleanExp.left) && evalExpression(booleanExp.right);
+            if (evalExpression(booleanExp.left)) {
+                return evalExpression(booleanExp.right);
+            }
+            return false;
         case "or":
-            return evalExpression(booleanExp.left) || evalExpression(booleanExp.right);
+            if (!evalExpression(booleanExp.left)) {
+                return evalExpression(booleanExp.right);
+            }
+            return true;
         case "not":
             return !evalExpression(booleanExp.argument);
         default:
@@ -513,6 +565,95 @@ function AssignmentFunction(left, right) {
         callSubprogram(right.callee, right.arguments);
         return false;
     }
+}
+
+function DataStructurePush(id, exp) {
+    getVariableValue(id).push(evalExpression(exp));
+    updateVariableValue(id);
+}
+
+function DataStructureAddFirst(id, exp) {
+    getVariableValue(id).unshift(evalExpression(exp));
+    updateVariableValue(id);
+}
+
+function RemoveElementFunction(id, element) {
+    let dataStructure = getVariableValue(id);
+    if (ContainsFunction(dataStructure, element)) {
+        let index = dataStructure.indexOf(element);
+        dataStructure.splice(index, 1);
+        updateVariableValue(id);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function RemoveElementByIndexFunction(id, index) {
+    let dataStructure = getVariableValue(id);
+    if (index > 0 && index <= dataStructure.length) {
+        let returned = dataStructure.splice(index - 1, 1);
+        updateVariableValue(id);
+        return returned;
+    } else {
+        throwException("El índice sobre pasa las dimensiones de la lista");
+    }
+}
+
+function RemoveFirstDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    let returned = dataStructure.shift();
+    updateVariableValue(id);
+    return returned;
+}
+
+function RemoveLastDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    let returned = dataStructure.pop();
+    updateVariableValue(id);
+    return returned;
+}
+
+function GetElementByIndexFunction(dataStructure, index) {
+    if (index > 0 && index <= dataStructure.length) {
+        return dataStructure[index - 1];
+    } else {
+        throwException("El índice sobre pasa las dimensiones de la lista");
+    }
+}
+
+function GetFirstDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    return dataStructure[0];
+}
+
+function GetLastDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    return last(dataStructure);
+}
+
+function ContainsFunction(dataStructure, element) {
+    return IndexOfFunction(dataStructure, element) > 0;
+}
+
+function IndexOfFunction(dataStructure, element) {
+    return dataStructure.indexOf(element) + 1;
+}
+
+function IsEmptyDataStructureFunction(dataStructure) {
+    return dataStructure.length == 0;
 }
 
 function swapVariables(left, right) {
