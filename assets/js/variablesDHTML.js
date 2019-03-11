@@ -68,16 +68,14 @@ function getStringValue(dataType, value) {
     } else if (dataType.includes("[]")) {
         subDataType = dataType.slice(0, -2);
         return "[" + getDataStructureString(subDataType, value) + "]";
-    } else if (dataType.includes("lista")) {
-        subDataType = dataType.replace('lista<', '').slice(0, -1);
-        return "{" + getDataStructureString(subDataType, value) + "}";
-    } else if (dataType.includes("cola")) {
-        subDataType = dataType.replace('cola<', '').slice(0, -1);
-        return "{" + getDataStructureString(subDataType, value) + "}";
-    } else if (dataType.includes("pila")) {
-        subDataType = dataType.replace('pila<', '').slice(0, -1);
+    } else {
+        subDataType = getSubDataTypeofDataStructure(dataType);
         return "{" + getDataStructureString(subDataType, value) + "}";
     }
+}
+
+function getSubDataTypeofDataStructure(dataType) {
+    return dataType.slice(dataType.indexOf("<") + 1, dataType.length - 1);
 }
 
 function getDataStructureString(dataType, dataStructure) {

@@ -64,6 +64,10 @@ Variables y funciones declaradas aquí se pueden acceder en la gramática*/
     }
   }
 
+  function getSubDataTypeofDataStructure(dataType) {
+    return dataType.slice(dataType.indexOf("<") + 1, dataType.length - 1);
+  }
+
   function expressionsHaveDifferentDataTypes(expLeftDataType, expRightDataType) {
     if (expLeftDataType == "int" && expRightDataType == "float") {
       error("Posible conversión con pérdida de float a int (intente utilizar casteo int)");
@@ -206,9 +210,11 @@ ReservedWord = VarToken / IfToken / ThenToken / ElseToken / EndIfToken / CaseOfT
   TrueToken / FalseToken / PilaToken / ColaToken / ListaToken / NotToken / ReturnToken / 
   PisoToken / TechoToken / InfinitoToken / PushToken / PopToken / PeekToken / EnqueueToken / 
   DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken / PrintToken / 
-  ShowToken / CharAtToken / PowToken / SqrtToken
+  ShowToken / CharAtToken / PowToken / SqrtToken / AddToken / AddFirstToken / AddLastToken / 
+  IndexToken / GetToken / GetFirstToken / GetLastToken / RemoveToken / RemoveIndexToken / RemoveFirstToken /
+  RemoveLastToken / ContainsToken
 
-// Tokens  
+// Tokens
 VarToken        = "var"i           !IdentifierPart 
 IfToken         = "if"i            !IdentifierPart
 ThenToken       = "then"i          !IdentifierPart
@@ -247,15 +253,27 @@ ReturnToken     = "return"i        !IdentifierPart
 PisoToken       = "piso"i          !IdentifierPart
 TechoToken      = "techo"i         !IdentifierPart
 InfinitoToken   = "infinito"i      !IdentifierPart
-PushToken       = "apilar"i        !IdentifierPart//----------------------------------------------
-PopToken        = "desapilar"i     !IdentifierPart
-PeekToken       = "cima"i          !IdentifierPart
-EnqueueToken    = "encolar"i       !IdentifierPart
-DequeueToken    = "desencolar"i    !IdentifierPart
-FrontToken      = "frente"i        !IdentifierPart
+PushToken       = "push"i          !IdentifierPart
+PopToken        = "pop"i           !IdentifierPart
+PeekToken       = "peek"i          !IdentifierPart
+EnqueueToken    = "enqueue"i       !IdentifierPart
+DequeueToken    = "dequeue"i       !IdentifierPart
+FrontToken      = "front"i         !IdentifierPart
 IsEmptyToken    = "isempty"i       !IdentifierPart
+AddToken        = "add"i           !IdentifierPart
+AddFirstToken   = "addfirst"i      !IdentifierPart
+AddLastToken    = "addlast"i       !IdentifierPart
+IndexToken      = "indexof"i       !IdentifierPart
+GetToken        = "get"i           !IdentifierPart
+GetFirstToken   = "getfirst"i      !IdentifierPart
+GetLastToken    = "getlast"i       !IdentifierPart
+RemoveToken     = "remove"i        !IdentifierPart
+RemoveIndexToken= "removeindex"i   !IdentifierPart
+RemoveFirstToken= "removefirst"i   !IdentifierPart
+RemoveLastToken = "removelast"i    !IdentifierPart
+ContainsToken   = "contains"i      !IdentifierPart
 LengthToken     = "len"i           !IdentifierPart
-SizeToken       = "size"i          !IdentifierPart//----------------------------------------------
+SizeToken       = "size"i          !IdentifierPart
 SwapToken       = "swap"i          !IdentifierPart
 PrintToken      = "print"i         !IdentifierPart
 ShowToken       = "show"i          !IdentifierPart
@@ -272,7 +290,6 @@ TypesVar = PrimitiveTypesVar ("[" "]" ("[" "]")?)? {return text();}
 
 ModePar = EntradaToken / SalidaToken / ESToken
 
-// enviar arreglo como parametro
 // ----- Expresiones -----
 Expression = CharExpression / StringExpression / NumericExpression / BooleanExpression / ExpressionNoPrimitive
 
@@ -320,8 +337,123 @@ StringVariable "variable string" = varS:VariableAccessExpression !"." &{return v
 
 CharVariable "variable char" = varC:VariableAccessExpression !"." &{return varC.dataType == "char";} {return varC;}
 
+PopExpression = StackVar:VariableAccessExpression &{return StackVar.dataType.includes("pila");} "." PopToken {
+  return {
+    type: "PopExpression",
+    StackVar: StackVar,
+    dataType: getSubDataTypeofDataStructure(StackVar.dataType)
+  };
+}
+
+PeekExpression =  StackVar:VariableAccessExpression &{return StackVar.dataType.includes("pila");} "." PeekToken {
+    return {
+      type: "PeekExpression",
+      StackVar: StackVar,
+      dataType: getSubDataTypeofDataStructure(StackVar.dataType)
+    };
+  }
+
+DequeueExpression = QueueVar:VariableAccessExpression &{return QueueVar.dataType.includes("cola");} "." DequeueToken {
+    return {
+      type: "DequeueExpression",
+      QueueVar: QueueVar,
+      dataType: getSubDataTypeofDataStructure(QueueVar.dataType)
+    };
+  }
+
+FrontExpression = QueueVar:VariableAccessExpression &{return QueueVar.dataType.includes("cola");} "." FrontToken {
+    return {
+      type: "FrontExpression",
+      QueueVar: QueueVar,
+      dataType: getSubDataTypeofDataStructure(QueueVar.dataType)
+    };
+  }
+
+RemoveElementByIndexExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." RemoveIndexToken "(" index:IntExpression ")" {
+    return {
+      type: "RemoveElementByIndexExpression",
+      index: index,
+      ListVar: ListVar,
+      dataType: getSubDataTypeofDataStructure(ListVar.dataType)
+    };
+  }
+
+RemoveElementExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." RemoveToken "(" element:Expression ")" {
+    let dataType = getSubDataTypeofDataStructure(ListVar.dataType);
+    if (expressionsHaveDifferentDataTypes(dataType, getDataTypeofExpression(element))) {
+      error("En la lista no hay elementos de tipo " + getDataTypeofExpression(element));
+    }
+    return {
+      type: "RemoveElementExpression",
+      element: element,
+      ListVar: ListVar,
+      dataType: "boolean"
+    };
+  }
+
+RemoveFirstExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." RemoveFirstToken {
+    return {
+      type: "RemoveFirstExpression",
+      ListVar: ListVar,
+      dataType: getSubDataTypeofDataStructure(ListVar.dataType)
+    };
+  }
+
+RemoveLastExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." RemoveLastToken {
+    return {
+      type: "RemoveLastExpression",
+      ListVar: ListVar,
+      dataType: getSubDataTypeofDataStructure(ListVar.dataType)
+    };
+  }
+
+GetElementByIndexExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." GetToken "(" index:IntExpression ")" {
+    return {
+      type: "GetElementByIndexExpression",
+      index: index,
+      ListVar: ListVar,
+      dataType: getSubDataTypeofDataStructure(ListVar.dataType)
+    };
+  }
+
+GetFirstExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." GetFirstToken {
+    return {
+      type: "GetFirstExpression",
+      ListVar: ListVar,
+      dataType: getSubDataTypeofDataStructure(ListVar.dataType)
+    };
+  }
+
+GetLastExpression = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." GetLastToken {
+    return {
+      type: "GetLastExpression",
+      ListVar: ListVar,
+      dataType: getSubDataTypeofDataStructure(ListVar.dataType)
+    };
+  }
+
+GettingListExpression = GetElementByIndexExpression / GetFirstExpression / GetLastExpression
+
+RemovalListExpression = RemoveElementByIndexExpression / RemoveElementExpression / RemoveFirstExpression / RemoveLastExpression
+
+GettingStackExpression = PopExpression / PeekExpression
+
+GettingQueueExpression = DequeueExpression / FrontExpression
+
 //Expresiones según su tipo
-CharExpression = char:CharLiteral NotConcatenationString {return char;} / char:CharVariable NotConcatenationString {return char;} / CharAtFunction
+
+DataStructuresFunctions = GettingListExpression / RemovalListExpression / GettingStackExpression / GettingQueueExpression
+
+CharDataStructure = DSF:DataStructuresFunctions &{return DSF.dataType == "char";} {return DSF;}
+
+StringDataStructure = DSF:DataStructuresFunctions &{return DSF.dataType == "string";} {return DSF;}
+
+BooleanDataStructure = DSF:DataStructuresFunctions &{return DSF.dataType == "boolean";} {return DSF;}
+
+NumericDataStructure = DSF:DataStructuresFunctions &{return (DSF.dataType == "int" || DSF.dataType == "float");} {return DSF;}
+
+CharExpression = char:CharLiteral NotConcatenationString {return char;} / char:CharVariable NotConcatenationString {return char;} / CharAtFunction 
+  / CharDataStructure
 
 CharAtFunction = strVar:VariableAccessExpression &{return strVar.dataType == "string";} "." CharAtToken "(" _ intexp:IntExpression _ ")" {
   return {
@@ -333,6 +465,7 @@ CharAtFunction = strVar:VariableAccessExpression &{return strVar.dataType == "st
 }
 
 StringExpression = str:StringLiteral NotConcatenationString {return str;} / str:StringVariable NotConcatenationString {return str;} / StringConcatenation
+  / StringDataStructure
 
 NotConcatenationString = !(_ "+")
 
@@ -360,7 +493,7 @@ StringConcatenation = exps:(head:LeftHandStringConcatenation _ tail:(_ "+" _ Lef
 }
 
 LeftHandSideNumericExpression = NumericLiteral / IntVariable / FloatVariable
-  / SpecialNumericFunctions / VariablesNumericFunctions
+  / SpecialNumericFunctions / VariablesNumericFunctions / NumericDataStructure 
   / "(" _ numExp:NumericExpression _ ")" {return numExp;}
 
 MultiplicativeNumericExpression = head:(LeftHandSideNumericExpression) tail:(_ MultiplicativeOperator _ LeftHandSideNumericExpression)*
@@ -385,9 +518,10 @@ RelationalExpression = head:NumericExpression tail:(_ RelationalOperator _ Numer
 
 RelationalOperator = "<=" / ">=" / $("<") / $(">")
 
-LeftHandSideEqualityLogExpression = BooleanLiteral / BooleanVariable
+LeftHandSideEqualityLogExpression = BooleanLiteral / BooleanVariable / SpecialBooleanFunctions
   / "(" _ logExp:BooleanExpression _ ")" {return logExp;} 
   / RelationalExpression
+  / BooleanDataStructure
   / NotToken _ argument:BooleanExpression { 
     return {
       type: "boolean",
@@ -418,11 +552,48 @@ BooleanExpression = head:LogicalANDExpression tail:(_ LogicalOROperator _ Logica
 
 LogicalOROperator = "or"i {return "or";}
 
+//--- Funciones especiales (Booleanas)
+
+SpecialBooleanFunctions = DSIsEmptyFunction / DSContainsFunction / StringContainsFunction
+
+DSIsEmptyFunction = DSVar:VariableAccessExpression &{return DSVar.dataType.includes("pila") || DSVar.dataType.includes("cola") || DSVar.dataType.includes("lista");} "." IsEmptyToken {
+  return {
+    type: "IsEmptyFunction",
+    dataType: "boolean",
+    DSVar: DSVar
+  };
+}
+
+DSContainsFunction = DSVar:VariableAccessExpression &{return (DSVar.type="Variable" && !isPrimitive(DSVar.dataType)) || (DSVar.type="ArrayAccess" && isPrimitive(DSVar.dataType));} "." ContainsToken "(" element:Expression ")" {
+  let dataType = DSVar.dataType;
+  if (dataType.includes("lista") || dataType.includes("pila") || dataType.includes("cola")) {
+    dataType = getSubDataTypeofDataStructure(dataType);
+  }
+  if (expressionsHaveDifferentDataTypes(dataType, getDataTypeofExpression(element))) {
+    error("Una estructura de datos " + getVariable(DSVar.id).dataType + " no puede contener un " + getDataTypeofExpression(element));
+  }
+  return {
+    type: "DSContainsFunction",
+    dataType: "boolean",
+    DSVar: DSVar,
+    element: element
+  };
+} 
+
+StringContainsFunction = strVar:VariableAccessExpression &{return strVar.dataType == "string";} "." ContainsToken "(" strExp:StringExpression ")" {
+  return {
+    type: "StringContainsFunction",
+    dataType: "boolean",
+    strVar: strVar,
+    strExp: strExp
+  };
+}
+
 //--- Funciones especiales (Numéricas) --- 
 
 SpecialNumericFunctions = FloorFunction / CeilingFunction / CastingIntFunction / InfinityLiteral / PowFunction / SqrtFunction
 
-VariablesNumericFunctions = StringLengthFunction / ArrayLengthFunction
+VariablesNumericFunctions = StringLengthFunction / ArrayLengthFunction / SizeFunction / IndexFunction
 
 FloorFunction = PisoToken "(" _ numExp:NumericExpression _ ")" {
   return {
@@ -484,6 +655,27 @@ StringLengthFunction = strVar:VariableAccessExpression &{return strVar.dataType 
   };
 }
 
+SizeFunction = DSVar:VariableAccessExpression &{return DSVar.dataType.includes("pila") || DSVar.dataType.includes("cola") || DSVar.dataType.includes("lista");} "." SizeToken {
+  return {
+    type: "SizeFunction",
+    dataType: "int",
+    DSVar: DSVar
+  };
+}
+
+IndexFunction = ListVar:VariableAccessExpression &{return ListVar.dataType.includes("lista");} "." IndexToken "(" element:Expression ")" {
+    let dataType = getSubDataTypeofDataStructure(ListVar.dataType);
+    if (expressionsHaveDifferentDataTypes(dataType, getDataTypeofExpression(element))) {
+      error("En la lista no hay elementos de tipo " + getDataTypeofExpression(element));
+    }
+    return {
+      type: "IndexFunction",
+      element: element,
+      ListVar: ListVar,
+      dataType: "int"
+    };
+  }
+
 //Llamado a un subprograma
 CallExpression = callee:SubProgramID args:Arguments {
   var paramsCallee = SUBPROGRAMS[callee].params;
@@ -542,10 +734,20 @@ ProcedureCallStatement = callExp:CallExpression {
 Statements = SList:(head:Statement tail:(_f Statement)* _f {return buildList(head, tail, 1);})? 
 {if (SList == null) {return [];} else {return SList;}}
 
-Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchStatement / ProcedureCallStatement / SpecialFunctions
+Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchStatement / ProcedureCallStatement / SpecialFunctions 
+/ ES:ExpressionStatement {
+  return {
+    type: "ExpressionStatement",
+    exp: ES,
+    line: location().start.line - 1
+  };
+}
+
+//Expresión y Sentencias
+ExpressionStatement = RemovalListExpression / PopExpression / DequeueExpression
 
 // Asignación de variables
-AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:(Expression / FunctionCall) {
+AssignmentStatement = left:VariableAccessExpression _ AssignmentOperator _ right:(Expression / FunctionCall) {
   if (!isPrimitive(left.dataType)) { //Limited
     error("No se pueden asignar estructuras de datos");
   }
@@ -558,34 +760,62 @@ AssignmentStatement = left:AssignableVariable _ AssignmentOperator _ right:(Expr
     right: right,
     line: location().start.line - 1
   };
-}
-
-AssignableVariable = Var:ExistingVariable AssignableVar:(
-!"[" {
-  return {
-    type:"Variable",
-    id: Var[0],
-    dataType: Var[1].dataType
-  };
-}
-/ index:ArrayIndex {
-  var dataTypeAssign = Var[1].dataType;
-  var varD = (dataTypeAssign.match(/\[\]/g) || []).length;
-  if (varD == 0) {
-    error("La variable " + Var[0] + " no es un arreglo");
-  } else if (varD < index.length) {
-    error("El arreglo " + Var[0] + " no es de " + index.length + " dimensiones");
-  } else {
-      dataTypeAssign = dataTypeAssign.slice(0,-(2 * index.length));
+} 
+/ DSVar:VariableAccessExpression &{return DSVar.dataType.includes("pila");} "." PushToken "(" _ exp:Expression ")" {
+  if (expressionsHaveDifferentDataTypes(getSubDataTypeofDataStructure(DSVar.dataType), getDataTypeofExpression(exp))) {
+    error("A la pila solo se pueden agregar elementos de tipo " + getSubDataTypeofDataStructure(DSVar.dataType));
   }
   return {
-    type:"ArrayAccess",
-    id: Var[0],
-    index: index,
-    dataType: dataTypeAssign
-  };    
+    type: "PushStatement",
+    DSVar: DSVar,
+    exp: exp,
+    line: location().start.line - 1
+  };
 }
-) {return AssignableVar;}
+/ DSVar:VariableAccessExpression &{return DSVar.dataType.includes("cola");} "." EnqueueToken "(" _ exp:Expression ")" {
+  if (expressionsHaveDifferentDataTypes(getSubDataTypeofDataStructure(DSVar.dataType), getDataTypeofExpression(exp))) {
+    error("A la cola solo se pueden agregar elementos de tipo " + getSubDataTypeofDataStructure(DSVar.dataType));
+  }
+  return {
+    type: "EnqueueStatement",
+    DSVar: DSVar,
+    exp: exp,
+    line: location().start.line - 1
+  };
+}
+/ DSVar:VariableAccessExpression &{return DSVar.dataType.includes("lista");} "." AddToken "(" _ exp:Expression ")" {
+  if (expressionsHaveDifferentDataTypes(getSubDataTypeofDataStructure(DSVar.dataType), getDataTypeofExpression(exp))) {
+    error("A la lista solo se pueden agregar elementos de tipo " + getSubDataTypeofDataStructure(DSVar.dataType));
+  }
+  return {
+    type: "AddStatement",
+    DSVar: DSVar,
+    exp: exp,
+    line: location().start.line - 1
+  };
+}
+/ DSVar:VariableAccessExpression &{return DSVar.dataType.includes("lista");} "." AddFirstToken "(" _ exp:Expression ")" {
+  if (expressionsHaveDifferentDataTypes(getSubDataTypeofDataStructure(DSVar.dataType), getDataTypeofExpression(exp))) {
+    error("A la lista solo se pueden agregar elementos de tipo " + getSubDataTypeofDataStructure(DSVar.dataType));
+  }
+  return {
+    type: "AddFirstStatement",
+    DSVar: DSVar,
+    exp: exp,
+    line: location().start.line - 1
+  };
+}
+/ DSVar:VariableAccessExpression &{return DSVar.dataType.includes("lista");} "." AddLastToken "(" _ exp:Expression ")" {
+  if (expressionsHaveDifferentDataTypes(getSubDataTypeofDataStructure(DSVar.dataType), getDataTypeofExpression(exp))) {
+    error("A la lista solo se pueden agregar elementos de tipo " + getSubDataTypeofDataStructure(DSVar.dataType));
+  }
+  return {
+    type: "AddLastStatement",
+    DSVar: DSVar,
+    exp: exp,
+    line: location().start.line - 1
+  };
+}
 
 AssignmentOperator = "<-" !"<-"
 
