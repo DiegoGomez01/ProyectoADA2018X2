@@ -282,7 +282,7 @@ function addControlToAnimationBar(type,name,containerType)
 }
 
 
-function initCanvas(id)
+function initCanvas(id,mitad)
 {
 	canvas =  document.getElementById(id);
 	objectManager = new ObjectManager(id);
@@ -430,6 +430,7 @@ function initCanvas(id)
         swapButton.onclick = swapControlDiv;	
 	
 	objectManager.statusReport.setText(id);
+	objectManager.statusReport.x = mitad;
 	animationManager.addListener("AnimationStarted", this, animStarted);
 	animationManager.addListener("AnimationEnded", this, this.animEnded);
 	animationManager.addListener("AnimationWaiting", this, this.animWaiting);

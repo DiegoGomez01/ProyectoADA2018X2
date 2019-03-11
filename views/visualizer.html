@@ -42,13 +42,23 @@
 
     <div id="wrapVariables" class="d-flex align-content-start flex-wrap"></div>
 
-    <button onclick="drawMatriz()">CreateMatriz</button>
+    <!-- <button onclick="drawMatriz()">CreateMatriz</button>
     <button onclick="drawCell(1,1)">DrawMatriz</button>
     <button onclick="createCanvas('canvas')">Canv1</button>
     <button onclick="createCanvas('canvas2')">Canv2</button>
     <button onclick="createCanvas('canvas3')">Canv3</button>
     <button onclick="createCanvas('canvas4')">Canv4</button>
-    <button onclick="removeViewContent('canvas')">Rm Cv1</button>
+    <button onclick="removeViewContent('canvas')">Rm Cv1</button> -->
+    
+    <button onclick="setIndexBar(1,'i')">setIndexBar</button>
+    <button onclick="setIndexBar(2,'j')">setIndexBar</button>
+    <button onclick="clearIndexBar(1)">clear 1</button>
+
+    <button onclick="barColorChange(1)">barColorChange 1</button>
+    <button onclick="barColorChange(2)">barColorChange 1</button>
+    <button onclick="resetAllBarColorChange()">reset color</button>
+
+    <button onclick="swap(1,2)">swap</button>
 
     <div id="wrapContent" class="d-flex align-content-start flex-wrap"></div>
 
