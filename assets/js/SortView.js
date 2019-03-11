@@ -266,6 +266,11 @@ function animationChangeVariable(key) {
 	});
 }
 
+function clearAllDivs(){
+	document.getElementById('wrapVariables').innerHTML = "";
+	document.getElementById('wrapContent').innerHTML = "";
+}
+
 var currentAlg;
 
 function init(arr, id) {
