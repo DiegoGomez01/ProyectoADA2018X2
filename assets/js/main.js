@@ -253,6 +253,9 @@ function executeStatement() {
         case "ExpressionStatement":
             evalExpression(Statement.exp);
             break;
+        case "BreakStatement":
+            subprogram.finishBlock();
+            return;
         default:
             alert("falta Statement: " + Statement.type);
             break;

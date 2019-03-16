@@ -89,6 +89,15 @@ $(document).ready(function () {
         analyzeProgram();
     });
 
+    // editor.getSession().gutterRenderer = {
+    //     getWidth: function (session, lastLineNumber, config) {
+    //         return lastLineNumber.toString().length * config.characterWidth;
+    //     },
+    //     getText: function (session, row) {
+    //         return String.fromCharCode(row + 65);
+    //     }
+    // };
+
     //Cambio de tema del editor
     $('#estiloEditor a').on('click', function (evt) {
         evt.preventDefault();
@@ -252,6 +261,11 @@ function selectLine(line) {
 }
 
 function createBreakPoint(line) {
+    // editor.getSession().addGutterDecoration(line, "fas fa-star ico");
+    // $("div.ace_gutter .ace_gutter-cell").text("m");
+    // editor.getSession().setBreakpoint(line, "fas fa-list-ul");
+    // editor.getSession().setBreakpoint(line, "");
+    // removeGutterDecoration(Number row, String className)
     var marker = editor.getSession().addMarker(
         new Range(line, 0, line, 1), "ace_breakpoint_line", "fullLine"
     );
