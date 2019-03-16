@@ -89,15 +89,6 @@ $(document).ready(function () {
         analyzeProgram();
     });
 
-    // editor.getSession().gutterRenderer = {
-    //     getWidth: function (session, lastLineNumber, config) {
-    //         return lastLineNumber.toString().length * config.characterWidth;
-    //     },
-    //     getText: function (session, row) {
-    //         return String.fromCharCode(row + 65);
-    //     }
-    // };
-
     //Cambio de tema del editor
     $('#estiloEditor a').on('click', function (evt) {
         evt.preventDefault();
@@ -303,6 +294,11 @@ function showSelectionVarsVisualizer() {
     });
 }
 
+function resetVisualizer() {
+    VarsVisualized = [];
+    visualizerIF.clearAllDivs();
+}
+
 function selectVariableToShow(id, button) {
     var index = VarsVisualized.indexOf(id);
     if (index == -1) {
@@ -320,7 +316,14 @@ function createArrayCanvas(id) {
 function showVariablesVisualizer() {
     for (let i = 0; i < VarsVisualized.length; i++) {
         const varId = VarsVisualized[i];
-        createArrayCanvas(varId);
+        const varDataType = getVariableDataType(varId);
+        if (["int", "float", "string", "char", "boolean"].indexOf(varDataType) > -1) {
+            visualizerIF.addVisibleVariable(varId, getVariableValue(varId));
+        } else if (varDataType.includes("[][]")) {
+
+        } else if (varDataType.includes("[]")) {
+            createArrayCanvas(varId);
+        }
     }
 }
 

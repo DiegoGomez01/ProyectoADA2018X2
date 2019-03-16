@@ -324,7 +324,8 @@ function createLocalVariables(localVars, params, args, argsValues) {
         };
     }
     auxLineCreation = undefined;
-    //showSelectionVarsVisualizer();
+    resetVisualizer();
+    showSelectionVarsVisualizer();
 }
 
 function returnSubprogram(returnExpValue) {
@@ -710,6 +711,10 @@ function changeArrayAccessValue(id, index, value) {
 
 function getVariableValue(id) {
     return getVariable(id).value;
+}
+
+function getVariableDataType(id) {
+    return getVariable(id).dataType;
 }
 
 function getArrayAccessValue(id, index) {

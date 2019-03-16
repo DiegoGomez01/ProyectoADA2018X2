@@ -103,16 +103,16 @@ function swap(index1, index2) {
 	thisGlobal.barObjects[index2] = tmp;
 
 	//detectar índices
-	var copiaIndex1="";
-	var copiaIndex2="";
-	var n1 = (thisGlobal.arrayData[index1]+"").indexOf('\n');
-	var n2 = (thisGlobal.arrayData[index2]+"").indexOf('\n');
-	if(n1 !== -1){
-		copiaIndex1 = (thisGlobal.arrayData[index1]+"").substr(n1+1,(thisGlobal.arrayData[index1]+"").length);
+	var copiaIndex1 = "";
+	var copiaIndex2 = "";
+	var n1 = (thisGlobal.arrayData[index1] + "").indexOf('\n');
+	var n2 = (thisGlobal.arrayData[index2] + "").indexOf('\n');
+	if (n1 !== -1) {
+		copiaIndex1 = (thisGlobal.arrayData[index1] + "").substr(n1 + 1, (thisGlobal.arrayData[index1] + "").length);
 		clearIndexBar(index1);
 	}
-	if(n2 !== -1){
-		copiaIndex2 = (thisGlobal.arrayData[index2]+"").substr(n2+1,(thisGlobal.arrayData[index2]+"").length);
+	if (n2 !== -1) {
+		copiaIndex2 = (thisGlobal.arrayData[index2] + "").substr(n2 + 1, (thisGlobal.arrayData[index2] + "").length);
 		clearIndexBar(index2);
 	}
 
@@ -135,11 +135,11 @@ function swap(index1, index2) {
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 	setTimeout(() => {
 		resetbarColorChange(index1);
-		if(copiaIndex1 != ""){
-			setIndexBar(index1,copiaIndex1);
+		if (copiaIndex1 != "") {
+			setIndexBar(index1, copiaIndex1);
 		}
-		if(copiaIndex2 != ""){
-			setIndexBar(index2,copiaIndex2);
+		if (copiaIndex2 != "") {
+			setIndexBar(index2, copiaIndex2);
 		}
 		resetbarColorChange(index2);
 
@@ -151,7 +151,7 @@ function changeSizeBar(i, newSize) {
 
 	thisGlobal.arrayData[i] = newSize;
 	thisGlobal.oldData[i] = thisGlobal.arrayData[i];
-	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i]+'\ni');
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i] + '\ni');
 	thisGlobal.cmd("SetHeight", thisGlobal.barObjects[i], thisGlobal.arrayData[i]);
 
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
@@ -161,7 +161,7 @@ function changeSizeBar(i, newSize) {
 function setIndexBar(i, variable) {
 	thisGlobal.commands = new Array();
 
-	thisGlobal.arrayData[i] = thisGlobal.arrayData[i]+'\n'+variable;
+	thisGlobal.arrayData[i] = thisGlobal.arrayData[i] + '\n' + variable;
 	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i]);
 
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
@@ -176,10 +176,10 @@ function clearIndexBar(i) {
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
 
-function removeIndex(i){
-	var index = (thisGlobal.arrayData[i]+"").indexOf('\n');
-	if(index !== -1){
-		thisGlobal.arrayData[i] = (thisGlobal.arrayData[i]+"").substr(0,index);
+function removeIndex(i) {
+	var index = (thisGlobal.arrayData[i] + "").indexOf('\n');
+	if (index !== -1) {
+		thisGlobal.arrayData[i] = (thisGlobal.arrayData[i] + "").substr(0, index);
 	}
 }
 
@@ -210,7 +210,7 @@ function resetbarColorChange(barNumber) {
 function resetAllBarColorChange() {
 	thisGlobal.animationManager.clearHistory();
 	thisGlobal.commands = new Array();
-	for (var i = 0; i < thisGlobal.array_size; i++){
+	for (var i = 0; i < thisGlobal.array_size; i++) {
 		thisGlobal.cmd("SetForegroundColor", thisGlobal.barObjects[i], BAR_FOREGROUND_COLOR);
 		thisGlobal.cmd("SetBackgroundColor", thisGlobal.barObjects[i], BAR_BACKGROUND_COLOR);
 	}
@@ -266,7 +266,7 @@ function animationChangeVariable(key) {
 	});
 }
 
-function clearAllDivs(){
+function clearAllDivs() {
 	document.getElementById('wrapVariables').innerHTML = "";
 	document.getElementById('wrapContent').innerHTML = "";
 }
@@ -274,8 +274,8 @@ function clearAllDivs(){
 var currentAlg;
 
 function init(arr, id) {
-	var mitad = 45 + ((27*arr.length) /2);
+	var mitad = 45 + ((27 * arr.length) / 2);
 	document.getElementById(id).width = mitad * 2;
-	var animManag = initCanvas(id,mitad);
+	var animManag = initCanvas(id, mitad);
 	currentAlg = new ComparisonSort(animManag, canvas.width, canvas.height, arr);
 }
