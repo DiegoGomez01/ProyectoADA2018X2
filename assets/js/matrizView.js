@@ -5,10 +5,16 @@ var idMatriz="testMatriz";
 function drawMatriz(){
     
     var htmlMatriz='<div id="'+idMatriz+'" class="divMatrix">'+
-                        '<table class="table table-bordered table-sm">'
+                    '<table class="table table-bordered table-sm" style="table-layout: fixed">';
+
+    htmlMatriz += '<thead><tr><th scope="col">#</th>'
+    for(var i =0; i<matriz[0].length;i++){
+        htmlMatriz += '<th scope="col">'+i+'</th>';
+    }
+    htmlMatriz += ' </tr></thead><tbody>'
 
     for(var i=0;i<matriz.length;i++){
-        htmlMatriz += '<tr>'
+        htmlMatriz += '<tr><th scope="row">'+i+'</th>'
         for(var j=0;j<matriz[0].length;j++){
             htmlMatriz += '<td id="'+idMatriz+'-'+i+'-'+j+'">'
             htmlMatriz += '<span id="animationVariableMatirz'+'-'+i+'-'+j+'" style="display: block;">'+matriz[i][j]+'</span>';
@@ -17,7 +23,7 @@ function drawMatriz(){
         htmlMatriz += '</tr>'
     }
 
-    htmlMatriz += '</table>'+
+    htmlMatriz += '</tbody></table>'+
     '</div> &emsp;';
 
     addMatrizView(htmlMatriz);
