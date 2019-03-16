@@ -212,7 +212,7 @@ ReservedWord = VarToken / IfToken / ThenToken / ElseToken / EndIfToken / CaseOfT
   DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken / PrintToken / 
   ShowToken / CharAtToken / PowToken / SqrtToken / AddToken / AddFirstToken / AddLastToken / 
   IndexToken / GetToken / GetFirstToken / GetLastToken / RemoveToken / RemoveIndexToken / RemoveFirstToken /
-  RemoveLastToken / ContainsToken
+  RemoveLastToken / ContainsToken / BreakToken
 
 // Tokens
 VarToken        = "var"i           !IdentifierPart 
@@ -280,6 +280,7 @@ ShowToken       = "show"i          !IdentifierPart
 CharAtToken     = "charat"i        !IdentifierPart
 PowToken        = "pow"i           !IdentifierPart
 SqrtToken       = "sqrt"i          !IdentifierPart
+BreakToken      = "break"i         !IdentifierPart
 
 PrimitiveTypesVar = IntToken / FloatToken / BooleanToken / CharToken / StringToken
 
@@ -734,11 +735,18 @@ ProcedureCallStatement = callExp:CallExpression {
 Statements = SList:(head:Statement tail:(_f Statement)* _f {return buildList(head, tail, 1);})? 
 {if (SList == null) {return [];} else {return SList;}}
 
-Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchStatement / ProcedureCallStatement / SpecialFunctions 
+Statement = AssignmentStatement / IfStatement / IterationStatement / SwitchStatement / ProcedureCallStatement / BreakStatement / SpecialFunctions 
 / ES:ExpressionStatement {
   return {
     type: "ExpressionStatement",
     exp: ES,
+    line: location().start.line - 1
+  };
+}
+
+BreakStatement = BreakToken {
+  return {
+    type: "BreakStatement",
     line: location().start.line - 1
   };
 }
