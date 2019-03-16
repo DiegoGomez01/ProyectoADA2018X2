@@ -1,8 +1,5 @@
 
-var matriz = [[23,22,3],[4,5,3336],[24,5,6],[34,5,6],[44,55,6],[4,5555,6],[4,5,36],[4,5,6]];
-var idMatriz="testMatriz";
-
-function drawMatriz(){
+function drawMatriz(matriz,idMatriz){
     
     var htmlMatriz='<div id="'+idMatriz+'" class="divMatrix">'+
                     '<table class="table table-bordered table-sm" style="table-layout: fixed">';
@@ -17,7 +14,7 @@ function drawMatriz(){
         htmlMatriz += '<tr><th scope="row">'+i+'</th>'
         for(var j=0;j<matriz[0].length;j++){
             htmlMatriz += '<td id="'+idMatriz+'-'+i+'-'+j+'">'
-            htmlMatriz += '<span id="animationVariableMatirz'+'-'+i+'-'+j+'" style="display: block;">'+matriz[i][j]+'</span>';
+            htmlMatriz += '<span id="animationVariableMatirz'+idMatriz+'-'+i+'-'+j+'" style="display: block;">'+matriz[i][j]+'</span>';
             htmlMatriz += '</td>'
         }
         htmlMatriz += '</tr>'
@@ -30,7 +27,7 @@ function drawMatriz(){
     
 }
 
-function drawCell(i,j){
+function drawCell(idMatriz,i,j){
     document.getElementById(idMatriz+'-'+i+'-'+j).setAttribute("style", "background:red");
     setTimeout(() => {
         unsealCell(i,j);
@@ -43,18 +40,18 @@ function drawCell(i,j){
     }, 4000);
 }
 
-function animationChangeVariable(i,j){
-	$('#animationVariableMatirz'+'-'+i+'-'+j).removeClass().addClass('shake animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+function animationChangeVariable(idMatriz,i,j){
+	$('#animationVariableMatirz'+idMatriz+'-'+i+'-'+j).removeClass().addClass('shake animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
 		$(this).removeClass();
 	});
 }
 
-function unsealCell(i,j){
+function unsealCell(idMatriz,i,j){
     document.getElementById(idMatriz+'-'+i+'-'+j).removeAttribute("style");
 }
 
-function changeValueCell(i,j,value){
-    matriz[i][j]=value;
+function changeValueCell(idMatriz,i,j,value){
+    // matriz[i][j]=value;
     document.getElementById(idMatriz+'-'+i+'-'+j).innerHTML = value;
 }
 
