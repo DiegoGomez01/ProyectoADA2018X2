@@ -2,9 +2,9 @@ var parser;
 var program;
 var callStack = [];
 var auxSwitchExpValue;
+var auxLineCreation;
 var autoExecuteID;
-
-var test2;
+var log;
 
 //Variable de ambiente
 var subprogram = {
@@ -14,7 +14,6 @@ var subprogram = {
     localVariables: {},
     parameters: {},
     returnVariable: undefined,
-    log: [],
     getAct: function () {
         return {
             name: this.name,
@@ -23,7 +22,6 @@ var subprogram = {
             localVariables: this.localVariables,
             parameters: this.parameters,
             returnVariable: this.returnVariable,
-            log: this.log
         };
     },
     reset: function () {
@@ -33,7 +31,6 @@ var subprogram = {
         this.localVariables = {};
         this.parameters = {};
         this.returnVariable = undefined;
-        this.log = [];
     },
     actStatement: function () {
         return last(this.statementsBlockStack)[last(this.statementIndex)];
@@ -120,15 +117,19 @@ function startProgram(mainName) {
     }
 }
 
+var executionControl = {
+
+};
+
 function startAutoExecute() {
     var exeSpd = getUISpeed();
-    autoExecuteID = setInterval(autoExecute, exeSpd);
+    autoExecuteID = setInterval(executeStatement, exeSpd);
 }
 
 function changeSpeed(spd) {
     var exeSpd = VELOCIDADNORMALMS / spd;
     pauseAutoExecute();
-    autoExecuteID = setInterval(autoExecute, exeSpd);
+    autoExecuteID = setInterval(executeStatement, exeSpd);
 }
 
 function tryPauseAutoExecute() {
@@ -142,10 +143,6 @@ function tryPauseAutoExecute() {
 function pauseAutoExecute() {
     clearInterval(autoExecuteID);
     autoExecuteID = undefined;
-}
-
-function autoExecute() {
-    executeStatement();
 }
 
 function stopExecution() {
@@ -228,11 +225,20 @@ function executeStatement() {
                 return;
             }
             break;
+        case "PushStatement":
+        case "EnqueueStatement":
+        case "AddStatement":
+        case "AddLastStatement":
+            DataStructurePush(Statement.DSVar.id, Statement.exp);
+            break;
+        case "AddFirstStatement":
+            DataStructureAddFirst(Statement.DSVar.id, Statement.exp);
+            break;
         case "CallExpression":
             subprogram.incStatement();
             callSubprogram(Statement.callee, Statement.arguments);
             return;
-        case "SwapFunction":            
+        case "SwapFunction":
             swapVariables(Statement.left, Statement.right);
             break;
         case "ReturnStatement":
@@ -244,12 +250,17 @@ function executeStatement() {
         case "ShowFunction":
             ShowFunction(evalExpression(Statement.exp));
             break;
+        case "ExpressionStatement":
+            evalExpression(Statement.exp);
+            break;
+        case "BreakStatement":
+            subprogram.finishBlock();
+            return;
         default:
             alert("falta Statement: " + Statement.type);
             break;
     }
     subprogram.nextStatement();
-    
 }
 
 function locateNextStatement() {
@@ -287,9 +298,18 @@ function evalArgs(args) {
 
 function createLocalVariables(localVars, params, args, argsValues) {
     for (let [id, param] of Object.entries(params)) {
+        let value;
+        if (param.mode == "s") {
+            value = getDefaultValueToParam(param.dataType, argsValues[param.pos]);
+        } else {
+            value = argsValues[param.pos];
+            if (param.mode == "e" && Array.isArray(value)) {
+                value = cloneArray(value);
+            }
+        }
         subprogram.localVariables[id] = {
             dataType: param.dataType,
-            value: argsValues[param.pos]
+            value: value
         };
         subprogram.parameters[id] = {
             idCaller: args[param.pos].id,
@@ -297,12 +317,14 @@ function createLocalVariables(localVars, params, args, argsValues) {
         };
     }
     for (let [key, lVar] of Object.entries(localVars)) {
+        auxLineCreation = lVar.line;
         subprogram.localVariables[key] = {
             dataType: lVar.dataType,
             value: evalExpression(lVar.value)
         };
     }
-    showSelectionVarsVisualizer();
+    auxLineCreation = undefined;
+    //showSelectionVarsVisualizer();
 }
 
 function returnSubprogram(returnExpValue) {
@@ -322,7 +344,6 @@ function returnSubprogram(returnExpValue) {
         }
         subprogram.localVariables = callerSubprogram.localVariables;
         subprogram.parameters = callerSubprogram.parameters;
-        subprogram.log = callerSubprogram.log;
         if (returnExpValue !== undefined) {
             changeValueExpVariableAccess(callerSubprogram.returnVariable, returnExpValue);
             subprogram.returnVariable = undefined;
@@ -334,9 +355,11 @@ function returnSubprogram(returnExpValue) {
 
 function throwException(txt) {
     stopExecution();
-    var linea = "";
+    let linea;
     if (subprogram.hasStatements()) {
-        linea = " linea: " + (subprogram.actStatement().line + 1);
+        linea = " línea: " + (subprogram.actStatement().line + 1);
+    } else {
+        linea = " línea: " + (auxLineCreation + 1);
     }
     alertify.error(txt + linea, 15);
     alertify.warning("¡Cierre forzado del programa!");
@@ -377,9 +400,9 @@ function evalExpression(exp) {
         case "CastingIntFunction":
             return parseInt(evalExpression(exp.exp));
         case "PowFunction":
-            return powFunction(evalExpression(exp.base), evalExpression(exp.exp));
+            return getValidatedNumberExpression(powFunction(evalExpression(exp.base), evalExpression(exp.exp)));
         case "SqrtFunction":
-            return sqrtFunction(evalExpression(exp.base));
+            return getValidatedNumberExpression(sqrtFunction(evalExpression(exp.base)));
         case "ArrayLengthFunction":
             return getVariableValue(exp.arrVar.id).length;
         case "StringLengthFunction":
@@ -388,6 +411,38 @@ function evalExpression(exp) {
             return evalStringConcatenation(exp.exps);
         case "CharAtFunction":
             return getCharAt(exp);
+        case "SizeFunction":
+            return getVariableValue(exp.DSVar.id).length;
+        case "IsEmptyFunction":
+            return IsEmptyDataStructureFunction(getVariableValue(exp.DSVar.id));
+        case "PopExpression":
+            return RemoveLastDSFunction(exp.StackVar.id, "La pila está vacía");
+        case "PeekExpression":
+            return GetLastDSFunction(exp.StackVar.id, "La pila está vacía");
+        case "DequeueExpression":
+            return RemoveFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
+        case "FrontExpression":
+            return GetFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
+        case "IndexFunction":
+            return IndexOfFunction(getVariableValue(exp.ListVar.id), evalExpression(exp.element));
+        case "RemoveElementByIndexExpression":
+            return RemoveElementByIndexFunction(exp.ListVar.id, evalExpression(exp.index));
+        case "RemoveElementExpression":
+            return RemoveElementFunction(exp.ListVar.id, evalExpression(exp.element));
+        case "RemoveFirstExpression":
+            return RemoveFirstDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "RemoveLastExpression":
+            return RemoveLastDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "GetElementByIndexExpression":
+            return GetElementByIndexFunction(getVariableValue(exp.ListVar.id), evalExpression(exp.index));
+        case "GetFirstExpression":
+            return GetFirstDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "GetLastExpression":
+            return GetLastDSFunction(exp.ListVar.id, "La lista está vacía");
+        case "DSContainsFunction":
+            return ContainsFunction(getVariableValue(exp.DSVar.id), evalExpression(exp.element));
+        case "StringContainsFunction":
+            return getVariableValue(strVar.id).includes(evalExpression(exp.strExp));
         default:
             alert("Falta la expresión: " + exp.type);
             break;
@@ -431,11 +486,11 @@ function evalFloatExpression(floatExp) {
 }
 
 function powFunction(x, y) {
-    return getValidatedNumberExpression(Math.pow(x, y));
+    return Math.pow(x, y);
 }
 
 function sqrtFunction(x) {
-    return getValidatedNumberExpression(Math.sqrt(x));
+    return Math.sqrt(x);
 }
 
 function getValidatedNumberExpression(num) {
@@ -460,9 +515,15 @@ function evalBooleanExpression(booleanExp) {
         case "!=":
             return evalExpression(booleanExp.left) != evalExpression(booleanExp.right);
         case "and":
-            return evalExpression(booleanExp.left) && evalExpression(booleanExp.right);
+            if (evalExpression(booleanExp.left)) {
+                return evalExpression(booleanExp.right);
+            }
+            return false;
         case "or":
-            return evalExpression(booleanExp.left) || evalExpression(booleanExp.right);
+            if (!evalExpression(booleanExp.left)) {
+                return evalExpression(booleanExp.right);
+            }
+            return true;
         case "not":
             return !evalExpression(booleanExp.argument);
         default:
@@ -509,8 +570,97 @@ function AssignmentFunction(left, right) {
     }
 }
 
+function DataStructurePush(id, exp) {
+    getVariableValue(id).push(evalExpression(exp));
+    updateVariableValue(id);
+}
+
+function DataStructureAddFirst(id, exp) {
+    getVariableValue(id).unshift(evalExpression(exp));
+    updateVariableValue(id);
+}
+
+function RemoveElementFunction(id, element) {
+    let dataStructure = getVariableValue(id);
+    if (ContainsFunction(dataStructure, element)) {
+        let index = dataStructure.indexOf(element);
+        dataStructure.splice(index, 1);
+        updateVariableValue(id);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function RemoveElementByIndexFunction(id, index) {
+    let dataStructure = getVariableValue(id);
+    if (index > 0 && index <= dataStructure.length) {
+        let returned = dataStructure.splice(index - 1, 1);
+        updateVariableValue(id);
+        return returned;
+    } else {
+        throwException("El índice sobre pasa las dimensiones de la lista");
+    }
+}
+
+function RemoveFirstDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    let returned = dataStructure.shift();
+    updateVariableValue(id);
+    return returned;
+}
+
+function RemoveLastDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    let returned = dataStructure.pop();
+    updateVariableValue(id);
+    return returned;
+}
+
+function GetElementByIndexFunction(dataStructure, index) {
+    if (index > 0 && index <= dataStructure.length) {
+        return dataStructure[index - 1];
+    } else {
+        throwException("El índice sobre pasa las dimensiones de la lista");
+    }
+}
+
+function GetFirstDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    return dataStructure[0];
+}
+
+function GetLastDSFunction(id, EMPTYEXCEPTION) {
+    let dataStructure = getVariableValue(id);
+    if (IsEmptyDataStructureFunction(dataStructure)) {
+        throwException(EMPTYEXCEPTION);
+    }
+    return last(dataStructure);
+}
+
+function ContainsFunction(dataStructure, element) {
+    return IndexOfFunction(dataStructure, element) > 0;
+}
+
+function IndexOfFunction(dataStructure, element) {
+    return dataStructure.indexOf(element) + 1;
+}
+
+function IsEmptyDataStructureFunction(dataStructure) {
+    return dataStructure.length == 0;
+}
+
 function swapVariables(left, right) {
-    swapArrayCanvas(left, right);
+    // swapArrayCanvas(left, right);
     var leftV = getValueExpVariableAccess(left);
     changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
     changeValueExpVariableAccess(right, leftV);
@@ -573,6 +723,7 @@ function getArrayAccessValue(id, index) {
             arrV = arrV[index[i] - 1];
         }
     }
+    //--------------------------------------------------------
     return arrV;
 }
 
@@ -629,7 +780,7 @@ function createNewArray(dimensions, value) {
     if (dimensions.length > 0) {
         var dim = dimensions[0];
         var rest = dimensions.slice(1);
-        var newArray = new Array();
+        var newArray = [];
         if (dim > 0) {
             for (var i = 0; i < dim; i++) {
                 newArray[i] = createNewArray(rest, value);
@@ -659,4 +810,33 @@ function checkArrayDimensions(array, dimensions) {
         }
     }
     return true;
+}
+
+function getArrayDimensions(array) {
+    let dimensions = [];
+    dimensions[0] = array.length;
+    if (Array.isArray(array[0])) {
+        dimensions[1] = array[0].length;
+    }
+    return dimensions;
+}
+
+function getDefaultValueToParam(dataType, value) {
+    switch (dataType) {
+        case "string":
+        case "char":
+            return "";
+        case "float":
+        case "int":
+            return 0;
+        case "boolean":
+            return true;
+    }
+    if (dataType.includes("lista") || dataType.includes("pila") || dataType.includes("cola")) {
+        return [];
+    } else if (dataType.includes("[][]")) {
+        return createNewArray(getArrayDimensions(value), getDefaultValueToParam(dataType.slice(0, -4)));
+    } else if (dataType.includes("[]")) {
+        return createNewArray(getArrayDimensions(value), getDefaultValueToParam(dataType.slice(0, -2)));
+    }
 }
