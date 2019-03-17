@@ -5,11 +5,11 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
     var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
     var pseudoHighlightRules = function () {
-        
+
         var keywords = (
             "if|then|else|endif|case|of|default|endcase|" +
             "while|do|endwhile|repeat|until|for|to|inc|downto|endfor|" +
-            "and|or|var|return|function|procedure|break"            
+            "and|or|var|return|function|procedure|break"
         );
 
         var builtinConstants = (

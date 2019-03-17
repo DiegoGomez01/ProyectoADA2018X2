@@ -849,14 +849,13 @@ IfStatement = IfToken _ "(" _ test:BooleanExpression _ ")" _ ThenToken _f conseq
 
 SwitchStatement = CaseOfToken _ Exp:Expression _f
 cases:(caseVal:(BooleanLiteral / CharLiteral / StringLiteral / NumericLiteral) !{if (expressionsHaveDifferentDataTypes(getDataTypeofExpression(Exp), caseVal.dataType)) {error("Se esperaba un valor de tipo: " + getDataTypeofExpression(Exp))}} ":" _f block:Statements 
-{return {type: "CaseSwitchStatement", caseVal:caseVal.value, block:block, line:location().start.line - 1}})*
+{return {type: "CaseSwitchStatement", caseVal:caseVal.value, exp:Exp, block:block, line:location().start.line - 1}})*
 defaultCase:(DefaultToken ":" _f block:Statements {return {type: "DefaultCaseSwitchStatement", block:block, line:location().start.line - 1}})? EndCaseToken {
   if (defaultCase !== null) {
     cases.push(defaultCase);
   }
   return {
-    type: "SwitchStatement", 
-    exp: Exp,
+    type: "SwitchStatement",
     cases:cases,
     line: location().start.line - 1      
   };

@@ -1,7 +1,6 @@
 var parser;
 var program;
 var callStack = [];
-var auxSwitchExpValue;
 var auxLineCreation;
 var autoExecuteID;
 var log;
@@ -106,7 +105,9 @@ function startProgram(mainName) {
         for (var idVar in program.GLOBALS) {
             program.GLOBALS[idVar].value = evalExpression(program.GLOBALS[idVar].value);
         }
-        alertify.alert().destroy();
+        if (alertify.selectMainSubprogram) {
+            alertify.selectMainSubprogram().close();
+        }
         showRunningUI();
         callStack = [];
         subprogram.reset();
@@ -162,19 +163,16 @@ function executeStatement() {
             }
             break;
         case "SwitchStatement":
-            auxSwitchExpValue = evalExpression(Statement.exp);
             subprogram.incStatement();
             subprogram.addBlock(Statement.cases);
             return;
         case "CaseSwitchStatement":
-            if (Statement.caseVal == auxSwitchExpValue) {
-                auxSwitchExpValue = undefined;
+            if (Statement.caseVal == evalExpression(Statement.exp)) {
                 subprogram.changeBlock(Statement.block);
                 return;
             }
             break;
         case "DefaultCaseSwitchStatement":
-            auxSwitchExpValue = undefined;
             subprogram.changeBlock(Statement.block);
             return;
         case "WhileStatement":

@@ -12,6 +12,7 @@ var Range = ace.require('ace/range').Range;
 var breakPoints = {};
 var visualizerIF;
 var VarsVisualized = [];
+var isVisualicerActive = true;
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
@@ -72,20 +73,39 @@ $(document).ready(function () {
         }, 'text');
     });
 
+    document.getElementById("checkVisualizer").checked = true;
+    $("#checkVisualizer").on("change", function () {
+        if (this.checked) {
+            isVisualicerActive = true;
+        } else {
+            isVisualicerActive = false;
+        }
+    });
+
     $("#btnRun").on("click", function () {
         if (program !== undefined) {
             if (program.SUBPROGRAMS.main === undefined) {
-                alertify.alert(
-                    '<h4 class="text-center">¡Seleccione la subrutina inicial (main)!</h4>' +
-                    '<div class="btn-group-vertical w-100">' +
+                if (!alertify.selectMainSubprogram) {
+                    alertify.dialog('selectMainSubprogram', function factory() {
+                        return {
+                            main: function (message) {
+                                this.message = message;
+                            },
+                            setup: function () {
+                                return {};
+                            },
+                            prepare: function () {
+                                this.setContent(this.message);
+                                this.setHeader('<h4 class="text-center">¡Seleccione la subrutina inicial (main)!</h4>');
+                            }
+                        };
+                    });
+                }
+                alertify.selectMainSubprogram('<div class="btn-group-vertical w-100">' +
                     Object.keys(program.SUBPROGRAMS).reduce(function (VarList, nameAct) {
                         return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startProgram(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
                     }, "") +
-                    '</div>'
-                ).set({
-                    'basic': true,
-                    'closable': true
-                });
+                    '</div>');
             } else {
                 startProgram("main");
             }
@@ -127,7 +147,7 @@ $(document).ready(function () {
 
     $("#btnBackStep").on("click", function () {
         if (!$(this).hasClass('disabled')) {
-            unSelectActLine();
+            alertify.success("Disponible, pronto");
         }
     });
 
@@ -244,21 +264,46 @@ function getUISpeed() {
 }
 
 function showSelectionVarsVisualizer() {
-    var paused = tryPauseAutoExecute();
-    alertify.alert(
-        '<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>' +
-        '<div class="btn-group-vertical w-100">' +
-        Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
-            return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
-        }, "") +
-        '</div>'
-    ).set('onok', function () {
-        showVariablesVisualizer();
-        if (paused) {
-            $("#btnPlay").click();
+    if (isVisualicerActive) {
+        var paused = tryPauseAutoExecute();
+        if (!alertify.selectVarsVisualizer) {
+            alertify.dialog('selectVarsVisualizer', function factory() {
+                return {
+                    main: function (message) {
+                        this.message = message;
+                    },
+                    setup: function () {
+                        return {
+                            buttons: [{
+                                text: "¡Iniciar!",
+                                className: alertify.defaults.theme.ok
+                            }],
+                            focus: {
+                                element: 0
+                            }
+                        };
+                    },
+                    hooks: {
+                        onclose: function () {
+                            showVariablesVisualizer();
+                            if (paused) {
+                                $("#btnPlay").click();
+                            }
+                        }
+                    },
+                    prepare: function () {
+                        this.setContent(this.message);
+                        this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
+                    }
+                };
+            });
         }
-        alertify.alert().destroy();
-    });
+        alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
+            Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
+                return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
+            }, "") +
+            '</div>');
+    }
 }
 
 function resetVisualizer() {
@@ -338,35 +383,43 @@ function visualizeswapArrayCanvas(left, right) {
 
 function visualizeArrayAccess(exp) {
     if (checkIsOnVisualizer(exp.id)) {
-        if (exp.index.length == 1) {
-            if (exp.index[0].type == "Variable" && true) { // && true if is canvas
+        let index = getArrayIndex(exp.index);
+        index[0]--;
+        if (index.length == 1) {
+            if (true && exp.index[0].type == "Variable") { // && true if is canvas
                 SelectCanvas(exp.id);
-                let index = evalExpression(exp.index[0]) - 1;
-                selectIndexArray(index);
-                visualizerIF.setIndexBar(index, exp.index[0].id);
-            } else {
-
+                selectIndexArray(index[0]);
+                visualizerIF.setIndexBar(index[0], exp.index[0].id);
+            } else if (false) {
+                visualizerIF.drawCell(exp.id, 0, index[0]);
             }
         } else {
-            //---
+            index[1]--;
+            visualizerIF.drawCell(exp.id, index[0], index[1]);
         }
     }
 }
 
 function visualizeArrayChangeValue(exp, value, vsChange) {
     if (vsChange == undefined && checkIsOnVisualizer(exp.id)) {
-        if (exp.index.length == 1) {
+        let index = getArrayIndex(exp.index);
+        index[0]--;
+        if (index.length == 1) {
             if (true) {
                 SelectCanvas(exp.id);
-                let index = evalExpression(exp.index[0]) - 1;
-                selectIndexArray(index);
-                visualizerIF.changeSizeBar(index, value);
+                selectIndexArray(index[0]);
+                visualizerIF.changeSizeBar(index[0], value);
                 setTimeout(() => {
-                    unselectIndexArray(index);
+                    unselectIndexArray(index[0]);
                 }, VELOCIDADUICAMBIOSMS);
+            } else {
+                visualizerIF.animationChangeVariable(exp.id, 0, index[0]);
+                visualizerIF.changeValueCell(exp.id, 0, index[0], value);
             }
         } else {
-            //---
+            index[1]--;
+            visualizerIF.animationChangeVariable(exp.id, index[0], index[1]);
+            visualizerIF.changeValueCell(exp.id, index[0], index[1], value);
         }
     }
 }

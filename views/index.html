@@ -80,6 +80,10 @@
                         <a class="dropdown-item" href="#" data-fname="KnightsTour.pseudo">Knight's Tour</a>
                     </div>
                 </div>
+                <div class="custom-control custom-switch d-inline-flex align-middle ml-4">
+                    <input type="checkbox" class="custom-control-input" id="checkVisualizer">
+                    <label class="custom-control-label" for="checkVisualizer">Visualización de Variables</label>
+                </div>
             </div>
             <button id="btnRun" class="btn btn-primary align-self-end" type="button">Ejecutar</button>
         </nav>
@@ -88,7 +92,7 @@
                 <div id="editor">//Comienza a escribir tu código</div>
             </div>
             <div id="viewerCointainer" class="col-lg border-left" style="max-width:50%; display: none;">
-                <div id="containerTree" class="embed-responsive embed-responsive-21by9">
+                <div id="containerTree" class="embed-responsive embed-responsive-21by9 h-100">
                     <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
                 </div>
                 <div id="containerVariables" class="table-responsive" style="display: none;">
