@@ -250,7 +250,6 @@ function createCanvas(id, arr) {
 
 function addVisibleVariable(key, value) {
 	visibleVariables[key] = value;
-	console.log(visibleVariables);
 	$('#wrapVariables').append('<div id="divVariable' + key + '" class="p-2 bd-highlight"><span id="animationVariable' + key + '" style="display: block;">' + key + ':[' + value + ']</span></div>');
 }
 

@@ -75,7 +75,7 @@ var subprogram = {
 };
 
 //Lee el archivo de la gramatica y crea el parser
-$.get('http://localhost/ProyectoADA2018X2/assets/gramatica.pegjs', (gramatica) => {
+$.get('../assets/gramatica.pegjs', (gramatica) => {
     parser = peg.generate(gramatica);
 }, "text");
 
@@ -83,18 +83,18 @@ $.get('http://localhost/ProyectoADA2018X2/assets/gramatica.pegjs', (gramatica) =
 function analyzeProgram() {
     try {
         program = parser.parse(editor.getValue());
-        editor.getSession().clearAnnotations();
+        editorSession.clearAnnotations();
         deleteMarker(actErrorMarker);
     } catch (err) {
         program = undefined;
-        editor.getSession().setAnnotations([{
+        editorSession.setAnnotations([{
             row: err.location.start.line - 1,
             column: err.location.start.column - 1,
             text: err.message,
             type: "error"
         }]);
         deleteMarker(actErrorMarker);
-        actErrorMarker = editor.getSession().addMarker(new Range(err.location.start.line - 1, err.location.start.column - 1, err.location.end.line - 1, err.location.end.column - 1), "ace_underline_error", "text");
+        actErrorMarker = editorSession.addMarker(new Range(err.location.start.line - 1, err.location.start.column - 1, err.location.end.line - 1, err.location.end.column - 1), "ace_underline_error", "text");
     }
 }
 
@@ -106,7 +106,7 @@ function startProgram(mainName) {
         for (var idVar in program.GLOBALS) {
             program.GLOBALS[idVar].value = evalExpression(program.GLOBALS[idVar].value);
         }
-        alertify.alert().close();
+        alertify.alert().destroy();
         showRunningUI();
         callStack = [];
         subprogram.reset();
@@ -116,10 +116,6 @@ function startProgram(mainName) {
         showAllVariables();
     }
 }
-
-var executionControl = {
-
-};
 
 function startAutoExecute() {
     var exeSpd = getUISpeed();
@@ -269,7 +265,7 @@ function locateNextStatement() {
         if (Statement == undefined) {
             subprogram.finishBlock();
         } else {
-            selectLine(Statement.line);
+            selectActLine(Statement.line);
         }
     } else {
         returnSubprogram();
@@ -387,6 +383,7 @@ function evalExpression(exp) {
         case "Variable":
             return getVariableValue(exp.id);
         case "ArrayAccess":
+            visualizeArrayAccess(exp);
             return getArrayAccessValue(exp.id, getArrayIndex(exp.index));
         case "int":
             return getValidatedNumberExpression(evalIntExpression(exp));
@@ -661,10 +658,10 @@ function IsEmptyDataStructureFunction(dataStructure) {
 }
 
 function swapVariables(left, right) {
-    // swapArrayCanvas(left, right);
+    let swapMaked = visualizeswapArrayCanvas(left, right);
     var leftV = getValueExpVariableAccess(left);
-    changeValueExpVariableAccess(left, getValueExpVariableAccess(right));
-    changeValueExpVariableAccess(right, leftV);
+    changeValueExpVariableAccess(left, getValueExpVariableAccess(right), swapMaked);
+    changeValueExpVariableAccess(right, leftV, swapMaked);
 }
 
 function incVariable(id, inc) {
@@ -679,11 +676,13 @@ function getValueExpVariableAccess(exp) {
     }
 }
 
-function changeValueExpVariableAccess(exp, value) {
+function changeValueExpVariableAccess(exp, value, vsChange) {
     if (exp.type == "ArrayAccess") {
+        visualizeArrayChangeValue(exp, value, vsChange);
         changeArrayAccessValue(exp.id, getArrayIndex(exp.index), value);
     } else {
         changeVariableValue(exp.id, value);
+        visualizeVariableChange(exp.id);
     }
 }
 
@@ -728,7 +727,6 @@ function getArrayAccessValue(id, index) {
             arrV = arrV[index[i] - 1];
         }
     }
-    //--------------------------------------------------------
     return arrV;
 }
 

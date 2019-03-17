@@ -16,15 +16,6 @@
     right: 0;
 }
 
-.gutterE {
-    background-color: #22A7F0;
-}
-
-.ico {
-    background-image: url("../images/arrow-right-icon.png");
-    background-size: 50% 100%;
-}
-
 @media only screen and (max-width: 900px) {
     #sideBarTree {
         width: 90vw;
@@ -122,12 +113,23 @@ button,
 
 .ace_selected_line {
     position: absolute;
-    background-color: #f64747;
+    background-color: rgba(242, 38, 19, 0.5);
+    ;
+}
+
+.ace_selected_gutter {
+    background-color: rgba(242, 38, 19, 0.5);
+    background-image: url("../images/arrow-right-icon.png");
+    background-size: 25% 100%;
+}
+
+.ace_breakpoint_gutter {
+    color: rgba(52, 152, 219, 1);
 }
 
 .ace_breakpoint_line {
     position: absolute;
-    background-color: blue;
+    background-color: rgba(52, 152, 219, 1);
 }
 
 .ace_underline_error {
