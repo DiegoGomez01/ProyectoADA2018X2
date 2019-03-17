@@ -5,7 +5,8 @@ const VELOCIDADUICAMBIOSMS = 250;
 //----------------------------------------------------------------
 
 var editor;
-var actLineSelected;
+var editorSession;
+var actLineSelected = [];
 var actErrorMarker;
 var Range = ace.require('ace/range').Range;
 var breakPoints = {};
@@ -15,48 +16,7 @@ var VarsVisualized = [];
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        /**************Test swap *************+*/
-        // var arr = [50, 38, 20, 18, 70, 45, 56, 100];
-        // var test2 = document.getElementById("iframeVisualizer").contentWindow;
-        // test2.init(arr,'canvas');
-        // test2.init(arr,'canvas2');
-        // test2.swap(2,3);
 
-        /*******Agregar, quitar y animar una variable visible*******/
-        // test2.addVisibleVariable('V',50);
-        // test2.addVisibleVariable('F',30);
-        // test2.addVisibleVariable('G',560);
-        // test2.addVisibleVariable('M',80);
-
-        // setTimeout(() => {
-        //     test2.animationChangeVariable('G');
-        // }, 2000);
-
-        // setTimeout(() => {
-        //     test2.removeVisibleVariable('F');
-        // }, 4000);
-
-        /*******Cambiar la barra numero 2 de tamaño*******/
-        // setTimeout(() => {
-        //     test2.changeSizeBar(2,80);
-        // }, 2000);
-
-        /*******Cambiar el color de la barra 1, después de 1 segundo restablece al color normal*******/
-        // setTimeout(() => {
-        //     test2.barColorChange(1);
-        // }, 1000);
-
-        // setTimeout(() => {
-        //     test2.resetbarColorChange(1);
-        // }, 2000);
-
-        // setTimeout(() => {
-        //     test2.swap(2,3);
-        // }, 1000);
-
-        // setTimeout(() => {
-        //     test2.bubbleSortCallback();
-        // }, 1000);
     });
     //---------------------------------------------------------------------------------------------------
 
@@ -89,14 +49,7 @@ $(document).ready(function () {
         analyzeProgram();
     });
 
-    // editor.getSession().gutterRenderer = {
-    //     getWidth: function (session, lastLineNumber, config) {
-    //         return lastLineNumber.toString().length * config.characterWidth;
-    //     },
-    //     getText: function (session, row) {
-    //         return String.fromCharCode(row + 65);
-    //     }
-    // };
+    editorSession = editor.getSession();
 
     //Cambio de tema del editor
     $('#estiloEditor a').on('click', function (evt) {
@@ -108,12 +61,13 @@ $(document).ready(function () {
         }
     });
 
+    //Inicializar Visualizer
     visualizerIF = document.getElementById("iframeVisualizer").contentWindow;
 
     //escoger un algoritmo para cargarlo
     $('#examplesChooser a').on('click', function (evt) {
         evt.preventDefault();
-        $.get('http://localhost/ProyectoADA2018X2/assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
+        $.get('../assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
             editor.setValue(pseudo, 1);
         }, 'text');
     });
@@ -173,7 +127,7 @@ $(document).ready(function () {
 
     $("#btnBackStep").on("click", function () {
         if (!$(this).hasClass('disabled')) {
-            editor.getSession().removeMarker(actLineSelected);
+            unSelectActLine();
         }
     });
 
@@ -235,7 +189,7 @@ function hideRunningUI() {
     $("#containerSideBtns").fadeOut(VELOCIDADUINORMALMS);
     $("#viewerCointainer").fadeOut(VELOCIDADUINORMALMS);
     $("#configBar").slideDown(VELOCIDADUINORMALMS);
-    deleteMarker(actLineSelected);
+    unSelectActLine();
     editor.setReadOnly(false);
     editor.setOption("maxLines", 30);
     editor.resize();
@@ -252,34 +206,37 @@ function pauseUI() {
     $("#btnPlay i").toggleClass("fa-play fa-pause");
 }
 
-function selectLine(line) {
-    deleteMarker(actLineSelected);
-    actLineSelected = editor.getSession().addMarker(
+function selectActLine(line) {
+    unSelectActLine();
+    editorSession.addGutterDecoration(line, "ace_selected_gutter");
+    actLineSelected[0] = editorSession.addMarker(
         new Range(line, 0, line, 1), "ace_selected_line", "fullLine"
     );
     editor.scrollToLine(line, true, true, undefined);
+    actLineSelected[1] = line;
+}
+
+function unSelectActLine() {
+    editorSession.removeGutterDecoration(actLineSelected[1], "ace_selected_gutter");
+    deleteMarker(actLineSelected[0]);
 }
 
 function createBreakPoint(line) {
-    // editor.getSession().addGutterDecoration(line, "fas fa-star ico");
-    // $("div.ace_gutter .ace_gutter-cell").text("m");
-    // editor.getSession().setBreakpoint(line, "fas fa-list-ul");
-    // editor.getSession().setBreakpoint(line, "");
-    // removeGutterDecoration(Number row, String className)
-    var marker = editor.getSession().addMarker(
+    editorSession.addGutterDecoration(line, "fas fa-star ace_breakpoint_gutter");
+    var marker = editorSession.addMarker(
         new Range(line, 0, line, 1), "ace_breakpoint_line", "fullLine"
     );
     breakPoints[line] = marker;
-    alertify.message('Punto de ruptura: Línea: ' + (line + 1));
 }
 
 function deleteBreakPoint(line) {
+    editorSession.removeGutterDecoration(line, "fas fa-star ace_breakpoint_gutter");
     deleteMarker(breakPoints[line]);
     delete breakPoints[line];
 }
 
 function deleteMarker(id) {
-    editor.getSession().removeMarker(id);
+    editorSession.removeMarker(id);
 }
 
 function getUISpeed() {
@@ -300,7 +257,13 @@ function showSelectionVarsVisualizer() {
         if (paused) {
             $("#btnPlay").click();
         }
+        alertify.alert().destroy();
     });
+}
+
+function resetVisualizer() {
+    VarsVisualized = [];
+    visualizerIF.clearAllDivs();
 }
 
 function selectVariableToShow(id, button) {
@@ -313,27 +276,27 @@ function selectVariableToShow(id, button) {
     $(button).toggleClass("btn-secondary btn-primary");
 }
 
-function createArrayCanvas(id) {
-    visualizerIF.createCanvas(id, getVariableValue(id));
-}
-
 function showVariablesVisualizer() {
     for (let i = 0; i < VarsVisualized.length; i++) {
         const varId = VarsVisualized[i];
-        createArrayCanvas(varId);
-    }
-}
-
-function swapArrayCanvas(left, right) {
-    if (left.type == "ArrayAccess" && right.type == "ArrayAccess" && left.id == right.id) {
-        SelectCanvas(left.id);
-        var i = getArrayIndex(left.index)[0] - 1;
-        var j = getArrayIndex(right.index)[0] - 1;
-        // selectIndexArray(left.id, i);
-        // selectIndexArray(left.id, j);
-        visualizerIF.swap(i, j);
-        // unselectIndexArray(left.id, i);
-        // unselectIndexArray(left.id, j);
+        const varDataType = getVariableDataType(varId);
+        if (varDataType.includes("[][]")) {
+            visualizerIF.drawMatriz(getVariableValue(varId), varId); //arreglar alert
+        } else if (varDataType.includes("[]")) {
+            if (varDataType.slice(0, -2) == "int") {
+                visualizerIF.createCanvas(varId, getVariableValue(varId));
+            } else {
+                visualizerIF.drawMatriz([getVariableValue(varId)], varId);
+            }
+        } else if (varDataType.includes("pila")) {
+            alert("disponible proximamente");
+        } else if (varDataType.includes("cola")) {
+            alert("disponible proximamente");
+        } else if (varDataType.includes("lista")) {
+            alert("disponible proximamente");
+        } else {
+            visualizerIF.addVisibleVariable(varId, getVariableValue(varId));
+        }
     }
 }
 
@@ -341,13 +304,11 @@ function SelectCanvas(id) {
     visualizerIF.init(getVariableValue(id), id);
 }
 
-function selectIndexArray(id, index) {
-    SelectCanvas(id);
+function selectIndexArray(index) {
     visualizerIF.barColorChange(index);
 }
 
-function unselectIndexArray(id, index) {
-    SelectCanvas(id);
+function unselectIndexArray(index) {
     visualizerIF.resetbarColorChange(index);
 }
 
@@ -355,20 +316,60 @@ function removeViewContent(id) {
     visualizerIF.removeViewContent(id);
 }
 
-//Código para mostrar una anotación en el editor
-/*  
-editor.session.clearAnnotations(); // Limpiar anotaciones
-editor.getSession().setAnnotations([{
-    row: 0,
-    column: 0,
-    text: "se ejecuto n",
-    type: "info" // (warning, info, error)
-}]);
-    //Propiedades del error
-    console.log(err.location); // Ubicación del error: {start:{offset:X,line:Y,column:Z},end:{offset:X,line:Y,column:Z}}
-    console.log(err.found); // Valor encontrado
-    console.log(err.message); // Mensaje de error
-*/
+function checkIsOnVisualizer(id) {
+    return VarsVisualized.indexOf(id) > -1;
+}
+
+function visualizeVariableChange(id) {
+    if (checkIsOnVisualizer(id)) {
+        visualizerIF.animationChangeVariable(id);
+    }
+}
+
+function visualizeswapArrayCanvas(left, right) {
+    if (checkIsOnVisualizer(left.id) && left.type == "ArrayAccess" && right.type == "ArrayAccess" && left.id == right.id && true) { // && true if is canvas
+        SelectCanvas(left.id);
+        var i = getArrayIndex(left.index)[0] - 1;
+        var j = getArrayIndex(right.index)[0] - 1;
+        visualizerIF.swap(i, j);
+        return true;
+    }
+}
+
+function visualizeArrayAccess(exp) {
+    if (checkIsOnVisualizer(exp.id)) {
+        if (exp.index.length == 1) {
+            if (exp.index[0].type == "Variable" && true) { // && true if is canvas
+                SelectCanvas(exp.id);
+                let index = evalExpression(exp.index[0]) - 1;
+                selectIndexArray(index);
+                visualizerIF.setIndexBar(index, exp.index[0].id);
+            } else {
+
+            }
+        } else {
+            //---
+        }
+    }
+}
+
+function visualizeArrayChangeValue(exp, value, vsChange) {
+    if (vsChange == undefined && checkIsOnVisualizer(exp.id)) {
+        if (exp.index.length == 1) {
+            if (true) {
+                SelectCanvas(exp.id);
+                let index = evalExpression(exp.index[0]) - 1;
+                selectIndexArray(index);
+                visualizerIF.changeSizeBar(index, value);
+                setTimeout(() => {
+                    unselectIndexArray(index);
+                }, VELOCIDADUICAMBIOSMS);
+            }
+        } else {
+            //---
+        }
+    }
+}
 
 alertify.defaults = {
     autoReset: true,
@@ -379,7 +380,7 @@ alertify.defaults = {
     maintainFocus: true,
     maximizable: false,
     modal: true,
-    movable: false,
+    movable: true,
     moveBounded: false,
     overflow: true,
     padding: false,
