@@ -106,7 +106,9 @@ function startProgram(mainName) {
         for (var idVar in program.GLOBALS) {
             program.GLOBALS[idVar].value = evalExpression(program.GLOBALS[idVar].value);
         }
-        alertify.alert().destroy();
+        if (alertify.selectMainSubprogram) {
+            alertify.selectMainSubprogram().close();
+        }
         showRunningUI();
         callStack = [];
         subprogram.reset();
