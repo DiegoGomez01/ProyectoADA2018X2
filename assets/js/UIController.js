@@ -12,6 +12,7 @@ var Range = ace.require('ace/range').Range;
 var breakPoints = {};
 var visualizerIF;
 var VarsVisualized = [];
+var isVisualicerActive = true;
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
@@ -70,6 +71,15 @@ $(document).ready(function () {
         $.get('../assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
             editor.setValue(pseudo, 1);
         }, 'text');
+    });
+
+    document.getElementById("checkVisualizer").checked = true;
+    $("#checkVisualizer").on("change", function () {
+        if (this.checked) {
+            isVisualicerActive = true;
+        } else {
+            isVisualicerActive = false;
+        }
     });
 
     $("#btnRun").on("click", function () {
@@ -137,7 +147,7 @@ $(document).ready(function () {
 
     $("#btnBackStep").on("click", function () {
         if (!$(this).hasClass('disabled')) {
-            unSelectActLine();
+            alertify.success("Disponible, pronto");
         }
     });
 
@@ -254,44 +264,46 @@ function getUISpeed() {
 }
 
 function showSelectionVarsVisualizer() {
-    var paused = tryPauseAutoExecute();
-    if (!alertify.selectVarsVisualizer) {
-        alertify.dialog('selectVarsVisualizer', function factory() {
-            return {
-                main: function (message) {
-                    this.message = message;
-                },
-                setup: function () {
-                    return {
-                        buttons: [{
-                            text: "¡Visualizar!",
-                            className: alertify.defaults.theme.ok
-                        }],
-                        focus: {
-                            element: 0
+    if (isVisualicerActive) {
+        var paused = tryPauseAutoExecute();
+        if (!alertify.selectVarsVisualizer) {
+            alertify.dialog('selectVarsVisualizer', function factory() {
+                return {
+                    main: function (message) {
+                        this.message = message;
+                    },
+                    setup: function () {
+                        return {
+                            buttons: [{
+                                text: "¡Iniciar!",
+                                className: alertify.defaults.theme.ok
+                            }],
+                            focus: {
+                                element: 0
+                            }
+                        };
+                    },
+                    hooks: {
+                        onclose: function () {
+                            showVariablesVisualizer();
+                            if (paused) {
+                                $("#btnPlay").click();
+                            }
                         }
-                    };
-                },
-                hooks: {
-                    onclose: function () {
-                        showVariablesVisualizer();
-                        if (paused) {
-                            $("#btnPlay").click();
-                        }
+                    },
+                    prepare: function () {
+                        this.setContent(this.message);
+                        this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
                     }
-                },
-                prepare: function () {
-                    this.setContent(this.message);
-                    this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
-                }
-            };
-        });
+                };
+            });
+        }
+        alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
+            Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
+                return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
+            }, "") +
+            '</div>');
     }
-    alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
-        Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
-            return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
-        }, "") +
-        '</div>');
 }
 
 function resetVisualizer() {
@@ -374,11 +386,11 @@ function visualizeArrayAccess(exp) {
         let index = getArrayIndex(exp.index);
         index[0]--;
         if (index.length == 1) {
-            if (exp.index[0].type == "Variable" && true) { // && true if is canvas
+            if (true && exp.index[0].type == "Variable") { // && true if is canvas
                 SelectCanvas(exp.id);
                 selectIndexArray(index[0]);
                 visualizerIF.setIndexBar(index[0], exp.index[0].id);
-            } else {
+            } else if (false) {
                 visualizerIF.drawCell(exp.id, 0, index[0]);
             }
         } else {
