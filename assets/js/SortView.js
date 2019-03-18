@@ -259,10 +259,13 @@ function removeVisibleVariable(key) {
 	document.getElementById("divVariable" + key).remove();
 }
 
-function animationChangeVariable(key) {
+function animationChangeVariable(key, newValue) {
 	$('#animationVariable' + key).removeClass().addClass('shake animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
-		$(this).removeClass();
+        $(this).removeClass();
 	});
+	setTimeout(() => {
+		document.getElementById('animationVariable' + key).innerHTML = key + ':[' + newValue + ']';
+	}, 1000);
 }
 
 function clearAllDivs() {

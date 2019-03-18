@@ -5,12 +5,12 @@ function drawMatriz(matriz, idMatriz) {
 
     htmlMatriz += '<thead><tr><th scope="col">#</th>';
     for (var i = 0; i < matriz[0].length; i++) {
-        htmlMatriz += '<th scope="col">' + i + '</th>';
+        htmlMatriz += '<th scope="col">' + (i + 1) + '</th>';
     }
     htmlMatriz += ' </tr></thead><tbody>';
 
     for (var i = 0; i < matriz.length; i++) {
-        htmlMatriz += '<tr><th scope="row">' + i + '</th>';
+        htmlMatriz += '<tr><th scope="row">' + (i + 1) + '</th>';
         for (var j = 0; j < matriz[0].length; j++) {
             htmlMatriz += '<td id="' + idMatriz + '-' + i + '-' + j + '">';
             htmlMatriz += '<span id="animationVariableMatirz' + idMatriz + '-' + i + '-' + j + '" style="display: block;">' + matriz[i][j] + '</span>';
@@ -26,20 +26,36 @@ function drawMatriz(matriz, idMatriz) {
 
 }
 
-function drawCell(idMatriz, i, j) {
-    document.getElementById(idMatriz + '-' + i + '-' + j).setAttribute("style", "background:red");
-    setTimeout(() => {
-        unsealCell(i, j);
-    }, 2000);
-    setTimeout(() => {
-        animationChangeVariable(i, j);
-    }, 3000);
-    setTimeout(() => {
-        changeValueCell(i, j, 999);
-    }, 4000);
+function isMatriz(idMatriz){
+    let object = document.getElementById(idMatriz);
+    if(object.getElementsByTagName('table').length >= 1){
+        return true;
+    }
+    return false;
 }
 
-function animationChangeVariable(idMatriz, i, j) {
+function isCanvas(idMatriz){
+    let object = document.getElementById(idMatriz);
+    if(!object.getElementsByTagName('table').length >= 1){
+        return true;
+    }
+    return false;
+}
+
+function drawCell(idMatriz, i, j) {
+    document.getElementById(idMatriz + '-' + i + '-' + j).setAttribute("style", "background:red");
+    // setTimeout(() => {
+    //     unsealCell(idMatriz,i, j);
+    // }, 2000);
+    // setTimeout(() => {
+    //     animationChangeVariableMatriz(idMatriz,i, j);
+    // }, 3000);
+    // setTimeout(() => {
+    //     changeValueCell(idMatriz,i, j, 999);
+    // }, 4000);
+}
+
+function animationChangeVariableMatriz(idMatriz, i, j) {
     $('#animationVariableMatirz' + idMatriz + '-' + i + '-' + j).removeClass().addClass('shake animated').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
         $(this).removeClass();
     });
@@ -47,6 +63,13 @@ function animationChangeVariable(idMatriz, i, j) {
 
 function unsealCell(idMatriz, i, j) {
     document.getElementById(idMatriz + '-' + i + '-' + j).removeAttribute("style");
+}
+
+function unsealAllCell(idMatriz) {
+    columns = document.getElementById(idMatriz).getElementsByTagName('td');
+    for (let i = 0; i < columns.length; i++) {
+        document.getElementById(columns[i].id).removeAttribute("style");
+    }
 }
 
 function changeValueCell(idMatriz, i, j, value) {
