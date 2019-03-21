@@ -43,7 +43,7 @@ ComparisonSort.prototype.showArray = function () {
 	this.commands = new Array();
 	for (var i = 0; i < this.array_size; i++) {
 		this.oldData[i] = this.arrayData[i];
-		this.cmd("SetText", this.barLabels[i], this.arrayData[i]);
+		this.cmd("SetText", this.barLabels[i], (i+1) + this.arrayData[i]);
 		this.cmd("SetHeight", this.barObjects[i], this.arrayData[i]);
 	}
 
