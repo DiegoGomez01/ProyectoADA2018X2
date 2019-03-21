@@ -49,15 +49,22 @@
   </head>
 
 <body>
-		<div id="divCard" class="card">
-			<div class="container">
-				<p id="textCard"></p> 
-			</div>
+	<div id="divCard" class="card">
+		<div class="container">
+			<p id="textCard"></p> 
 		</div>
-<button onclick="addCircle()">Add</button>
-<button onclick="disableCircle()">Disable</button>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="../assets/js/treeJs.js" type="text/javascript" charset="utf-8"></script>
+	</div>
+	<button onclick="addCircle()">Add</button>
+	<button onclick="disableCircle()">Disable</button>
+	<button onclick="resetTree()">resetTree</button><br>
+	<div style="margin-left: 15px; margin-top: 15px; position: absolute;">
+		<img src="../assets/images/circle_blue.png"> <b>: Nodo abierto</b><br>
+		<img src="../assets/images/circle_gray.png"> <b>: Nodo cerrado</b><br>
+		<img src="../assets/images/circle_green.png"> <b>: Nodo actual</b><br>
+	</div>
+	
+	<script src="http://d3js.org/d3.v3.min.js"></script>
+	<script src="../assets/js/treeJs.js" type="text/javascript" charset="utf-8"></script>
 	
 </body>
 </html>

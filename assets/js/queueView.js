@@ -21,8 +21,8 @@ var TOP_LABEL_Y =  100;
 var TOP_ELEM_WIDTH = 30;
 var TOP_ELEM_HEIGHT = 30;
 
-var TAIL_POS_X = 180;
-var TAIL_LABEL_X = 130;
+// var TAIL_POS_X = 180;
+// var TAIL_LABEL_X = 130;
 
 var PUSH_LABEL_X = 50;
 var PUSH_LABEL_Y = 30;
@@ -47,8 +47,8 @@ QueueLL.prototype.init = function(am, w, h)
 	QueueLL.superclass.init.call(this, am, w, h);
 	this.nextIndex = 0;
 	this.commands = [];
-	this.tail_pos_y = h - LINKED_LIST_ELEM_HEIGHT;
-	this.tail_label_y = this.tail_pos_y;
+	// this.tail_pos_y = h - LINKED_LIST_ELEM_HEIGHT;
+	// this.tail_label_y = this.tail_pos_y;
 	this.setup();
     this.initialIndex = this.nextIndex;
     thisGlobal = this;
@@ -62,8 +62,8 @@ QueueLL.prototype.setup = function() {
 	this.headID = this.nextIndex++;
 	this.headLabelID = this.nextIndex++;
 
-	this.tailID = this.nextIndex++;
-	this.tailLabelID = this.nextIndex++;
+	// this.tailID = this.nextIndex++;
+	// this.tailLabelID = this.nextIndex++;
 	
 	this.arrayData = new Array(SIZE);
 	this.top = 0;
@@ -74,9 +74,9 @@ QueueLL.prototype.setup = function() {
 	this.cmd("SetNull", this.headID, 1);
 	
 	
-	this.cmd("CreateLabel", this.tailLabelID, "Tail", TAIL_LABEL_X, this.tail_label_y);
-	this.cmd("CreateRectangle", this.tailID, "", TOP_ELEM_WIDTH, TOP_ELEM_HEIGHT, TAIL_POS_X, this.tail_pos_y);
-	this.cmd("SetNull", this.tailID, 1);
+	// this.cmd("CreateLabel", this.tailLabelID, "Tail", TAIL_LABEL_X, this.tail_label_y);
+	// this.cmd("CreateRectangle", this.tailID, "", TOP_ELEM_WIDTH, TOP_ELEM_HEIGHT, TAIL_POS_X, this.tail_pos_y);
+	// this.cmd("SetNull", this.tailID, 1);
 	
 	this.cmd("CreateLabel", this.leftoverLabelID, "", 5, PUSH_LABEL_Y,0);
 	
@@ -94,7 +94,7 @@ QueueLL.prototype.resetLinkedListPositions = function() {
 }
 
 function createCanvasQueue(id) {
-	htmlCanvas = '<canvas id="' + id + '" width="1000" height="300"></canvas>';
+	htmlCanvas = '<canvas id="' + id + '" width="1000" height="250"></canvas>';
 	$('#wrapContent').append(htmlCanvas);
 	initQueue(id);
 }
@@ -150,16 +150,16 @@ QueueLL.prototype.enqueue = function(elemToPush) {
 	
 	if (this.top == 0) {
 		this.cmd("SetNull", this.headID, 0);
-		this.cmd("SetNull", this.tailID, 0);
+		// this.cmd("SetNull", this.tailID, 0);
 		this.cmd("connect", this.headID, this.linkedListElemID[this.top]);
-		this.cmd("connect", this.tailID, this.linkedListElemID[this.top]);
+		// this.cmd("connect", this.tailID, this.linkedListElemID[this.top]);
 	} else {
 		this.cmd("SetNull", this.linkedListElemID[1], 0);
 		this.cmd("Connect",  this.linkedListElemID[1], this.linkedListElemID[0]);
 		this.cmd("Step");
-		this.cmd("Disconnect", this.tailID, this.linkedListElemID[1]);
+		// this.cmd("Disconnect", this.tailID, this.linkedListElemID[1]);
 	}
-	this.cmd("Connect", this.tailID, this.linkedListElemID[0]);
+	// this.cmd("Connect", this.tailID, this.linkedListElemID[0]);
 	
 	this.cmd("Step");
 	this.top = this.top + 1;
@@ -186,8 +186,8 @@ QueueLL.prototype.dequeue = function(ignored) {
 	
 	if (this.top == 1){
 		this.cmd("SetNull", this.headID, 1);
-		this.cmd("SetNull", this.tailID, 1);
-		this.cmd("Disconnect", this.tailID, this.linkedListElemID[this.top-1]);
+		// this.cmd("SetNull", this.tailID, 1);
+		// this.cmd("Disconnect", this.tailID, this.linkedListElemID[this.top-1]);
 	} else {
 		this.cmd("Connect", this.headID, this.linkedListElemID[this.top-2]);
 	}

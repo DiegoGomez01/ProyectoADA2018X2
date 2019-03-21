@@ -1,51 +1,14 @@
-// var treeData = [
-//     {
-//       "name": "0",
-//       "children": [
-//         {
-//           "name": "1",
-//           "children": [
-//             {
-//               "name": "4",
-//               "color": "blue",
-//             },
-//             {
-//               "name": "5",
-//               "color": "blue",
-//             }
-//           ],
-//           "color": "yellow",
-//         },
-//         {
-//           "name": "2",
-//           "color": "blue",
-//         },
-//         {
-//             "name": "3",
-//             "children": [
-//                 {
-//                   "name": "6",
-//                   "color": "blue",
-//                 },
-//                 {
-//                   "name": "7",
-//                   "color": "blue",
-//                 }
-//             ],
-//             "color": "blue",
-//         }
-//       ],
-//       "color": "blue",
-//     }
-//   ];
-
 var contadorNodos=0;
+
+const COLOR_CURRENT_NODE = "green";
+const COLOR_DISABLED_NODE = "gray";
+const COLOR_OPEN_NODE = "blue";
 
 var treeData = [
     {
       "name": contadorNodos,
       "parent": "null",
-      "color": "green",
+      "color": COLOR_CURRENT_NODE,
       "data": {"a":"b"}
     }
   ];
@@ -100,25 +63,24 @@ var treeData = [
         .data(nodes, function(d) { return d.id || (d.id = ++i); });
   
     // Enter any new nodes at the parent's previous position.
+    
+    var newNodePositionY;
+    var newNodePositionX;
+    var newNodeData;
     nodeEnter = node.enter().append("g")
         .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-        .on("click", click);
+        .attr("transform", function(d) { 
+            newNodePositionY = d.y;
+            newNodePositionX = d.x;
+            newNodeData = d.data;
+            return "translate(" + source.y0 + "," + source.x0 + ")"; 
+        });
+    
+    showInfo(newNodePositionX,newNodePositionY,newNodeData);
 
     nodeEnter.append("circle")
         .attr("r", 1e-6)
         .style("fill",function(d) { return d.color; });
-
-    var html= '<div class = "card">'+
-        '<div class="container">'+
-        '<p>'+function(d) { return d.data; }+'</p> '+
-        '</div>'+
-    '</div>';
-
-    // nodeEnter.append("div")
-    //     .attr("x", function(d) { return d.children || d._children ? -20 : 15; })
-    //     .attr("y", function(d) { return d.children || d._children ? -30 : 0; })
-    //     .html(html);
   
     nodeEnter.append("text")
         .attr("x", function(d) { return d.children || d._children ? -13 : 15; })
@@ -146,7 +108,7 @@ var treeData = [
         .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
         .remove();
   
-    nodeExit.select("circle")
+    nodeExit.select("newCirclecircle")
         .attr("r", 1e-6);
   
     nodeExit.select("text")
@@ -191,7 +153,7 @@ var treeData = [
     console.log(nodeEnter[0]);
 
     // for(var i = 0; i < nodeEnter[0].length ; i++){
-    //     console.log(nodeEnter[0][i].children[0].style.fill="red");
+    //     console.log(nodeEnter[0][i].children[0].style.fill=COLOR_DISABLED_NODE);
     // }
 
     nodeEnter[0].forEach((node) => {
@@ -204,41 +166,29 @@ var treeData = [
   }
   
 
-  function click(d) {
-
+  function showInfo(positionX, postitionY, data) {
+    console.log(positionX,postitionY,data);
     window.clearTimeout();
-    // var test = findCircle(d.name);
-    var div = document.getElementById('divCard');   
+    var div = document.createElement('div');
+    div.className = 'card'; 
     div.style.position = "absolute";
-    // div.style.transform = 'translate('+d.x0+','+d.y0+')';
-    div.style.left = (d.y+100)+'px';
-    div.style.top = (d.x-20)+'px';
+    div.style.left = (postitionY+60)+'px';
+    div.style.top = (positionX-20)+'px';
     div.style.display = "inline-block";
-    document.getElementById('textCard').innerHTML=String("asdasdasdadsasdasdasdasdads"); //d.data.a
+    var divContainer = document.createElement('div');
+    divContainer.className = 'container';
+    div.appendChild(divContainer);
+    var textCard = document.createElement('p');
+    textCard.innerHTML = String("asdasdasdads");
+    divContainer.appendChild(textCard);
 
-    // setTimeout(() => {
-    //     document.getElementById("divCard").style.display = "none";
-    // }, 7000);
-
-    // console.log(d);
-    // if (d.children) {
-    //   d._children = d.children;
-    //   d.children = null;
-    // } else {
-    //   d.children = d._children;
-    //   d._children = null;
-    // }
-    // update(d);
-
-
-    // test.children[0].style.fill="red";
+    document.getElementsByTagName('body')[0].appendChild(div);
   }
 
 
   function cambiarJson(){
-    //   console.log(treeData[0].children[0].color = "yellow");
-      treeData[0].children[0].color = "black";
-      update(treeData[0]);
+    treeData[0].children[0].color = "black";
+    update(treeData[0]);
   }
 
 
@@ -246,7 +196,7 @@ var treeData = [
     var newCircle = {
         "name": ++contadorNodos,
         "parent": headTree.name,
-        "color": "green",
+        "color": COLOR_CURRENT_NODE,
         "data": {"a":"b"}
     }
     if(typeof headTree.children == "undefined"){
@@ -254,18 +204,25 @@ var treeData = [
     }else{
         headTree.children.push(newCircle);
     }
-    headTree.color = "blue";
+    headTree.color = COLOR_OPEN_NODE;
     headTree = newCircle;
-    
     update(treeData[0]);
   }
 
   function disableCircle(){
-    headTree.color="red";
+    headTree.color=COLOR_DISABLED_NODE;
     update(treeData[0]);
-
     headTree = headTree.parent;
-
-    headTree.color="green";
+    headTree.color=COLOR_CURRENT_NODE;
     update(treeData[0]);
+  }
+
+  function resetTree() {
+    if(treeData[0].children){
+        delete treeData[0].children;
+        treeData[0].color = COLOR_CURRENT_NODE;
+        headTree = treeData[0];
+        contadorNodos = 0;
+        update(treeData[0]);
+    }
   }
