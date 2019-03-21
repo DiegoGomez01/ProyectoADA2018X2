@@ -76,11 +76,6 @@ StackLL.prototype.resetLinkedListPositions = function() {
 		this.cmd("Move", this.linkedListElemID[i], nextX, nextY);				
 	}
 }
-		
-// function reset() {
-// 	thisGlobal.top = 0;
-// 	thisGlobal.nextIndex = thisGlobal.initialIndex;
-// }
 
 function createCanvasStack(id) {
 	htmlCanvas = '<canvas id="' + id + '" width="1000" height="250"></canvas>';
