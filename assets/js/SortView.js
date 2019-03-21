@@ -255,7 +255,6 @@ function addVisibleVariable(key, value) {
 
 function removeVisibleVariable(key) {
 	delete visibleVariables[key];
-	console.log(visibleVariables);
 	document.getElementById("divVariable" + key).remove();
 }
 
