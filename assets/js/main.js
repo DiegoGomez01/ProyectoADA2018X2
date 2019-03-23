@@ -438,7 +438,9 @@ function evalExpression(exp) {
         case "DSContainsFunction":
             return ContainsFunction(getVariableValue(exp.DSVar.id), evalExpression(exp.element));
         case "StringContainsFunction":
-            return getVariableValue(strVar.id).includes(evalExpression(exp.strExp));
+            return getVariableValue(exp.strVar.id).includes(evalExpression(exp.strExp));
+        case "AbsoluteValueFunction":
+            return Math.abs(evalExpression(exp.numExp));
         default:
             alert("Falta la expresión: " + exp.type);
             break;

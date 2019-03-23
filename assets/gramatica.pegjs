@@ -212,7 +212,7 @@ ReservedWord = VarToken / IfToken / ThenToken / ElseToken / EndIfToken / CaseOfT
   DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken / PrintToken / 
   ShowToken / CharAtToken / PowToken / SqrtToken / AddToken / AddFirstToken / AddLastToken / 
   IndexToken / GetToken / GetFirstToken / GetLastToken / RemoveToken / RemoveIndexToken / RemoveFirstToken /
-  RemoveLastToken / ContainsToken / BreakToken
+  RemoveLastToken / ContainsToken / BreakToken / AbsoluteToken
 
 // Tokens
 VarToken        = "var"i           !IdentifierPart 
@@ -281,6 +281,7 @@ CharAtToken     = "charat"i        !IdentifierPart
 PowToken        = "pow"i           !IdentifierPart
 SqrtToken       = "sqrt"i          !IdentifierPart
 BreakToken      = "break"i         !IdentifierPart
+AbsoluteToken   = "abs"i           !IdentifierPart
 
 PrimitiveTypesVar = IntToken / FloatToken / BooleanToken / CharToken / StringToken
 
@@ -592,7 +593,7 @@ StringContainsFunction = strVar:VariableAccessExpression &{return strVar.dataTyp
 
 //--- Funciones especiales (Numéricas) --- 
 
-SpecialNumericFunctions = FloorFunction / CeilingFunction / CastingIntFunction / InfinityLiteral / PowFunction / SqrtFunction
+SpecialNumericFunctions = FloorFunction / CeilingFunction / CastingIntFunction / InfinityLiteral / PowFunction / SqrtFunction / AbsoluteValueFunction
 
 VariablesNumericFunctions = StringLengthFunction / ArrayLengthFunction / SizeFunction / IndexFunction
 
@@ -624,6 +625,14 @@ SqrtFunction = SqrtToken "(" numExp:NumericExpression ")" {
     type: "SqrtFunction",
     base: numExp,
     line: location().start.line - 1
+  };
+}
+
+AbsoluteValueFunction = AbsoluteToken "(" _ numExp:NumericExpression _")" {
+    return {
+    type: "AbsoluteValueFunction",
+    dataType: getDataTypeofExpression(numExp),
+    numExp: numExp
   };
 }
 
