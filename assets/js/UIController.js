@@ -62,8 +62,9 @@ $(document).ready(function () {
         }
     });
 
-    //Inicializar Visualizer
+    //Inicializar Visualizer y Tree
     visualizerIF = document.getElementById("iframeVisualizer").contentWindow;
+    treeIF = document.getElementById("iframeTree").contentWindow;
 
     //escoger un algoritmo para cargarlo
     $('#examplesChooser a').on('click', function (evt) {
@@ -75,10 +76,14 @@ $(document).ready(function () {
 
     document.getElementById("checkVisualizer").checked = true;
     $("#checkVisualizer").on("change", function () {
+        isVisualicerActive = this.checked;
+        let tabVisualizer = document.getElementById("btnShowVisualizer");
+        tabVisualizer.checked = this.checked;
+        $(tabVisualizer).change();
         if (this.checked) {
-            isVisualicerActive = true;
+            tabVisualizer.parentElement.parentElement.style.display = 'block';
         } else {
-            isVisualicerActive = false;
+            tabVisualizer.parentElement.parentElement.style.display = 'none';
         }
     });
 
@@ -157,39 +162,38 @@ $(document).ready(function () {
         }
     });
 
-    $("#containerSideBtns .tab").on('click', function () {
-        if (!$(this).hasClass("disabled")) {
-            $("#containerSideBtns div.tab.disabled").removeClass("disabled");
-            $(this).addClass("disabled");
+    $('#btnShowTree, #btnShowVars, #btnShowVisualizer').on('change', function () {
+        if (this.checked) {
+            $(this).parent().parent().removeClass("disabled");
             switch ($(this).data("tab")) {
                 case 1:
-                    $("#containerTree").fadeOut(VELOCIDADUICAMBIOSMS, function () {
-                        $("#containerVariables").fadeIn(VELOCIDADUICAMBIOSMS);
-                    });
+                    $("#containerVisualizer").slideDown(VELOCIDADUICAMBIOSMS);
                     break;
                 case 2:
-                    $("#containerVariables").fadeOut(VELOCIDADUICAMBIOSMS, function () {
-                        $("#containerTree").fadeIn(VELOCIDADUICAMBIOSMS);
-                    });
+                    $("#containerTree").slideDown(VELOCIDADUICAMBIOSMS);
                     break;
-                default:
-                    alert("error");
+                case 3:
+                    $("#containerVariables").slideDown(VELOCIDADUICAMBIOSMS);
+                    break;
+            }
+        } else {
+            $(this).parent().parent().addClass("disabled");
+            switch ($(this).data("tab")) {
+                case 1:
+                    $("#containerVisualizer").slideUp(VELOCIDADUICAMBIOSMS);
+                    break;
+                case 2:
+                    $("#containerTree").slideUp(VELOCIDADUICAMBIOSMS);
+                    break;
+                case 3:
+                    $("#containerVariables").slideUp(VELOCIDADUICAMBIOSMS);
                     break;
             }
         }
     });
-
-    $('#btnShowTree').on('click', function (evt) {
-        evt.preventDefault();
-        $('#sideBarTree').addClass('active');
-        $('#overlay').fadeIn(VELOCIDADUINORMALMS);
-    });
-
-    $('#btnCloseTree').on('click', function (evt) {
-        evt.preventDefault();
-        $('#sideBarTree, #btnShowTree').removeClass('active');
-        $('#overlay').fadeOut(VELOCIDADUINORMALMS);
-    });
+    document.getElementById("btnShowVars").checked = false;
+    document.getElementById("btnShowTree").checked = true;
+    document.getElementById("btnShowVisualizer").checked = true;
 });
 
 function showRunningUI() {
@@ -326,7 +330,7 @@ function showVariablesVisualizer() {
         const varId = VarsVisualized[i];
         const varDataType = getVariableDataType(varId);
         if (varDataType.includes("[][]")) {
-            visualizerIF.drawMatriz(getVariableValue(varId), varId); //arreglar alert
+            visualizerIF.drawMatriz(getVariableValue(varId), varId);
         } else if (varDataType.includes("[]")) {
             if (varDataType.slice(0, -2) == "int") {
                 visualizerIF.createCanvas(varId, getVariableValue(varId));
@@ -334,9 +338,9 @@ function showVariablesVisualizer() {
                 visualizerIF.drawMatriz([getVariableValue(varId)], varId);
             }
         } else if (varDataType.includes("pila")) {
-            alert("disponible proximamente");
+            visualizerIF.createCanvasStack(varId);
         } else if (varDataType.includes("cola")) {
-            alert("disponible proximamente");
+            visualizerIF.createCanvasQueue(varId);
         } else if (varDataType.includes("lista")) {
             alert("disponible proximamente");
         } else {
@@ -365,9 +369,9 @@ function checkIsOnVisualizer(id) {
     return VarsVisualized.indexOf(id) > -1;
 }
 
-function visualizeVariableChange(id) {
+function visualizeVariableChange(id, value) {
     if (checkIsOnVisualizer(id)) {
-        visualizerIF.animationChangeVariable(id);
+        visualizerIF.animationChangeVariable(id, value);
     }
 }
 
@@ -422,6 +426,26 @@ function visualizeArrayChangeValue(exp, value, vsChange) {
             visualizerIF.changeValueCell(exp.id, index[0], index[1], value);
         }
     }
+}
+
+function pushStackVisualizer(varid, value) {
+    if (checkIsOnVisualizer(varid)) {
+        visualizerIF.pushStack(value);
+    }
+}
+
+function popStackVisualizer(varid) {
+    if (checkIsOnVisualizer(varid)) {
+        visualizerIF.popStack();
+    }
+}
+
+function enqueueQueueVisualizer(varid, value) {
+    visualizerIF.enqueueCall(value);
+}
+
+function enqueueQueueVisualizer(varid) {
+    visualizerIF.dequeueCall();
 }
 
 alertify.defaults = {

@@ -40,8 +40,8 @@
                     <div type="button" class="btn btn-secondary">
                         <i class="fas fa-palette"></i>
                     </div>
-                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
@@ -64,8 +64,8 @@
                     <div type="button" class="btn btn-secondary">
                         Ejemplos <i class="fas fa-lightbulb"></i>
                     </div>
-                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
+                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <div class="dropdown-menu">
@@ -90,13 +90,23 @@
         </nav>
         <div id="containerApp" class="row no-gutters">
             <div id="editorContainer" class="col-lg">
-                <div id="editor">//Comienza a escribir tu código</div>
+                <div id="editor">//Comienza a escribir tu código aquí..</div>
             </div>
             <div id="viewerCointainer" class="col-lg border-left" style="max-width:50%; display: none;">
-                <div id="containerTree" class="embed-responsive embed-responsive-21by9 h-100">
-                    <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
+                <div id="containerVisualizer">
+                    <h3 class="titleRowApp">Visualización Dinámica</h3>
+                    <div class="embed-responsive embed-responsive-21by9 h-100">
+                        <iframe id="iframeVisualizer" class="embed-responsive-item h-100" src="./visualizer.html"></iframe>
+                    </div>
+                </div>
+                <div id="containerTree">
+                    <h3 class="titleRowApp">Árbol de Ambientes</h3>
+                    <div class="embed-responsive embed-responsive-21by9 h-100">
+                        <iframe id="iframeTree" class="embed-responsive-item h-100" src="./treeView.html"></iframe>
+                    </div>
                 </div>
                 <div id="containerVariables" class="table-responsive" style="display: none;">
+                    <h3 class="titleRowApp mb-0">Todas las Variables</h3>
                     <table class="table table-sm table-hover">
                         <thead>
                             <tr class="theadVars border-bottom border-top">
@@ -112,31 +122,36 @@
                         </tbody>
                         <tbody id="tbodyLocalVars">
                             <tr>
-                                <th colspan="3" class="text-center theadVars border-bottom">Locales (<span id="titleActSubprogram"></span>)</th>
+                                <th colspan="3" class="text-center theadVars border-bottom">Locales (<span
+                                        id="titleActSubprogram"></span>)</th>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
             <div id="containerSideBtns" class="mt-5" style="display: none;">
-                <div id="btnShowTree" class="btnTabVisualization mt-1">
-                    <i class="fas fa-share-alt"></i><span class="border-left pl-1">Ambientes</span>
+                <div class="tab btnTabVisualization mt-1">
+                    <i class="fab fa-stack-overflow border-right mr-1"></i>
+                    <div class="custom-control custom-switch d-inline-flex">
+                        <input type="checkbox" class="custom-control-input" id="btnShowVisualizer" data-tab="1">
+                        <label class="custom-control-label" for="btnShowVisualizer">Dinámicas</label>
+                    </div>
                 </div>
-                <div class="tab btnTabVisualization mt-1" data-tab="1">
-                    <i class="fas fa-list-ul"></i><span class="border-left pl-1">Variables</span>
+                <div class="tab btnTabVisualization mt-1">
+                    <i class="fas fa-share-alt border-right mr-1"></i>
+                    <div class="custom-control custom-switch d-inline-flex">
+                        <input type="checkbox" class="custom-control-input" id="btnShowTree" data-tab="2">
+                        <label class="custom-control-label" for="btnShowTree">Árbol</label>
+                    </div>
                 </div>
-                <div class="tab btnTabVisualization mt-1 disabled" data-tab="2">
-                    <i class="fab fa-stack-overflow"></i><span class="border-left pl-1">Visualizador</span>
+                <div class="tab btnTabVisualization mt-1 disabled">
+                    <i class="fas fa-list-ul border-right mr-1"></i>
+                    <div class="custom-control custom-switch d-inline-flex">
+                        <input type="checkbox" class="custom-control-input" id="btnShowVars" data-tab="3">
+                        <label class="custom-control-label" for="btnShowVars">Variables</label>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div id="sideBarTree">
-            <div class="d-flex">
-                <a id="btnCloseTree" class="btn" type="button">
-                    <i class="fas fa-times fa-2x"></i>
-                </a>
-            </div>
-            <iframe class="embed-responsive embed-responsive-21by9" src="./treeView.html"></iframe>
         </div>
         <div id="hubExecutionControllerContainer" style="display:none;" class="row no-gutters">
             <div class="col-md">
@@ -185,3 +200,11 @@
 </body>
 
 </html>
+
+<!-- <div id="sideBarTree">
+    <div class="d-flex">
+        <a id="btnCloseTree" class="btn" type="button">
+            <i class="fas fa-times fa-2x"></i>
+        </a>
+    </div>
+</div> -->

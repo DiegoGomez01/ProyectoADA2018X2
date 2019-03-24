@@ -109,6 +109,7 @@ function startProgram(mainName) {
             alertify.selectMainSubprogram().close();
         }
         showRunningUI();
+        treeIF.resetTree();
         callStack = [];
         subprogram.reset();
         subprogram.name = mainName;
@@ -223,7 +224,7 @@ function executeStatement() {
         case "EnqueueStatement":
         case "AddStatement":
         case "AddLastStatement":
-            DataStructurePush(Statement.DSVar.id, Statement.exp);
+            DataStructurePush(Statement.DSVar.id, Statement.exp, Statement.type);
             break;
         case "AddFirstStatement":
             DataStructureAddFirst(Statement.DSVar.id, Statement.exp);
@@ -279,6 +280,7 @@ function callSubprogram(name, args) {
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
     subprogram.addBlock(actSubprogram.body);
     updateLocalVariables();
+    treeIF.addCircle();
 }
 
 function evalArgs(args) {
@@ -345,6 +347,7 @@ function returnSubprogram(returnExpValue) {
         }
         locateNextStatement();
         updateLocalVariables();
+        treeIF.disableCircle();
     }
 }
 
@@ -412,10 +415,12 @@ function evalExpression(exp) {
         case "IsEmptyFunction":
             return IsEmptyDataStructureFunction(getVariableValue(exp.DSVar.id));
         case "PopExpression":
+            popStackVisualizer(exp.StackVar.id);
             return RemoveLastDSFunction(exp.StackVar.id, "La pila está vacía");
         case "PeekExpression":
             return GetLastDSFunction(exp.StackVar.id, "La pila está vacía");
         case "DequeueExpression":
+            enqueueQueueVisualizer(exp.QueueVar.id);
             return RemoveFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
         case "FrontExpression":
             return GetFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
@@ -568,8 +573,16 @@ function AssignmentFunction(left, right) {
     }
 }
 
-function DataStructurePush(id, exp) {
-    getVariableValue(id).push(evalExpression(exp));
+function DataStructurePush(id, exp, typeAction) {
+    var expValue = evalExpression(exp);
+    if (checkIsOnVisualizer(varid)) {
+        if (typeAction == "PushStatement") {
+            pushStackVisualizer(id, expValue);
+        } else if (typeAction == "EnqueueStatement") {
+            enqueueQueueVisualizer(id, expValue);
+        }
+    }
+    getVariableValue(id).push(expValue);
     updateVariableValue(id);
 }
 
@@ -682,7 +695,7 @@ function changeValueExpVariableAccess(exp, value, vsChange) {
         changeArrayAccessValue(exp.id, getArrayIndex(exp.index), value);
     } else {
         changeVariableValue(exp.id, value);
-        visualizeVariableChange(exp.id);
+        visualizeVariableChange(exp.id, value);
     }
 }
 

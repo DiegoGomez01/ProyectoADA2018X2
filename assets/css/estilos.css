@@ -53,9 +53,19 @@ button,
 }
 
 #containerVariables,
-#containerTree {
-    max-height: 555px;
+#containerTree,
+#containerVisualizer,
+#viewerCointainer {
+    height: 600px;
+    max-height: 600px;
     overflow-y: auto;
+}
+
+.titleRowApp {
+    color: #FFFFFF;
+    background-color: #cf000f;
+    text-align: center;
+    padding: 10px 0px 10px 0px;
 }
 
 #containerVariables .theadVars {
@@ -98,8 +108,8 @@ button,
     width: 155px;
 }
 
-.btnTabVisualization:not(.disabled):hover {
-    left: -110px;
+.btnTabVisualization:hover {
+    left: -130px;
     cursor: pointer;
 }
 
