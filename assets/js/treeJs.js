@@ -5,12 +5,11 @@ const COLOR_DISABLED_NODE = "gray";
 const COLOR_OPEN_NODE = "blue";
 
 var treeData = [{
-    "name": contadorNodos,
-    "parent": "null",
+    "ident": contadorNodos,
+    "name": contadorNodos + ": INICIO",
+    "parent": null,
     "color": COLOR_CURRENT_NODE,
-    "data": {
-        "a": "b"
-    }
+    "data": ""
 }];
 
 
@@ -85,7 +84,9 @@ function update(source) {
             newNodePositionX = d.x;
             newNodeData = d.data;
             return "translate(" + source.y0 + "," + source.x0 + ")";
-        });
+        })
+        .on("mouseover", hover)
+        .on("mouseout", removeHover);//on("mouseover", click)
 
     // showInfo(newNodePositionX,newNodePositionY,newNodeData);
 
@@ -206,41 +207,33 @@ function findCircle(name) {
     return retorno;
 }
 
-
-function showInfo(positionX, postitionY, data) {
-    console.log(positionX, postitionY, data);
+function hover(d) {
     window.clearTimeout();
-    var div = document.createElement('div');
-    div.className = 'card';
+    var div = document.getElementById('divCard');   
     div.style.position = "absolute";
-    div.style.left = (postitionY + 60) + 'px';
-    div.style.top = (positionX - 20) + 'px';
+    div.style.left = (d.y-10)+'px';
+    div.style.top = (d.x-40)+'px';
     div.style.display = "inline-block";
-    var divContainer = document.createElement('div');
-    divContainer.className = 'container';
-    div.appendChild(divContainer);
-    var textCard = document.createElement('p');
-    textCard.innerHTML = String("asdasdasdads");
-    divContainer.appendChild(textCard);
-
-    document.getElementsByTagName('body')[0].appendChild(div);
+    document.getElementById('textCard').innerHTML= d.data;
 }
 
-
-function cambiarJson() {
-    treeData[0].children[0].color = "black";
-    update(treeData[0]);
+function changeText(newText){
+    headTree.data = newText;
 }
 
+function removeHover(d) {
+    window.clearTimeout();
+    document.getElementById('divCard').style.display = "none";
+}
 
-function addCircle() {
+function addCircle(text, nameSubRutina) {
+    contadorNodos++;
     var newCircle = {
-        "name": ++contadorNodos,
+        "ident": contadorNodos,
+        "name": contadorNodos + ": " + nameSubRutina,
         "parent": headTree.name,
         "color": COLOR_CURRENT_NODE,
-        "data": {
-            "a": "b"
-        }
+        "data": text
     }
     if (typeof headTree.children == "undefined") {
         headTree.children = [newCircle];
@@ -252,12 +245,34 @@ function addCircle() {
     update(treeData[0]);
 }
 
+function devolverPaso(){
+    if(typeof headTree.children == "undefined"){
+        if(headTree.parent != null){
+            headTree = headTree.parent;
+            if(headTree.children.length>1){
+                headTree.children.splice(headTree.children.length-1, 1);
+            }else{
+                delete headTree['children'];
+            }
+            contadorNodos--;
+            headTree.color = COLOR_CURRENT_NODE;
+        }
+    }else{
+        headTree.color = COLOR_OPEN_NODE;
+        headTree = headTree.children[headTree.children.length-1];
+        headTree.color = COLOR_CURRENT_NODE;
+    }
+    update(treeData[0]);
+}
+
 function disableCircle() {
-    headTree.color = COLOR_DISABLED_NODE;
-    update(treeData[0]);
-    headTree = headTree.parent;
-    headTree.color = COLOR_CURRENT_NODE;
-    update(treeData[0]);
+    if(headTree.parent != null){
+        headTree.color = COLOR_DISABLED_NODE;
+        update(treeData[0]);
+        headTree = headTree.parent;
+        headTree.color = COLOR_CURRENT_NODE;
+        update(treeData[0]);
+    }
 }
 
 function resetTree() {
@@ -266,6 +281,41 @@ function resetTree() {
         treeData[0].color = COLOR_CURRENT_NODE;
         headTree = treeData[0];
         contadorNodos = 0;
+        update(treeData[0]);
+    }
+}
+
+function searchTree(element, id){
+    if(element.ident == id){
+         return element;
+    }else if (typeof element.children != "undefined"){
+         var i;
+         var result = null;
+         for(i=0; result == null && i < element.children.length; i++){
+              result = searchTree(element.children[i], id);
+         }
+         return result;
+    }
+    return null;
+}
+
+function deleteNode(number){
+    var node = searchTree(treeData[0],number);
+    if(node){
+        if(node.color == COLOR_CURRENT_NODE){
+            node.parent.color = COLOR_CURRENT_NODE;
+        }
+        var nodePatern = node.parent;
+        if(nodePatern.children.length>1){
+            for(var i =0; i< nodePatern.children.length; i++){
+                if(nodePatern.children[i].ident == number){
+                    nodePatern.children.splice(i, 1);
+                    break;
+                }
+            }
+        }else{
+            delete nodePatern['children'];
+        }
         update(treeData[0]);
     }
 }
