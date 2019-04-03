@@ -1,17 +1,13 @@
-var contadorNodos = 0;
-
 const COLOR_CURRENT_NODE = "green";
 const COLOR_DISABLED_NODE = "gray";
 const COLOR_OPEN_NODE = "blue";
 
 var treeData = [{
-    "ident": contadorNodos,
-    "name": contadorNodos + ": MAIN",
+    "ident": 0,
+    "name": 0,
     "parent": null,
     "color": COLOR_CURRENT_NODE,
-    "data": ""
 }];
-
 
 var headTree = treeData[0];
 
@@ -84,9 +80,7 @@ function update(source) {
             newNodePositionX = d.x;
             newNodeData = d.data;
             return "translate(" + source.y0 + "," + source.x0 + ")";
-        })
-        .on("mouseover", hover)
-        .on("mouseout", removeHover);
+        });
 
     nodeEnter.append("circle")
         .attr("r", 1e-6)
@@ -187,42 +181,30 @@ function update(source) {
     });
 }
 
-function hover(d) {
-    window.clearTimeout();
-    var div = document.getElementById('divCard');   
-    div.style.position = "absolute";
-    div.style.left = (d.y-10)+'px';
-    div.style.top = (d.x-40)+'px';
-    div.style.display = "inline-block";
-    document.getElementById('textCard').innerHTML= d.data;
-}
-
-function changeText(newText){
-    headTree.data = newText;
-}
-
-function removeHover(d) {
-    window.clearTimeout();
-    document.getElementById('divCard').style.display = "none";
-}
-
-function addCircle(text, nameSubRutina) {
-    contadorNodos++;
-    var newCircle = {
-        "ident": contadorNodos,
-        "name": contadorNodos + ": " + nameSubRutina,
-        "parent": headTree.name,
-        "color": COLOR_CURRENT_NODE,
-        "data": text
-    }
-    if (typeof headTree.children == "undefined") {
-        headTree.children = [newCircle];
-    } else {
-        headTree.children.push(newCircle);
-    }
-    headTree.color = COLOR_OPEN_NODE;
-    headTree = newCircle;
-    update(treeData[0]);
+function addCircle() {
+    alertify.prompt( 'Agregar un nodo', 'Ingrese el identificador del nuevo nodo', '',
+    (evt, number) => { 
+        if(isNumberValid(number)){
+            var newCircle = {
+                "ident": number,
+                "name": number,
+                "parent": headTree.name,
+                "color": COLOR_CURRENT_NODE
+            }
+            if (typeof headTree.children == "undefined") {
+                headTree.children = [newCircle];
+            } else {
+                headTree.children.push(newCircle);
+            }
+            headTree.color = COLOR_OPEN_NODE;
+            headTree = newCircle;
+            update(treeData[0]);
+        }else{
+            alertify.error('Por favor ingrese un número positivo válido');
+        }
+    }, () => { 
+        evt.cancel = true;
+    });
 }
 
 function devolverPaso(){
@@ -234,7 +216,6 @@ function devolverPaso(){
             }else{
                 delete headTree['children'];
             }
-            contadorNodos--;
             headTree.color = COLOR_CURRENT_NODE;
         }
     }else{
@@ -260,7 +241,6 @@ function resetTree() {
         delete treeData[0].children;
         treeData[0].color = COLOR_CURRENT_NODE;
         headTree = treeData[0];
-        contadorNodos = 0;
         update(treeData[0]);
     }
 }
@@ -279,27 +259,123 @@ function searchTree(element, id){
     return null;
 }
 
-function deleteNode(number){
-    var node = searchTree(treeData[0],number);
-    if(node){
-        if(node.color == COLOR_CURRENT_NODE){
-            node.parent.color = COLOR_CURRENT_NODE;
-        }
-        var nodePatern = node.parent;
-        if(nodePatern.children.length>1){
-            for(var i =0; i< nodePatern.children.length; i++){
-                if(nodePatern.children[i].ident == number){
-                    nodePatern.children.splice(i, 1);
-                    break;
+function deleteNode(){
+    alertify.prompt( 'Nodo a eliminar', 'Ingrese el identificador del nodo', '',
+    (evt, number) => { 
+        if(isNumberValid(number)){
+            var node = searchTree(treeData[0],number);
+            if(node){
+                if(node.parent != null){
+                    if(node.color == COLOR_CURRENT_NODE){
+                        node.parent.color = COLOR_CURRENT_NODE;
+                    }
+                    var nodePatern = node.parent;
+                    if(nodePatern.children.length>1){
+                        for(var i =0; i< nodePatern.children.length; i++){
+                            if(nodePatern.children[i].ident == number){
+                                nodePatern.children.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }else{
+                        delete nodePatern['children'];
+                    }
+                    update(treeData[0]);
+                }else{
+                    alertify.error('No puede eliminar la raíz, si lo desea, reinicie el juego!');
                 }
+                
             }
         }else{
-            delete nodePatern['children'];
+            alertify.error('Por favor ingrese un número positivo válido');
         }
-        update(treeData[0]);
-    }
+    }, () => { 
+        evt.cancel = true;
+    });
 }
 
 function getTree(){
     return treeData.slice(0);
+}
+
+function isNumberValid(number) {
+    if(number != '' && (number+'').length>0 && number >= 0){
+        return !isNaN(parseFloat(number)) && isFinite(number);
+    }
+    return false;
+}
+
+function testCompare(){
+    var original = [
+        {
+            "ident": 0,
+            "name": 0,
+            "parent": null,
+            "children":[{
+                "ident": 1,
+                "name": 1,
+                "parent": null,
+                "color": COLOR_OPEN_NODE,
+                "children":[{
+                    "ident": 2,
+                    "name": 2,
+                    "parent": null,
+                    "color": COLOR_OPEN_NODE,
+                },{
+                    "ident": 3,
+                    "name": 3,
+                    "parent": null,
+                    "color": COLOR_CURRENT_NODE,
+                }],
+            }],
+            "color": COLOR_OPEN_NODE
+        }
+    ];
+
+    var user = [
+        {
+            "ident": 0,
+            "name": 0,
+            "parent": null,
+            "children":[{
+                "ident": 1,
+                "name": 1,
+                "parent": null,
+                "color": COLOR_OPEN_NODE,
+                "children":[{
+                    "ident": 2,
+                    "name": 2,
+                    "parent": null,
+                    "color": COLOR_OPEN_NODE,
+                },{
+                    "ident": 3,
+                    "name": 3,
+                    "parent": null,
+                    "color": COLOR_CURRENT_NODE,
+                }],
+            }],
+            "color": COLOR_OPEN_NODE
+        }
+    ];
+    console.log(compareTree(original[0],user[0]));
+}
+
+function compareTree(treeOriginal, treeUser){
+    if(treeOriginal.ident == treeUser.ident && treeOriginal.color == treeUser.color){
+        if (typeof treeOriginal.children == "undefined" && typeof treeUser.treeUser == "undefined"){
+            return true;
+        }else if(typeof treeOriginal.children != "undefined" && typeof treeUser.children != "undefined" && 
+                treeOriginal.children.length == treeUser.children.length){
+            var i;
+            var result = true;
+            for(i=0; result == true && i < treeOriginal.children.length; i++){
+                    result = compareTree(treeOriginal.children[i],treeUser.children[i]);
+            }
+            return result;
+        }else{
+            return false;
+        }
+    }else{
+        return false;
+    }
 }

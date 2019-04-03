@@ -3,6 +3,9 @@
   <head>
 		<meta charset="utf-8">
 		<link rel="stylesheet" type="text/css" href="../assets/css/bootstrap.min.css" />
+		<link rel="stylesheet" type="text/css" href="../assets/css/alertify.min.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeDefault.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeBootstrap.css" />
     <script src="../assets/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
 
     <title>Tree</title>
@@ -55,18 +58,23 @@
 		</div>
 	</div>
 
-	<!-- <button onclick="addCircle('TEST','subrutina')">Add</button>
-	<button onclick="disableCircle()">Disable</button>
-	<button onclick="resetTree()">resetTree</button>
-	<button onclick="devolverPaso()">devolver</button><br>-->
+	<button type="button" class="btn btn-success" style="margin-left: 5px" onclick="addCircle()">Agregar nodo</button>
+	<button type="button" class="btn btn-danger" onclick="deleteNode()">Eliminar nodo</button><br><br>
+	<button type="button" class="btn btn-primary" style="margin-left: 5px" onclick="disableCircle()">Deshabilitar nodo</button>
+	<button type="button" class="btn btn-primary" onclick="devolverPaso()">Devolver un paso</button>
+	<button type="button" class="btn btn-primary" onclick="resetTree()">Reiniciar Árbol</button><br>
+	<!-- <button onclick="testCompare()">testCompare</button> -->
+	
 	<div style="margin-left: 15px; margin-top: 15px; position: absolute;">
 		<img src="../assets/images/circle_blue.png"> <b>: Nodo abierto</b><br>
 		<img src="../assets/images/circle_gray.png"> <b>: Nodo cerrado</b><br>
 		<img src="../assets/images/circle_green.png"> <b>: Nodo actual</b><br>
 	</div>
 	
+	<script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/alertify.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="http://d3js.org/d3.v3.min.js"></script>
-	<script src="../assets/js/treeJs.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../assets/js/gameTreeJs.js" type="text/javascript" charset="utf-8"></script>
 	
 </body>
 </html>
