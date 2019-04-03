@@ -42,8 +42,9 @@ ComparisonSort.prototype.setArraySize = function () {
 ComparisonSort.prototype.showArray = function () {
 	this.commands = new Array();
 	for (var i = 0; i < this.array_size; i++) {
+		// this.arrayData[i] = "[" + (i+1) + "]: " + this.arrayData[i];
 		this.oldData[i] = this.arrayData[i];
-		this.cmd("SetText", this.barLabels[i], (i+1) + ": " + this.arrayData[i]);
+		this.cmd("SetText", this.barLabels[i], "[" + (i+1) + "]: " + this.arrayData[i]);
 		this.cmd("SetHeight", this.barObjects[i], this.arrayData[i]);
 	}
 
@@ -130,8 +131,10 @@ function swap(index1, index2) {
 	thisGlobal.cmd("Move", thisGlobal.barObjects[index2], thisGlobal.barPositionsX[index2], thisGlobal.array_y_pos);
 	thisGlobal.cmd("Move", thisGlobal.barLabels[index1], thisGlobal.barPositionsX[index1], thisGlobal.array_label_y_pos);
 	thisGlobal.cmd("Move", thisGlobal.barLabels[index2], thisGlobal.barPositionsX[index2], thisGlobal.array_label_y_pos);
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[index1], "[" + (index1+1) + "]: " + thisGlobal.arrayData[index1]);
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[index2], "[" + (index2+1) + "]: " + thisGlobal.arrayData[index2]);
 	thisGlobal.cmd("Step");
-
+	
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 	setTimeout(() => {
 		resetbarColorChange(index1);
@@ -151,7 +154,7 @@ function changeSizeBar(i, newSize) {
 
 	thisGlobal.arrayData[i] = newSize;
 	thisGlobal.oldData[i] = thisGlobal.arrayData[i];
-	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i] + '\ni');
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], "[" + (i+1) + "]: " +  thisGlobal.arrayData[i]);
 	thisGlobal.cmd("SetHeight", thisGlobal.barObjects[i], thisGlobal.arrayData[i]);
 
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
@@ -162,7 +165,7 @@ function setIndexBar(i, variable) {
 	thisGlobal.commands = new Array();
 
 	thisGlobal.arrayData[i] = thisGlobal.arrayData[i] + '\n' + variable;
-	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i]);
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], "[" + (i+1) + "]: " +  thisGlobal.arrayData[i]);
 
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
@@ -171,7 +174,7 @@ function clearIndexBar(i) {
 	thisGlobal.commands = new Array();
 
 	removeIndex(i);
-	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], thisGlobal.arrayData[i]);
+	thisGlobal.cmd("SetText", thisGlobal.barLabels[i], "[" + (i+1) + "]: " +  thisGlobal.arrayData[i]);
 
 	thisGlobal.animationManager.StartNewAnimation(thisGlobal.commands);
 }
