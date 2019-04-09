@@ -24,8 +24,7 @@ var margin = {
         left: 120
     },
     width = 1960 - margin.right - margin.left,
-    height = 500 - margin.top - margin.bottom;
-
+    height = 750 - margin.top - margin.bottom;
 var i = 0,
     duration = 750,
     root;

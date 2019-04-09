@@ -17,7 +17,7 @@ var isVisualicerActive = true;
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-
+        
     });
     //---------------------------------------------------------------------------------------------------
 
@@ -194,6 +194,18 @@ $(document).ready(function () {
     document.getElementById("btnShowVars").checked = false;
     document.getElementById("btnShowTree").checked = true;
     document.getElementById("btnShowVisualizer").checked = true;
+
+    $("#fileURLInput").on("change", function() {
+        cargarArchivo();
+    });
+
+    $("#btnDownloadFile").on("click", function() {
+        getNameFile();
+    });
+
+    $("#btnUploadFile").on("click", function() {
+        $("#fileURLInput").click();
+    });
 });
 
 function showRunningUI() {

@@ -26,6 +26,7 @@
     <script src="../assets/js/UIController.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/variablesDHTML.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/counter.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/fileManager.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body>
@@ -60,6 +61,8 @@
                         <a class="dropdown-item" href="#" data-tema="vibrant_ink">Vibrant Ink</a>
                     </div>
                 </div>
+                <button id="btnUploadFile" type="button" class="btn btn-secondary ml-4"><i class="fas fa-file-upload"></i></button>
+                <button id="btnDownloadFile" type="button" class="btn btn-secondary ml-2"><i class="fas fa-save"></i></button>
                 <div id="examplesChooser" class="btn-group ml-4">
                     <div type="button" class="btn btn-secondary">
                         Ejemplos <i class="fas fa-lightbulb"></i>
@@ -85,6 +88,12 @@
                     <input type="checkbox" class="custom-control-input" id="checkVisualizer">
                     <label class="custom-control-label" for="checkVisualizer">Visualización de Variables</label>
                 </div>
+                <input id="fileURLInput" type="file" accept=".txt,.pseudo" hidden>
+                <!-- <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="inputGroupFile01"
+                        aria-describedby="inputGroupFileAddon01">
+                    <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+                </div> -->
             </div>
             <button id="btnRun" class="btn btn-primary align-self-end" type="button">Ejecutar</button>
         </nav>
@@ -96,7 +105,8 @@
                 <div id="containerVisualizer">
                     <h3 class="titleRowApp">Visualización Dinámica</h3>
                     <div class="embed-responsive embed-responsive-21by9 h-100">
-                        <iframe id="iframeVisualizer" class="embed-responsive-item h-100" src="./visualizer.html"></iframe>
+                        <iframe id="iframeVisualizer" class="embed-responsive-item h-100"
+                            src="./visualizer.html"></iframe>
                     </div>
                 </div>
                 <div id="containerTree">
