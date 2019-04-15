@@ -9,6 +9,7 @@ var treeData = [{
     "name": contadorNodos + ": MAIN",
     "parent": null,
     "color": COLOR_CURRENT_NODE,
+    "recursive": false,
     "data": ""
 }];
 
@@ -85,12 +86,26 @@ function update(source) {
             return "translate(" + source.y0 + "," + source.x0 + ")";
         })
         .on("mouseover", hover)
-        .on("mouseout", removeHover);
+        .on("mouseout", removeHover)
 
     nodeEnter.append("circle")
         .attr("r", 1e-6)
         .style("fill", function (d) {
             return d.color;
+        })
+        .style("stroke-width", function (d) {
+            // stroke-width: 5px;
+            // stroke-dasharray: 2;
+            if(d.recursive) {
+                return '5px';
+            }
+            return "";
+        })
+        .style("stroke-dasharray", function (d) {
+            if(d.recursive) {
+                return 2;
+            }
+            return "";
         });
 
     nodeEnter.append("text")
@@ -120,7 +135,19 @@ function update(source) {
         .attr("r", 10)
         .style("fill", function (d) {
             return d.color;
-        });
+        })
+        .style("stroke-width", function (d) {
+            if(d.recursive) {
+                return '5px';
+            }
+            return "";
+        })
+        .style("stroke-dasharray", function (d) {
+            if(d.recursive) {
+                return 2;
+            }
+            return "";
+        });;
 
     nodeUpdate.select("text")
         .style("fill-opacity", 1);
@@ -186,6 +213,7 @@ function update(source) {
     });
 }
 
+
 function hover(d) {
     window.clearTimeout();
     var div = document.getElementById('divCard');   
@@ -205,13 +233,14 @@ function removeHover(d) {
     document.getElementById('divCard').style.display = "none";
 }
 
-function addCircle(text, nameSubRutina) {
+function addCircle(text, nameSubRutina,recursive) {
     contadorNodos++;
     var newCircle = {
         "ident": contadorNodos,
         "name": contadorNodos + ": " + nameSubRutina,
         "parent": headTree.name,
         "color": COLOR_CURRENT_NODE,
+        "recursive": recursive,
         "data": text
     }
     if (typeof headTree.children == "undefined") {
