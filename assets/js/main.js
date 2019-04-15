@@ -115,6 +115,7 @@ function startProgram(mainName) {
         subprogram.name = mainName;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params);
         subprogram.addBlock(actSubprogram.body);
+        // alert(actSubprogram.skipV);
         showAllVariables();
     }
 }
@@ -279,8 +280,9 @@ function callSubprogram(name, args) {
     subprogram.name = name;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
     subprogram.addBlock(actSubprogram.body);
+    // alert(actSubprogram.skipV);
     updateLocalVariables();
-    treeIF.addCircle();
+    treeIF.addCircle('',name);
 }
 
 function evalArgs(args) {
