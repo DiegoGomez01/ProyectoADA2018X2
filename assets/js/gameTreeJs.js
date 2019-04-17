@@ -212,25 +212,6 @@ function addCircle(idNode) {
     }
 }
 
-function devolverPaso(){
-    if(typeof headTree.children == "undefined"){
-        if(headTree.parent != null){
-            headTree = headTree.parent;
-            if(headTree.children.length>1){
-                headTree.children.splice(headTree.children.length-1, 1);
-            }else{
-                delete headTree['children'];
-            }
-            headTree.color = COLOR_CURRENT_NODE;
-        }
-    }else{
-        headTree.color = COLOR_OPEN_NODE;
-        headTree = headTree.children[headTree.children.length-1];
-        headTree.color = COLOR_CURRENT_NODE;
-    }
-    update(treeData[0]);
-}
-
 function disableCircle() {
     if(headTree.parent != null){
         headTree.color = COLOR_DISABLED_NODE;
@@ -311,28 +292,6 @@ function deleteNode(idNode){
         }
     }else{
         alertify.error('Por favor ingrese un número positivo válido');
-    }
-}
-
-function deleteNodeActual(){
-    if(headTree.parent != null){
-        if(headTree.color == COLOR_CURRENT_NODE){
-            headTree.parent.color = COLOR_CURRENT_NODE;
-        }
-        var nodePatern = headTree.parent;
-        if(nodePatern.children.length>1){
-            for(var i =0; i< nodePatern.children.length; i++){
-                if(nodePatern.children[i].ident == number){
-                    nodePatern.children.splice(i, 1);
-                    break;
-                }
-            }
-        }else{
-            delete nodePatern['children'];
-        }
-        update(treeData[0]);
-    }else{
-        alertify.error('No puede eliminar la raíz, si lo desea, reinicie el juego!');
     }
 }
 

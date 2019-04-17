@@ -85,8 +85,8 @@ function update(source) {
             newNodeData = d.data;
             return "translate(" + source.y0 + "," + source.x0 + ")";
         })
-        .on("mouseover", hover)
-        .on("mouseout", removeHover)
+        .on("mouseenter", hover)
+        .on("mouseleave", removeHover)
 
     nodeEnter.append("circle")
         .attr("r", 1e-6)
@@ -94,8 +94,6 @@ function update(source) {
             return d.color;
         })
         .style("stroke-width", function (d) {
-            // stroke-width: 5px;
-            // stroke-dasharray: 2;
             if(d.recursive) {
                 return '5px';
             }
@@ -215,11 +213,10 @@ function update(source) {
 
 
 function hover(d) {
-    window.clearTimeout();
     var div = document.getElementById('divCard');   
     div.style.position = "absolute";
-    div.style.left = (d.y-10)+'px';
-    div.style.top = (d.x-40)+'px';
+    div.style.left = (d.y+10)+'px';
+    div.style.top = (d.x+40)+'px';
     div.style.display = "inline-block";
     document.getElementById('textCard').innerHTML= d.data;
 }
@@ -229,7 +226,7 @@ function changeText(newText){
 }
 
 function removeHover(d) {
-    window.clearTimeout();
+    //window.clearTimeout();
     document.getElementById('divCard').style.display = "none";
 }
 
