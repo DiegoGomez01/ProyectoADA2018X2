@@ -94,8 +94,6 @@ function update(source) {
             return d.color;
         })
         .style("stroke-width", function (d) {
-            // stroke-width: 5px;
-            // stroke-dasharray: 2;
             if(d.recursive) {
                 return '5px';
             }
