@@ -9,7 +9,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
         var keywords = (
             "if|then|else|endif|case|of|default|endcase|" +
             "while|do|endwhile|repeat|until|for|to|inc|downto|endfor|" +
-            "and|or|var|return|function|procedure|break"
+            "and|or|var|return|function|procedure|break|skip"
         );
 
         var builtinConstants = (
@@ -21,7 +21,7 @@ ace.define("ace/mode/pseudo_highlight_rules", ["require", "exports", "module", "
             "print|show|swap|charat|piso|techo|" +
             "push|pop|peek|enqueue|dequeue|front|size|isempty|" +
             "add|addfirst|addlast|index|get|getfirst|getlast|remove|removeindex|removefirst|removelast|" +
-            "pow|sqrt|len|contains|abs"
+            "pow|sqrt|len|contains|abs|showvars"
         );
 
         var keywordMapper = this.createKeywordMapper({

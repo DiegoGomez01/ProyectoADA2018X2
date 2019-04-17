@@ -212,7 +212,7 @@ ReservedWord = VarToken / IfToken / ThenToken / ElseToken / EndIfToken / CaseOfT
   DequeueToken / FrontToken / IsEmptyToken / LengthToken / SizeToken / SwapToken / PrintToken / 
   ShowToken / CharAtToken / PowToken / SqrtToken / AddToken / AddFirstToken / AddLastToken / 
   IndexToken / GetToken / GetFirstToken / GetLastToken / RemoveToken / RemoveIndexToken / RemoveFirstToken /
-  RemoveLastToken / ContainsToken / BreakToken / AbsoluteToken
+  RemoveLastToken / ContainsToken / BreakToken / AbsoluteToken / SkipToken / ShowVarsToken
 
 // Tokens
 VarToken        = "var"i           !IdentifierPart 
@@ -282,6 +282,8 @@ PowToken        = "pow"i           !IdentifierPart
 SqrtToken       = "sqrt"i          !IdentifierPart
 BreakToken      = "break"i         !IdentifierPart
 AbsoluteToken   = "abs"i           !IdentifierPart
+SkipToken       = "skip"i          !IdentifierPart
+ShowVarsToken   = "showvars"i      !IdentifierPart
 
 PrimitiveTypesVar = IntToken / FloatToken / BooleanToken / CharToken / StringToken
 
@@ -1121,6 +1123,16 @@ ArrayLiteralBoolean = "[" head:ArrayLiteralBoolean tail:(_ "," _ ArrayLiteralBoo
 
 LiteralBooleanList = "[" head:BooleanLiteral tail:(_ "," _ (L:BooleanLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
+//Variables a visualizar dinámicamente
+showVarsFunction = ShowVarsToken _ vars:ExistingVariable+ {
+    var varsToReturn = [];
+    for (let index = 0; index < vars.length; index++) {
+        const varexisting = vars[index];
+        varsToReturn[index] = varexisting.id;
+    }  
+    return varsToReturn;
+}
+
 // Retorno
 ReturnStatement = ReturnToken _ expReturn:Expression { 
   return {
@@ -1132,21 +1144,25 @@ ReturnStatement = ReturnToken _ expReturn:Expression {
 
 // ----- Funciones, Procedimientos y Programas -----
 SubProgramDeclaration = 
-FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
-!{createSubProgram("function", dataType, id, params);} __ VariableStatement? 
+skipV:SkipToken? _ FunctionToken _ dataType:TypesVar _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
+!{createSubProgram("function", dataType, id, params);} __ VariableStatement? varsToShow:showVarsFunction?
 "{" _f body:Statements expReturn:ReturnStatement _f "}" {
   if (expressionsHaveDifferentDataTypes(dataType, getDataTypeofExpression(expReturn.exp))) {
     error("Se debe retornar un " + dataType);
   }
   SUBPROGRAMS[id].body = body;
   SUBPROGRAMS[id].body.push(expReturn);
+  SUBPROGRAMS[id].skipV = (skipV != null);
+  SUBPROGRAMS[id].varsToShow = varsToShow;
   ACTSUBPROGRAMID = undefined;
 }
 / 
-ProcedureToken _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
-!{createSubProgram("procedure", undefined, id, params);} __ VariableStatement? 
+skipV:SkipToken? _ ProcedureToken _ id:SubProgramCreationID "(" _ params:FormalParameterList _ ")"
+!{createSubProgram("procedure", undefined, id, params);} __ VariableStatement? varsToShow:showVarsFunction?
 "{" _f body:Statements "}" {
   SUBPROGRAMS[id].body = body;
+  SUBPROGRAMS[id].skipV = (skipV != null);
+    SUBPROGRAMS[id].varsToShow = varsToShow;
   ACTSUBPROGRAMID = undefined;
 }
 
