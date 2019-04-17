@@ -321,7 +321,7 @@ ArrayLiteralBoolean -> "[" ArrayLiteralBoolean (_ "," _ ArrayLiteralBoolean)* "]
 LiteralBooleanList -> "[" BooleanLiteral (_ "," _ (BooleanLiteral))* "]" 
 
 //Variables a visualizar dinámicamente
-showVarsFunction -> ShowVarsToken _ ExistingVariable+
+showVarsFunction -> ShowVarsToken _ (ExistingVariableId _ (_","_ ExistingVariableId)*)? __
 
 // Retorno
 ReturnStatement -> ReturnToken _ Expression
