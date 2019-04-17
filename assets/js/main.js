@@ -276,13 +276,14 @@ function callSubprogram(name, args) {
     var actSubprogram = program.SUBPROGRAMS[name];
     var argsValues = evalArgs(args);
     callStack.push(subprogram.getAct());
+    var oldName = subprogram.name;
     subprogram.reset();
     subprogram.name = name;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
     subprogram.addBlock(actSubprogram.body);
     // alert(actSubprogram.skipV);
     updateLocalVariables();
-    treeIF.addCircle('',name);
+    treeIF.addCircle(getLocalVariablesString(), name, oldName == name);
 }
 
 function evalArgs(args) {
@@ -324,6 +325,19 @@ function createLocalVariables(localVars, params, args, argsValues) {
     auxLineCreation = undefined;
     resetVisualizer();
     showSelectionVarsVisualizer();
+}
+
+function getLocalVariablesString() {
+    var textParams = "Parámetros: <br>";
+    var textLocalVars = "Variables Locales: <br>";
+    for (let [id, Var] of Object.entries(subprogram.localVariables)) {
+        if (typeof subprogram.parameters[id] !== "undefined") {
+            textParams += id + " : " + getStringValue(Var.dataType, Var.value) + "<br>";
+        } else {
+            textLocalVars += id + " : " + getStringValue(Var.dataType, Var.value) + "<br>";
+        }
+    }
+    return textParams + textLocalVars;
 }
 
 function returnSubprogram(returnExpValue) {
