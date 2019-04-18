@@ -13,6 +13,8 @@ var subprogram = {
     localVariables: {},
     parameters: {},
     returnVariable: undefined,
+    skipExecution: undefined,
+    VarsVisualized: undefined,
     getAct: function () {
         return {
             name: this.name,
@@ -21,6 +23,8 @@ var subprogram = {
             localVariables: this.localVariables,
             parameters: this.parameters,
             returnVariable: this.returnVariable,
+            skipExecution: this.skipExecution,
+            VarsVisualized: this.VarsVisualized
         };
     },
     reset: function () {
@@ -30,6 +34,8 @@ var subprogram = {
         this.localVariables = {};
         this.parameters = {};
         this.returnVariable = undefined;
+        this.skipExecution = false;
+        this.VarsVisualized = [];
     },
     actStatement: function () {
         return last(this.statementsBlockStack)[last(this.statementIndex)];
@@ -113,9 +119,9 @@ function startProgram(mainName) {
         callStack = [];
         subprogram.reset();
         subprogram.name = mainName;
+        subprogram.skipExecution = actSubprogram.skipV;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params, undefined, undefined, actSubprogram.varsToShow);
         subprogram.addBlock(actSubprogram.body);
-        // alert(actSubprogram.skipV);
         showAllVariables();
         initializeBreakPointCount();
     }
@@ -265,7 +271,10 @@ function locateNextStatement() {
         let Statement = subprogram.actStatement();
         if (Statement == undefined) {
             subprogram.finishBlock();
-        } else {
+        } else if (subprogram.skipExecution) {
+            executeStatement();
+        }
+        else {
             selectActLine(Statement.line);
         }
     } else {
@@ -280,11 +289,11 @@ function callSubprogram(name, args) {
     var oldName = subprogram.name;
     subprogram.reset();
     subprogram.name = name;
+    subprogram.skipExecution = actSubprogram.skipV;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues, actSubprogram.varsToShow);
-    subprogram.addBlock(actSubprogram.body);
-    // alert(actSubprogram.skipV);
-    updateLocalVariables();
     treeIF.addCircle(getLocalVariablesString(), name, oldName == name);
+    subprogram.addBlock(actSubprogram.body);
+    updateLocalVariables();
 }
 
 function evalArgs(args) {
@@ -347,8 +356,12 @@ function returnSubprogram(returnExpValue) {
         alertify.success("¡Fin del programa!", 5);
     } else {
         subprogram.name = callerSubprogram.name;
+        subprogram.skipExecution = callerSubprogram.skipExecution;
         subprogram.statementsBlockStack = callerSubprogram.statementsBlockStack;
         subprogram.statementIndex = callerSubprogram.statementIndex;
+        resetVisualizer();
+        subprogram.VarsVisualized = callerSubprogram.VarsVisualized;
+        showVariablesVisualizer();
         for (let [idAct, param] of Object.entries(subprogram.parameters)) {
             if (param.mode == "s" || param.mode == "es") {
                 callerSubprogram.localVariables[param.idCaller].value = subprogram.localVariables[idAct].value;
@@ -360,9 +373,9 @@ function returnSubprogram(returnExpValue) {
             changeValueExpVariableAccess(callerSubprogram.returnVariable, returnExpValue);
             subprogram.returnVariable = undefined;
         }
+        treeIF.disableCircle();
         locateNextStatement();
         updateLocalVariables();
-        treeIF.disableCircle();
     }
 }
 

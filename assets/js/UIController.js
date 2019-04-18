@@ -11,13 +11,11 @@ var actErrorMarker;
 var Range = ace.require('ace/range').Range;
 var breakPoints = {};
 var visualizerIF;
-var VarsVisualized = [];
 var isVisualicerActive = true;
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        alert(visualizerIF.isCanvas("A"));
     });
     //---------------------------------------------------------------------------------------------------
 
@@ -353,73 +351,74 @@ function getUISpeed() {
 }
 
 function showSelectionVarsVisualizer(VarsToShow) {
-    resetVisualizer();
-    if (VarsToShow != null) {
-        for (let index = 0; index < VarsToShow.length; index++) {
-            const element = VarsToShow[index];
-            VarsVisualized[index] = element;
-        }
-        showVariablesVisualizer();
-    } else if (isVisualicerActive) {
-        var paused = tryPauseAutoExecute();
-        if (!alertify.selectVarsVisualizer) {
-            alertify.dialog('selectVarsVisualizer', function factory() {
-                return {
-                    main: function (message) {
-                        this.message = message;
-                    },
-                    setup: function () {
-                        return {
-                            buttons: [{
-                                text: "¡Iniciar Ejecución!",
-                                className: alertify.defaults.theme.ok
-                            }],
-                            focus: {
-                                element: 0
+    if (!subprogram.skipExecution) {
+        resetVisualizer();
+        if (VarsToShow != null) {
+            for (let index = 0; index < VarsToShow.length; index++) {
+                const element = VarsToShow[index];
+                subprogram.VarsVisualized[index] = element;
+            }
+            showVariablesVisualizer();
+        } else if (isVisualicerActive) {
+            var paused = tryPauseAutoExecute();
+            if (!alertify.selectVarsVisualizer) {
+                alertify.dialog('selectVarsVisualizer', function factory() {
+                    return {
+                        main: function (message) {
+                            this.message = message;
+                        },
+                        setup: function () {
+                            return {
+                                buttons: [{
+                                    text: "¡Iniciar Ejecución!",
+                                    className: alertify.defaults.theme.ok
+                                }],
+                                focus: {
+                                    element: 0
+                                }
+                            };
+                        },
+                        hooks: {
+                            onclose: function () {
+                                showVariablesVisualizer();
+                                if (paused) {
+                                    $("#btnPlay").click();
+                                }
                             }
-                        };
-                    },
-                    hooks: {
-                        onclose: function () {
-                            showVariablesVisualizer();
-                            if (paused) {
-                                $("#btnPlay").click();
-                            }
+                        },
+                        prepare: function () {
+                            this.setContent(this.message);
+                            this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
                         }
-                    },
-                    prepare: function () {
-                        this.setContent(this.message);
-                        this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
-                    }
-                };
-            });
+                    };
+                });
+            }
+            alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
+                Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
+                    return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
+                }, "") +
+                '</div>');
         }
-        alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
-            Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
-                return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
-            }, "") +
-            '</div>');
     }
 }
 
 function resetVisualizer() {
-    VarsVisualized = [];
     visualizerIF.clearAllDivs();
 }
 
 function selectVariableToShow(id, button) {
-    var index = VarsVisualized.indexOf(id);
+    var index = subprogram.VarsVisualized.indexOf(id);
     if (index == -1) {
-        VarsVisualized.push(id);
+        subprogram.VarsVisualized.push(id);
     } else {
-        VarsVisualized.splice(index, 1);
+        subprogram.VarsVisualized.splice(index, 1);
     }
     $(button).toggleClass("btn-secondary btn-primary");
 }
 
 function showVariablesVisualizer() {
-    for (let i = 0; i < VarsVisualized.length; i++) {
-        const varId = VarsVisualized[i];
+    for (let i = 0; i < subprogram.VarsVisualized.length; i++) {
+        const varId = subprogram.VarsVisualized[i];
         const varDataType = getVariableDataType(varId);
         if (varDataType.includes("[][]")) {
             visualizerIF.drawMatriz(getVariableValue(varId), varId);
@@ -458,7 +457,7 @@ function removeViewContent(id) {
 }
 
 function checkIsOnVisualizer(id) {
-    return VarsVisualized.indexOf(id) > -1;
+    return subprogram.VarsVisualized.indexOf(id) > -1;
 }
 
 function visualizeVariableChange(id, value) {
@@ -546,8 +545,9 @@ function enqueueQueueVisualizer(varid) {
 }
 
 function openDocumentation() {
-    window.open("../docs/DOCUMETATION_ADA.pdf", '_blank');
+    window.open("../views/documentation.html", '_blank');
 }
+
 
 alertify.defaults = {
     autoReset: true,

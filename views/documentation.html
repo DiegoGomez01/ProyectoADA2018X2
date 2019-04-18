@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Proyecto ADA 2018X2 - Beta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Aleo" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../assets/css/all.min.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertify.min.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeDefault.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeBootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../assets/css/estilos.css" />
+
+    <script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/popper.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/alertify.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/documentation.js" type="text/javascript" charset="utf-8"></script>
+</head>
+
+<body>
+    <div class="container-fluid p-0">
+        <header id="headerBar" class="row no-gutters d-flex justify-content-between">
+            <h3 class="align-self-center ml-1 mb-0">Proyecto ADA 2018-2</h3>
+            <button id="btnADA" type="button" class="btn btn-outline-light mr-1 mt-1 mb-1" onclick="openADA();">Proyecto
+                ADA&nbsp;&nbsp;<i class="fas fa-play-circle"></i></button>
+        </header>
+        <div class="row no-gutters">
+            <div class="col-lg">
+                <div class="row no-gutters">
+                    <div class="col-lg">
+                        <div class="row justify-content-center mt-5">
+                            <button class="btn btn-primary btn-lg" type="button" data-toggle="modal"
+                                data-target=".manualModal">
+                                Manual Técnico
+                            </button>
+                        </div>
+                        <div class="row justify-content-center mt-5">
+                            <button class="btn btn-primary btn-lg" type="button" data-toggle="modal"
+                                data-target=".gramaticaModal">
+                                Gramática
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade gramaticaModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Gramática del Proyecto ADA</h3>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <div id="editorGramaticaContainer" class="row no-gutters">
+                                    <div class="col-lg">
+                                        <div id="editorGramatica"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade manualModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Manual Técnico del Proyecto ADA</h3>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <div class="embed-responsive embed-responsive-1by1">
+                                    <iframe class="embed-responsive-item" src="../docs/.."></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
