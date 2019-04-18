@@ -113,10 +113,11 @@ function startProgram(mainName) {
         callStack = [];
         subprogram.reset();
         subprogram.name = mainName;
-        createLocalVariables(actSubprogram.localVars, actSubprogram.params);
+        createLocalVariables(actSubprogram.localVars, actSubprogram.params, undefined, undefined, actSubprogram.varsToShow);
         subprogram.addBlock(actSubprogram.body);
         // alert(actSubprogram.skipV);
         showAllVariables();
+        initializeBreakPointCount();
     }
 }
 
@@ -279,7 +280,7 @@ function callSubprogram(name, args) {
     var oldName = subprogram.name;
     subprogram.reset();
     subprogram.name = name;
-    createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues);
+    createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues, actSubprogram.varsToShow);
     subprogram.addBlock(actSubprogram.body);
     // alert(actSubprogram.skipV);
     updateLocalVariables();
@@ -295,7 +296,7 @@ function evalArgs(args) {
     return argsValues;
 }
 
-function createLocalVariables(localVars, params, args, argsValues) {
+function createLocalVariables(localVars, params, args, argsValues, VarsToShow) {
     for (let [id, param] of Object.entries(params)) {
         let value;
         if (param.mode == "s") {
@@ -323,8 +324,7 @@ function createLocalVariables(localVars, params, args, argsValues) {
         };
     }
     auxLineCreation = undefined;
-    resetVisualizer();
-    showSelectionVarsVisualizer();
+    showSelectionVarsVisualizer(VarsToShow);
 }
 
 function getLocalVariablesString() {
@@ -344,7 +344,6 @@ function returnSubprogram(returnExpValue) {
     var callerSubprogram = callStack.pop();
     if (callerSubprogram == undefined) {
         disableExecutionUI();
-        console.log(lineCounting);
         alertify.success("¡Fin del programa!", 5);
     } else {
         subprogram.name = callerSubprogram.name;
