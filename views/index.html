@@ -25,15 +25,17 @@
     <script src="../assets/js/main.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/UIController.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/variablesDHTML.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../assets/js/counter.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/breakpointControl.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/fileManager.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/algorithmAnalyzer.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body>
     <div class="container-fluid p-0">
-        <div id="overlay"></div>
-        <header id="headerBar" class="row no-gutters">
+        <header id="headerBar" class="row no-gutters d-flex justify-content-between">
             <h3 class="align-self-center ml-1 mb-0">Proyecto ADA 2018-2</h3>
+            <button id="btnDoc" type="button" class="btn btn-outline-light mr-1 mt-1 mb-1">Documentación&nbsp;&nbsp;<i
+                    class="fas fa-book"></i></button>
         </header>
         <nav id="configBar" class="navbar navbar-expand-lg navbar-light bg-light row no-gutters">
             <div class="col">
@@ -136,6 +138,23 @@
                         </tbody>
                     </table>
                 </div>
+                <div id="containerBreakPoints" class="table-responsive" style="display: none;">
+                    <h3 class="titleRowApp mb-0">Puntos de Ruptura</h3>
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr class="theadVars border-bottom border-top">
+                                <th class="col-2" scope="col">Línea</th>
+                                <th class="col-10" scope="col">Número de Veces Ejecutado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyBreakPoints">
+                            <tr>
+                                <th>1</th>
+                                <td>87</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div id="containerSideBtns" class="mt-5" style="display: none;">
                 <div class="tab btnTabVisualization mt-1">
@@ -157,6 +176,13 @@
                     <div class="custom-control custom-switch d-inline-flex">
                         <input type="checkbox" class="custom-control-input" id="btnShowVars" data-tab="3">
                         <label class="custom-control-label" for="btnShowVars">Variables</label>
+                    </div>
+                </div>
+                <div class="tab btnTabVisualization mt-1 disabled" style="display:none;">
+                    <i class="fas fa-star border-right mr-1"></i>
+                    <div class="custom-control custom-switch d-inline-flex">
+                        <input type="checkbox" class="custom-control-input" id="btnBreakpoints" data-tab="4">
+                        <label class="custom-control-label" for="btnBreakpoints">BreakPoints</label>
                     </div>
                 </div>
             </div>

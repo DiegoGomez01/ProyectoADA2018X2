@@ -1091,7 +1091,7 @@ VariableDeclaration = dataType:PrimitiveTypesVar _ idList:IdentifierList _ valin
     return undefined;    
   }    
 
-IdentifierList = head:Identifier _ tail:(_","_ Identifier)* {return buildList(head, tail, 3);};
+IdentifierList = head:Identifier _ tail:(_","_ Identifier)* {return buildList(head, tail, 3);}
 
 ArrayIndex = index:("[" _ arrayId:IntExpression _ "]" {return arrayId;})+ !{
   if(index.length > 2) { //Limited
@@ -1123,14 +1123,20 @@ ArrayLiteralBoolean = "[" head:ArrayLiteralBoolean tail:(_ "," _ ArrayLiteralBoo
 
 LiteralBooleanList = "[" head:BooleanLiteral tail:(_ "," _ (L:BooleanLiteral {return L.value;}))* "]" {return buildList(head.value, tail, 3);}
 
+
+
 //Variables a visualizar dinámicamente
-showVarsFunction = ShowVarsToken _ vars:ExistingVariable+ {
-    var varsToReturn = [];
-    for (let index = 0; index < vars.length; index++) {
-        const varexisting = vars[index];
-        varsToReturn[index] = varexisting.id;
-    }  
-    return varsToReturn;
+showVarsFunction = ShowVarsToken _ Vars:(head:ExistingVariableId _ tail:(_","_ ExistingVariableId)* {return buildList(head, tail, 3);})? __ {
+  if (Vars == null) {
+    return [];
+  } else {
+    return Vars;
+  }
+}
+
+ExistingVariableId = id:Identifier !"(" {
+  getVariable(id);
+  return id;
 }
 
 // Retorno

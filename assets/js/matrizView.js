@@ -36,7 +36,7 @@ function isMatriz(idMatriz){
 
 function isCanvas(idMatriz){
     let object = document.getElementById(idMatriz);
-    if(!object.getElementsByTagName('table').length >= 1){
+    if(object !== null && !(object.getElementsByTagName('table').length >= 1)){
         return true;
     }
     return false;

@@ -17,9 +17,14 @@ var isVisualicerActive = true;
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        
+        alert(visualizerIF.isCanvas("A"));
     });
     //---------------------------------------------------------------------------------------------------
+
+    //Abrir Documentación
+    $("#btnDoc").on("click", function () {
+        openDocumentation();
+    });
 
     //Creación del editor de código
     ace.require("ace/ext/language_tools");
@@ -32,17 +37,23 @@ $(document).ready(function () {
         minLines: 30
     });
 
+    //Evita seleccionar todo el código al dar click
     editor.on("guttermousedown", function (e) {
         e.stop();
     }, true);
 
+    //Permite agregar breakpoints
     editor.on("gutterdblclick", function (e) {
         e.stop();
-        var line = parseInt(e.getDocumentPosition().row);
-        if (breakPoints[line] == undefined) {
-            createBreakPoint(line);
+        if (!editor.getReadOnly()) {
+            var line = parseInt(e.getDocumentPosition().row);
+            if (breakPoints[line] == undefined) {
+                createBreakPoint(line);
+            } else {
+                deleteBreakPoint(line);
+            }
         } else {
-            deleteBreakPoint(line);
+            alertify.warning("No se pueden modificar los puntos de ruptura en ejecución.");
         }
     }, true);
 
@@ -119,6 +130,38 @@ $(document).ready(function () {
         }
     });
 
+    $("#btnGame").on("click", function () {
+        if (program !== undefined) {
+            if (program.SUBPROGRAMS.main === undefined) {
+                if (!alertify.selectAnalyzedSubprogram) {
+                    alertify.dialog('selectAnalyzedSubprogram', function factory() {
+                        return {
+                            main: function (message) {
+                                this.message = message;
+                            },
+                            setup: function () {
+                                return {};
+                            },
+                            prepare: function () {
+                                this.setContent(this.message);
+                                this.setHeader('<h4 class="text-center">¡Seleccione la subrutina inicial (main)!</h4>');
+                            }
+                        };
+                    });
+                }
+                alertify.selectAnalyzedSubprogram('<div class="btn-group-vertical w-100">' +
+                    Object.keys(program.SUBPROGRAMS).reduce(function (VarList, nameAct) {
+                        return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="startAnalyzing(' + "'" + nameAct + "'" + ')">' + nameAct + '</button>';
+                    }, "") +
+                    '</div>');
+            } else {
+                startAnalyzing("main");
+            }
+        } else {
+            alertify.error('El programa no se puede ejecutar.');
+        }
+    });
+
     $('#spdSelector a').on('click', function (evt) {
         evt.preventDefault();
         if (!$(this).hasClass("active")) {
@@ -162,7 +205,7 @@ $(document).ready(function () {
         }
     });
 
-    $('#btnShowTree, #btnShowVars, #btnShowVisualizer').on('change', function () {
+    $('#btnShowTree, #btnShowVars, #btnShowVisualizer, #btnBreakpoints').on('change', function () {
         if (this.checked) {
             $(this).parent().parent().removeClass("disabled");
             switch ($(this).data("tab")) {
@@ -174,6 +217,9 @@ $(document).ready(function () {
                     break;
                 case 3:
                     $("#containerVariables").slideDown(VELOCIDADUICAMBIOSMS);
+                    break;
+                case 4:
+                    $("#containerBreakPoints").slideDown(VELOCIDADUICAMBIOSMS);
                     break;
             }
         } else {
@@ -188,22 +234,26 @@ $(document).ready(function () {
                 case 3:
                     $("#containerVariables").slideUp(VELOCIDADUICAMBIOSMS);
                     break;
+                case 4:
+                    $("#containerBreakPoints").slideUp(VELOCIDADUICAMBIOSMS);
+                    break;
             }
         }
     });
     document.getElementById("btnShowVars").checked = false;
+    document.getElementById("btnBreakpoints").checked = false;
     document.getElementById("btnShowTree").checked = true;
     document.getElementById("btnShowVisualizer").checked = true;
 
-    $("#fileURLInput").on("change", function() {
+    $("#fileURLInput").on("change", function () {
         cargarArchivo();
     });
 
-    $("#btnDownloadFile").on("click", function() {
+    $("#btnDownloadFile").on("click", function () {
         getNameFile();
     });
 
-    $("#btnUploadFile").on("click", function() {
+    $("#btnUploadFile").on("click", function () {
         $("#fileURLInput").click();
     });
 });
@@ -220,6 +270,29 @@ function showRunningUI() {
 }
 
 function hideRunningUI() {
+    $("#hubExecutionControllerContainer button").prop('disabled', true);
+    $("#hubExecutionControllerContainer").fadeOut(VELOCIDADUINORMALMS);
+    $("#containerSideBtns").fadeOut(VELOCIDADUINORMALMS);
+    $("#viewerCointainer").fadeOut(VELOCIDADUINORMALMS);
+    $("#configBar").slideDown(VELOCIDADUINORMALMS);
+    unSelectActLine();
+    editor.setReadOnly(false);
+    editor.setOption("maxLines", 30);
+    editor.resize();
+}
+//ui
+function showGamingUI() {
+    $("#hubExecutionControllerContainer button").prop('disabled', false);
+    $("#containerSideBtns").fadeIn(VELOCIDADUINORMALMS);
+    $("#viewerCointainer").fadeIn(VELOCIDADUINORMALMS);
+    $("#configBar").slideUp(VELOCIDADUINORMALMS);
+    $("#hubExecutionControllerContainer").fadeIn(VELOCIDADUINORMALMS);
+    editor.setReadOnly(true);
+    editor.setOption("maxLines", 33);
+    editor.resize();
+}
+
+function hideGamingUI() {
     $("#hubExecutionControllerContainer button").prop('disabled', true);
     $("#hubExecutionControllerContainer").fadeOut(VELOCIDADUINORMALMS);
     $("#containerSideBtns").fadeOut(VELOCIDADUINORMALMS);
@@ -279,8 +352,15 @@ function getUISpeed() {
     return (VELOCIDADNORMALMS / parseFloat($('#spdSelector a.active').attr("data-vel")));
 }
 
-function showSelectionVarsVisualizer() {
-    if (isVisualicerActive) {
+function showSelectionVarsVisualizer(VarsToShow) {
+    resetVisualizer();
+    if (VarsToShow != null) {
+        for (let index = 0; index < VarsToShow.length; index++) {
+            const element = VarsToShow[index];
+            VarsVisualized[index] = element;
+        }
+        showVariablesVisualizer();
+    } else if (isVisualicerActive) {
         var paused = tryPauseAutoExecute();
         if (!alertify.selectVarsVisualizer) {
             alertify.dialog('selectVarsVisualizer', function factory() {
@@ -291,7 +371,7 @@ function showSelectionVarsVisualizer() {
                     setup: function () {
                         return {
                             buttons: [{
-                                text: "¡Iniciar!",
+                                text: "¡Iniciar Ejecución!",
                                 className: alertify.defaults.theme.ok
                             }],
                             focus: {
@@ -354,7 +434,7 @@ function showVariablesVisualizer() {
         } else if (varDataType.includes("cola")) {
             visualizerIF.createCanvasQueue(varId);
         } else if (varDataType.includes("lista")) {
-            alert("disponible proximamente");
+            alertify.success("La visualización de listas estará disponible proximamente");
         } else {
             visualizerIF.addVisibleVariable(varId, getVariableValue(varId));
         }
@@ -388,7 +468,7 @@ function visualizeVariableChange(id, value) {
 }
 
 function visualizeswapArrayCanvas(left, right) {
-    if (checkIsOnVisualizer(left.id) && left.type == "ArrayAccess" && right.type == "ArrayAccess" && left.id == right.id && true) { // && true if is canvas
+    if (checkIsOnVisualizer(left.id) && left.type == "ArrayAccess" && right.type == "ArrayAccess" && left.id == right.id && visualizerIF.isCanvas(left.id)) {
         SelectCanvas(left.id);
         var i = getArrayIndex(left.index)[0] - 1;
         var j = getArrayIndex(right.index)[0] - 1;
@@ -402,7 +482,7 @@ function visualizeArrayAccess(exp) {
         let index = getArrayIndex(exp.index);
         index[0]--;
         if (index.length == 1) {
-            if (true && exp.index[0].type == "Variable") { // && true if is canvas
+            if (visualizerIF.isCanvas(exp.id) && exp.index[0].type == "Variable") {
                 SelectCanvas(exp.id);
                 selectIndexArray(index[0]);
                 visualizerIF.setIndexBar(index[0], exp.index[0].id);
@@ -421,7 +501,7 @@ function visualizeArrayChangeValue(exp, value, vsChange) {
         let index = getArrayIndex(exp.index);
         index[0]--;
         if (index.length == 1) {
-            if (true) {
+            if (visualizerIF.isCanvas(exp.id)) {
                 SelectCanvas(exp.id);
                 selectIndexArray(index[0]);
                 visualizerIF.changeSizeBar(index[0], value);
@@ -453,11 +533,20 @@ function popStackVisualizer(varid) {
 }
 
 function enqueueQueueVisualizer(varid, value) {
-    visualizerIF.enqueueCall(value);
+    // SelectCanvas(id)
+    if (checkIsOnVisualizer(varid)) {
+        visualizerIF.enqueueCall(value);
+    }
 }
 
 function enqueueQueueVisualizer(varid) {
-    visualizerIF.dequeueCall();
+    if (checkIsOnVisualizer(varid)) {
+        visualizerIF.dequeueCall();
+    }
+}
+
+function openDocumentation() {
+    window.open("../docs/DOCUMETATION_ADA.pdf", '_blank');
 }
 
 alertify.defaults = {
