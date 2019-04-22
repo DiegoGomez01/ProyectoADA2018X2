@@ -35,13 +35,19 @@
             <div class="col-lg">
                 <div class="row no-gutters">
                     <div class="col-lg">
-                        <div class="row justify-content-center mt-5">
+                        <div class="row justify-content-center mt-5 no-gutters">
+                            <button class="btn btn-primary btn-lg" type="button" data-toggle="modal"
+                                data-target=".manualUsuarioModal">
+                                Manual de Usuario
+                            </button>
+                        </div>
+                        <div class="row justify-content-center mt-5 no-gutters">
                             <button class="btn btn-primary btn-lg" type="button" data-toggle="modal"
                                 data-target=".manualModal">
                                 Manual Técnico
                             </button>
                         </div>
-                        <div class="row justify-content-center mt-5">
+                        <div class="row justify-content-center mt-5 no-gutters">
                             <button class="btn btn-primary btn-lg" type="button" data-toggle="modal"
                                 data-target=".gramaticaModal">
                                 Gramática
@@ -72,7 +78,24 @@
                     <div class="modal-dialog modal-xl">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="modal-title">Manual Técnico del Proyecto ADA</h3>
+                                <h3 class="modal-title">Manual Técnico - Proyecto ADA</h3>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <div class="embed-responsive embed-responsive-1by1">
+                                    <iframe class="embed-responsive-item" src="../docs/.."></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal fade manualUsuarioModal" tabindex="-1" role="dialog">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="modal-title">Manual de Usuario - Proyecto ADA</h3>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
