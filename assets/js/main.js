@@ -3,9 +3,10 @@ var program;
 var callStack = [];
 var auxLineCreation;
 var autoExecuteID;
+var skipAll = false;
 var log;
 
-//Variable de ambiente
+//Variable de ambiente: Representa el ambiente actual
 var subprogram = {
     name: undefined,
     statementsBlockStack: [],
@@ -13,6 +14,8 @@ var subprogram = {
     localVariables: {},
     parameters: {},
     returnVariable: undefined,
+    skipExecution: undefined,
+    VarsVisualized: undefined,
     getAct: function () {
         return {
             name: this.name,
@@ -21,6 +24,8 @@ var subprogram = {
             localVariables: this.localVariables,
             parameters: this.parameters,
             returnVariable: this.returnVariable,
+            skipExecution: this.skipExecution,
+            VarsVisualized: this.VarsVisualized
         };
     },
     reset: function () {
@@ -30,6 +35,8 @@ var subprogram = {
         this.localVariables = {};
         this.parameters = {};
         this.returnVariable = undefined;
+        this.skipExecution = false;
+        this.VarsVisualized = [];
     },
     actStatement: function () {
         return last(this.statementsBlockStack)[last(this.statementIndex)];
@@ -78,7 +85,7 @@ $.get('../assets/gramatica.pegjs', (gramatica) => {
     parser = peg.generate(gramatica);
 }, "text");
 
-//Análisis del pseudo-código
+//Análisis del pseudo-código y devuelve el programa en estructura de datos (objetos)
 function analyzeProgram() {
     try {
         program = parser.parse(editor.getValue());
@@ -97,6 +104,7 @@ function analyzeProgram() {
     }
 }
 
+//Se inicializa el programa en el ambiente "main"
 function startProgram(mainName) {
     var actSubprogram = program.SUBPROGRAMS[mainName];
     if (sizeObj(actSubprogram.params) > 0) {
@@ -113,25 +121,30 @@ function startProgram(mainName) {
         callStack = [];
         subprogram.reset();
         subprogram.name = mainName;
+        subprogram.skipExecution = actSubprogram.skipV;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params, undefined, undefined, actSubprogram.varsToShow);
+        treeIF.changeText(getLocalVariablesString());
         subprogram.addBlock(actSubprogram.body);
-        // alert(actSubprogram.skipV);
         showAllVariables();
+        lineCounting = {};
         initializeBreakPointCount();
     }
 }
 
+//Iniciar ejecución automática 
 function startAutoExecute() {
     var exeSpd = getUISpeed();
     autoExecuteID = setInterval(executeStatement, exeSpd);
 }
 
+//Cambio de velocidad
 function changeSpeed(spd) {
     var exeSpd = VELOCIDADNORMALMS / spd;
     pauseAutoExecute();
     autoExecuteID = setInterval(executeStatement, exeSpd);
 }
 
+//Si se está en ejecución automática, la pausa
 function tryPauseAutoExecute() {
     if (autoExecuteID !== undefined) {
         pauseAutoExecute();
@@ -140,16 +153,19 @@ function tryPauseAutoExecute() {
     }
 }
 
+//Pausa la ejecución automática
 function pauseAutoExecute() {
     clearInterval(autoExecuteID);
     autoExecuteID = undefined;
 }
 
+//Detiene toda la ejecución
 function stopExecution() {
     tryPauseAutoExecute();
     hideRunningUI();
 }
 
+//Ejecuta una sentencia dependiendo del tipo
 function executeStatement() {
     var Statement = subprogram.actStatement();
     countLine(Statement.line);
@@ -260,12 +276,16 @@ function executeStatement() {
     subprogram.nextStatement();
 }
 
+//Ubica la siguiente sentencia (y su línea) a ejecutar
 function locateNextStatement() {
     if (subprogram.hasStatements()) {
         let Statement = subprogram.actStatement();
         if (Statement == undefined) {
             subprogram.finishBlock();
-        } else {
+        } else if (subprogram.skipExecution || skipAll) {
+            executeStatement();
+        }
+        else {
             selectActLine(Statement.line);
         }
     } else {
@@ -273,20 +293,24 @@ function locateNextStatement() {
     }
 }
 
+//Ejecuta el llamado a una nueva subrutina
 function callSubprogram(name, args) {
     var actSubprogram = program.SUBPROGRAMS[name];
     var argsValues = evalArgs(args);
     callStack.push(subprogram.getAct());
-    var oldName = subprogram.name;
+    let isR = subprogram.name == name;
     subprogram.reset();
     subprogram.name = name;
+    subprogram.skipExecution = actSubprogram.skipV;
     createLocalVariables(actSubprogram.localVars, actSubprogram.params, args, argsValues, actSubprogram.varsToShow);
+    if (skipAll && isR && recursiveCalls.indexOf(name) == -1) { recursiveCalls.push(name); }
+    treeIF.addCircle(getLocalVariablesString(), name, isR);
     subprogram.addBlock(actSubprogram.body);
-    // alert(actSubprogram.skipV);
     updateLocalVariables();
-    treeIF.addCircle(getLocalVariablesString(), name, oldName == name);
+    updateCountBreakPoints();
 }
 
+//Evalua los argumento que se le envían a la nueva subrutina llamada
 function evalArgs(args) {
     var argsValues = [];
     for (let i = 0; i < args.length; i++) {
@@ -296,6 +320,7 @@ function evalArgs(args) {
     return argsValues;
 }
 
+//Crea (o instancia) las variables locales y parámetros de una nueva subrutina (o ambiente)
 function createLocalVariables(localVars, params, args, argsValues, VarsToShow) {
     for (let [id, param] of Object.entries(params)) {
         let value;
@@ -327,6 +352,7 @@ function createLocalVariables(localVars, params, args, argsValues, VarsToShow) {
     showSelectionVarsVisualizer(VarsToShow);
 }
 
+//Obtiene el Id y valor de las variables locales y parámetros de la subrutina actual y los devuelve como un string
 function getLocalVariablesString() {
     var textParams = "Parámetros: <br>";
     var textLocalVars = "Variables Locales: <br>";
@@ -340,15 +366,22 @@ function getLocalVariablesString() {
     return textParams + textLocalVars;
 }
 
+//Ejecuta la sentencia de return
 function returnSubprogram(returnExpValue) {
     var callerSubprogram = callStack.pop();
     if (callerSubprogram == undefined) {
-        disableExecutionUI();
-        alertify.success("¡Fin del programa!", 5);
+        if (!skipAll) {
+            disableExecutionUI();
+            alertify.success("¡Fin del programa!", 5);
+        }
     } else {
         subprogram.name = callerSubprogram.name;
+        subprogram.skipExecution = callerSubprogram.skipExecution;
         subprogram.statementsBlockStack = callerSubprogram.statementsBlockStack;
         subprogram.statementIndex = callerSubprogram.statementIndex;
+        resetVisualizer();
+        subprogram.VarsVisualized = callerSubprogram.VarsVisualized;
+        showVariablesVisualizer();
         for (let [idAct, param] of Object.entries(subprogram.parameters)) {
             if (param.mode == "s" || param.mode == "es") {
                 callerSubprogram.localVariables[param.idCaller].value = subprogram.localVariables[idAct].value;
@@ -360,12 +393,14 @@ function returnSubprogram(returnExpValue) {
             changeValueExpVariableAccess(callerSubprogram.returnVariable, returnExpValue);
             subprogram.returnVariable = undefined;
         }
+        treeIF.disableCircle();
         locateNextStatement();
         updateLocalVariables();
-        treeIF.disableCircle();
+        updateCountBreakPoints();
     }
 }
 
+//Lanza una excepción cuando se detecta un error en el programa
 function throwException(txt) {
     stopExecution();
     let linea;
@@ -379,6 +414,7 @@ function throwException(txt) {
     throw txt + linea;
 }
 
+//Evalua una expresión
 function evalExpression(exp) {
     if (exp.type === undefined) {
         return exp;
@@ -467,6 +503,7 @@ function evalExpression(exp) {
     }
 }
 
+//Evaluación de las operaciones enteras
 function evalIntExpression(IntExp) {
     switch (IntExp.operator) {
         case "+":
@@ -485,6 +522,7 @@ function evalIntExpression(IntExp) {
     }
 }
 
+//Evaluación de las operaciones de punto flotante
 function evalFloatExpression(floatExp) {
     switch (floatExp.operator) {
         case "+":
@@ -503,14 +541,17 @@ function evalFloatExpression(floatExp) {
     }
 }
 
+//Potencia
 function powFunction(x, y) {
     return Math.pow(x, y);
 }
 
+//Raíz cuadrada
 function sqrtFunction(x) {
     return Math.sqrt(x);
 }
 
+//Revisa que si se obtenga un número
 function getValidatedNumberExpression(num) {
     if (isNaN(num)) {
         throwException("La expresión no es numérica.");
@@ -518,6 +559,7 @@ function getValidatedNumberExpression(num) {
     return num;
 }
 
+//Evaluación de las operaciones lógicas
 function evalBooleanExpression(booleanExp) {
     switch (booleanExp.operator) {
         case "<=":
@@ -550,6 +592,7 @@ function evalBooleanExpression(booleanExp) {
     }
 }
 
+//Evalua la concatenación
 function evalStringConcatenation(exps) {
     var str = "";
     for (let i = 0; i < exps.length; i++) {
@@ -559,6 +602,7 @@ function evalStringConcatenation(exps) {
     return str;
 }
 
+//Obtiene el caracter de un string en la posición definida
 function getCharAt(exp) {
     var strV = getVariableValue(exp.strVar.id);
     var index = evalExpression(exp.index);
@@ -568,14 +612,19 @@ function getCharAt(exp) {
     return strV.charAt(index - 1);
 }
 
+//Imprime información
 function PrintFunction(exp) {
     console.log(exp);
 }
 
+//Muestra información por interfaz
 function ShowFunction(text) {
-    alertify.alert("Alert", '<p class="text-center">' + text + '</p>');
+    if (!skipAll) {
+        alertify.alert("Alert", '<p class="text-center">' + text + '</p>');
+    }
 }
 
+//Ejecuta la sentencia de asignación
 function AssignmentFunction(left, right) {
     if (right.callee == undefined) {
         changeValueExpVariableAccess(left, evalExpression(right));
@@ -588,6 +637,9 @@ function AssignmentFunction(left, right) {
     }
 }
 
+// -------------------- Operaciones sobre estructuras de datos --------------------
+
+//Añade un elemento en la última posición
 function DataStructurePush(id, exp, typeAction) {
     var expValue = evalExpression(exp);
     if (checkIsOnVisualizer(varid)) {
@@ -601,11 +653,13 @@ function DataStructurePush(id, exp, typeAction) {
     updateVariableValue(id);
 }
 
+//Añade en la primera posición
 function DataStructureAddFirst(id, exp) {
     getVariableValue(id).unshift(evalExpression(exp));
     updateVariableValue(id);
 }
 
+//Remueve un elemento especifico
 function RemoveElementFunction(id, element) {
     let dataStructure = getVariableValue(id);
     if (ContainsFunction(dataStructure, element)) {
@@ -618,6 +672,7 @@ function RemoveElementFunction(id, element) {
     }
 }
 
+//Remueve un elemento en una posición dada
 function RemoveElementByIndexFunction(id, index) {
     let dataStructure = getVariableValue(id);
     if (index > 0 && index <= dataStructure.length) {
@@ -629,6 +684,7 @@ function RemoveElementByIndexFunction(id, index) {
     }
 }
 
+//Remueve el primer elemento
 function RemoveFirstDSFunction(id, EMPTYEXCEPTION) {
     let dataStructure = getVariableValue(id);
     if (IsEmptyDataStructureFunction(dataStructure)) {
@@ -639,6 +695,7 @@ function RemoveFirstDSFunction(id, EMPTYEXCEPTION) {
     return returned;
 }
 
+//Remueve el último elemento
 function RemoveLastDSFunction(id, EMPTYEXCEPTION) {
     let dataStructure = getVariableValue(id);
     if (IsEmptyDataStructureFunction(dataStructure)) {
@@ -649,6 +706,7 @@ function RemoveLastDSFunction(id, EMPTYEXCEPTION) {
     return returned;
 }
 
+//Obtiene el elemento en la posición dada
 function GetElementByIndexFunction(dataStructure, index) {
     if (index > 0 && index <= dataStructure.length) {
         return dataStructure[index - 1];
@@ -657,6 +715,7 @@ function GetElementByIndexFunction(dataStructure, index) {
     }
 }
 
+//Obtiene el primer elemento
 function GetFirstDSFunction(id, EMPTYEXCEPTION) {
     let dataStructure = getVariableValue(id);
     if (IsEmptyDataStructureFunction(dataStructure)) {
@@ -665,6 +724,7 @@ function GetFirstDSFunction(id, EMPTYEXCEPTION) {
     return dataStructure[0];
 }
 
+//Obtiene el último elemento
 function GetLastDSFunction(id, EMPTYEXCEPTION) {
     let dataStructure = getVariableValue(id);
     if (IsEmptyDataStructureFunction(dataStructure)) {
@@ -673,18 +733,24 @@ function GetLastDSFunction(id, EMPTYEXCEPTION) {
     return last(dataStructure);
 }
 
+//Retorna true si contiene un elemento
 function ContainsFunction(dataStructure, element) {
     return IndexOfFunction(dataStructure, element) > 0;
 }
 
+//Retorna el indice de un elemento
 function IndexOfFunction(dataStructure, element) {
     return dataStructure.indexOf(element) + 1;
 }
 
+//Retorna true si es vacia
 function IsEmptyDataStructureFunction(dataStructure) {
     return dataStructure.length == 0;
 }
 
+// --------------------------------------------------------------------------------
+
+//Ejecuta la sentencia de swap (intercambio de los variables de dos variables)
 function swapVariables(left, right) {
     let swapMaked = visualizeswapArrayCanvas(left, right);
     var leftV = getValueExpVariableAccess(left);
@@ -692,10 +758,12 @@ function swapVariables(left, right) {
     changeValueExpVariableAccess(right, leftV, swapMaked);
 }
 
+//Incremento
 function incVariable(id, inc) {
     changeVariableValue(id, getVariableValue(id) + inc);
 }
 
+//Obtiene el valor de una acceso a variable
 function getValueExpVariableAccess(exp) {
     if (exp.type == "ArrayAccess") {
         return getArrayAccessValue(exp.id, getArrayIndex(exp.index));
@@ -704,6 +772,7 @@ function getValueExpVariableAccess(exp) {
     }
 }
 
+//Cambia el valor de una acceso a variable
 function changeValueExpVariableAccess(exp, value, vsChange) {
     if (exp.type == "ArrayAccess") {
         visualizeArrayChangeValue(exp, value, vsChange);
@@ -714,11 +783,13 @@ function changeValueExpVariableAccess(exp, value, vsChange) {
     }
 }
 
+//Cambia el valor de una variable
 function changeVariableValue(id, value) {
     getVariable(id).value = value;
     updateVariableValue(id);
 }
 
+//Cambia el valor de una posición del arreglo
 function changeArrayAccessValue(id, index, value) {
     var arrV = getVariable(id).value;
     for (let i = 0; i < index.length; i++) {
@@ -736,14 +807,17 @@ function changeArrayAccessValue(id, index, value) {
     updateVariableValue(id);
 }
 
+//Obtiene el valor de una variable
 function getVariableValue(id) {
     return getVariable(id).value;
 }
 
+//Obtiene el tipo de dato de una variable
 function getVariableDataType(id) {
     return getVariable(id).dataType;
 }
 
+//Obtiene el valor de una posición de un arreglo
 function getArrayAccessValue(id, index) {
     var arrV = getVariable(id).value;
     for (let i = 0; i < index.length; i++) {
@@ -758,6 +832,7 @@ function getArrayAccessValue(id, index) {
     return arrV;
 }
 
+//Retorna el objeto de una variable
 function getVariable(id) {
     var Var = subprogram.localVariables[id];
     if (typeof Var == "undefined") {
@@ -766,6 +841,7 @@ function getVariable(id) {
     return Var;
 }
 
+//Retorna el alcance de una variable (Local o Global)
 function getVariableScope(id) {
     if (typeof subprogram.localVariables[id] !== "undefined") {
         return "L";
@@ -773,18 +849,22 @@ function getVariableScope(id) {
     return "G";
 }
 
+//Obtiene la última posición de un arreglo
 function last(arr) {
     return arr[arr.length - 1];
 }
 
+//Incrementa el valor de la última posición de un arreglo
 function incLast(arr) {
     arr[arr.length - 1]++;
 }
 
+//Devuelve el tamaño de un objeto
 function sizeObj(obj) {
     return Object.keys(obj).length;
 }
 
+//Devuelve una copia de un arreglo
 function cloneArray(arr) {
     if (Array.isArray(arr)) {
         var i, copy;
@@ -798,6 +878,7 @@ function cloneArray(arr) {
     }
 }
 
+//Evalua las expresiones enteras de un arreglo
 function getArrayIndex(index) {
     var newIndex = [];
     for (let i = 0; i < index.length; i++) {
@@ -807,6 +888,7 @@ function getArrayIndex(index) {
     return newIndex;
 }
 
+//Crea un nuevo arreglo (unidimensional o bidimensional)
 function createNewArray(dimensions, value) {
     if (dimensions.length > 0) {
         var dim = dimensions[0];
@@ -825,6 +907,7 @@ function createNewArray(dimensions, value) {
     }
 }
 
+//Revisa que el arreglo tenga correcta las dimensiones
 function checkArrayDimensions(array, dimensions) {
     var dim = dimensions[0];
     var rest = dimensions.slice(1);
@@ -843,6 +926,7 @@ function checkArrayDimensions(array, dimensions) {
     return true;
 }
 
+//Obtiene las dimensiones de un arreglo
 function getArrayDimensions(array) {
     let dimensions = [];
     dimensions[0] = array.length;
@@ -852,6 +936,7 @@ function getArrayDimensions(array) {
     return dimensions;
 }
 
+//Obtiene el valor por defecto de una tipo de variable
 function getDefaultValueToParam(dataType, value) {
     switch (dataType) {
         case "string":

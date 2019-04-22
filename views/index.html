@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Aleo" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="../assets/libs/katex/katex.min.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/all.min.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/alertify.min.css" />
@@ -15,6 +16,7 @@
     <link rel="stylesheet" type="text/css" href="../assets/css/alertifyThemeBootstrap.css" />
     <link rel="stylesheet" type="text/css" href="../assets/css/estilos.css" />
 
+    <script src="../assets/libs/katex/katex.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/popper.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
@@ -25,14 +27,14 @@
     <script src="../assets/js/main.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/UIController.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/variablesDHTML.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../assets/js/breakpointControl.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/counter.js" type="text/javascript" charset="utf-8"></script>
     <script src="../assets/js/fileManager.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../assets/js/algorithmAnalyzer.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../assets/js/algorithmGame.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body>
     <div class="container-fluid p-0">
-        <header id="headerBar" class="row no-gutters d-flex justify-content-between">
+        <header id="headerBar" class="row no-gutters d-flex justify-content-between border-bottom">
             <h3 class="align-self-center ml-1 mb-0">Proyecto ADA 2018-2</h3>
             <button id="btnDoc" type="button" class="btn btn-outline-light mr-1 mt-1 mb-1">Documentación&nbsp;&nbsp;<i
                     class="fas fa-book"></i></button>
@@ -45,7 +47,7 @@
                     </div>
                     <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="sr-only">Toggle Dropdown</span>
+                        <span class="sr-only"></span>
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                         <h6 class="dropdown-header">Claro</h6>
@@ -76,18 +78,31 @@
                         <span class="sr-only">Toggle Dropdown</span>
                     </button>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="#" data-fname="BubbleSort.pseudo">BubbleSort</a>
-                        <a class="dropdown-item" href="#" data-fname="InsertionSort.pseudo">InsertionSort</a>
-                        <a class="dropdown-item" href="#" data-fname="SelectionSort.pseudo">SelectionSort</a>
-                        <a class="dropdown-item" href="#" data-fname="BinarySearch.pseudo">BinarySearch</a>
-                        <a class="dropdown-item" href="#" data-fname="MergeSort.pseudo">MergeSort</a>
-                        <a class="dropdown-item" href="#" data-fname="Quicksort.pseudo">Quicksort</a>
-                        <a class="dropdown-item" href="#" data-fname="MinYMax.pseudo">Min&Max</a>
-                        <a class="dropdown-item" href="#" data-fname="TowerOfHanio.pseudo">TowerOfHanio</a>
-                        <a class="dropdown-item" href="#" data-fname="KnightsTour.pseudo">Knight's Tour</a>
-                        <a class="dropdown-item" href="#" data-fname="NQueens.pseudo">N-Queens</a>
+                        <a class="dropdown-item" href="#" data-fname="BubbleSort.pseudo"
+                            data-nAlgorithm="1">BubbleSort</a>
+                        <a class="dropdown-item" href="#" data-fname="InsertionSort.pseudo"
+                            data-nAlgorithm="2">InsertionSort</a>
+                        <a class="dropdown-item" href="#" data-fname="SelectionSort.pseudo"
+                            data-nAlgorithm="3">SelectionSort</a>
+                        <a class="dropdown-item" href="#" data-fname="BinarySearch.pseudo"
+                            data-nAlgorithm="4">BinarySearch</a>
+                        <a class="dropdown-item" href="#" data-fname="MergeSort.pseudo"
+                            data-nAlgorithm="5">MergeSort</a>
+                        <a class="dropdown-item" href="#" data-fname="Quicksort.pseudo"
+                            data-nAlgorithm="6">Quicksort</a>
+                        <a class="dropdown-item" href="#" data-fname="MinYMax.pseudo" data-nAlgorithm="7">Min&Max</a>
+                        <a class="dropdown-item" href="#" data-fname="TowerOfHanio.pseudo"
+                            data-nAlgorithm="8">TowerOfHanio</a>
+                        <a class="dropdown-item" href="#" data-fname="KnightsTour.pseudo" data-nAlgorithm="9">Knight's
+                            Tour</a>
+                        <a class="dropdown-item" href="#" data-fname="NQueens.pseudo" data-nAlgorithm="10">N-Queens</a>
+                        <a id="testt" class="dropdown-item" href="#" data-fname="NQueens.pseudo"
+                            data-nAlgorithm="10"></a>
                     </div>
                 </div>
+                <button id="btnEditExample" type="button" class="btn btn-secondary ml-2" style="display: none;">
+                    <span id="btnEditExampleTxt"></span>&nbsp;<span><i class="far fa-edit"></i></span>
+                </button>
                 <div class="custom-control custom-switch d-inline-flex align-middle ml-4">
                     <input type="checkbox" class="custom-control-input" id="checkVisualizer">
                     <label class="custom-control-label" for="checkVisualizer">Visualización de Variables</label>
@@ -101,22 +116,73 @@
             <div id="editorContainer" class="col-lg">
                 <div id="editor">//Comienza a escribir tu código aquí..</div>
             </div>
+            <div id="gameCointainer" class="col-lg border-left" style="max-width:50%; display: none;">
+                <div id="containerGameTree" class="" style="display: none;">
+                    <h3 class="titleRowApp w-100">Creación del Árbol de Ambientes: <span><button id="btnCheckTrees"
+                                class="btn btn-light">Comparar</button></span></h3>
+                    <div id="iframeGameTreeContainer" class="embed-responsive">
+                        <iframe id="iframeGameTree" class="embed-responsive-item h-100"
+                            src="./gameTreeView.html"></iframe>
+                    </div>
+                </div>
+                <div id="containerGameMenu">
+                    <h3 class="titleRowApp mb-0">¡Empezar el Juego!</h3>
+                    <div class="d-flex justify-content-center">
+                        <button id="btnStartGame" class="d-block mt-5 btn btn-primary btn-lg">¡Primera
+                            Pregunta!&nbsp;<i class="fas fa-question"></i></button>
+                    </div>
+                </div>
+                <div id="containerGameIterative" style="display: none;">
+                    <h3 class="titleRowApp mb-0">Conteo línea a línea</h3>
+                    <div class="d-flex justify-content-center p-5">
+                        <div class="input-group mt-5">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">Línea&nbsp;<span id="actLineGame"></span> :</span>
+                            </div>
+                            <input id="inputLineGame" type="number" class="form-control"
+                                placeholder="¿Número de Veces?">
+                            <div class="input-group-append">
+                                <button id="btnNextLineGame" class="btn btn-outline-secondary">Siguiente <i
+                                        class="fas fa-forward"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="containerGameInfo">
+                    <h5 class="mb-0">Puntaje</h5>
+                    <div class="progress">
+                        <div id="pointsBar" class="progress-bar" role="progressbar" style="width: 200%;"
+                            aria-valuenow="25" aria-valuemin="0" aria-valuemax="5">1</div>
+                    </div>
+                    <h5 class="mb-0">Intentos Disponibles:</h5>
+                    <div id="attemptsContainer">
+                    </div>
+                </div>
+                <div id="hubGameOptions" class="row no-gutters">
+                    <div class="col-md">
+                        <div class="row no-gutters justify-content-center">
+                            <button id="btnStopGame" class="btn btn-danger m-0" type="button">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="viewerCointainer" class="col-lg border-left" style="max-width:50%; display: none;">
-                <div id="containerVisualizer">
-                    <h3 class="titleRowApp">Visualización Dinámica</h3>
-                    <div class="embed-responsive embed-responsive-21by9 h-100">
-                        <iframe id="iframeVisualizer" class="embed-responsive-item h-100"
-                            src="./visualizer.html"></iframe>
+                <div id="containerVisualizer" class="row no-gutters">
+                    <h3 class="titleRowApp w-100">Visualización Dinámica</h3>
+                    <div class="embed-responsive embed-responsive-21by9">
+                        <iframe id="iframeVisualizer" class="embed-responsive-item" src="./visualizer.html"></iframe>
                     </div>
                 </div>
-                <div id="containerTree">
-                    <h3 class="titleRowApp">Árbol de Ambientes</h3>
-                    <div class="embed-responsive embed-responsive-21by9 h-100">
-                        <iframe id="iframeTree" class="embed-responsive-item h-100" src="./treeView.html"></iframe>
+                <div id="containerTree" class="row no-gutters">
+                    <h3 class="titleRowApp w-100">Árbol de Ambientes</h3>
+                    <div class="embed-responsive embed-responsive-21by9">
+                        <iframe id="iframeTree" class="embed-responsive-item" src="./treeView.html"></iframe>
                     </div>
                 </div>
-                <div id="containerVariables" class="table-responsive" style="display: none;">
-                    <h3 class="titleRowApp mb-0">Todas las Variables</h3>
+                <div id="containerVariables" class="table-responsive row no-gutters" style="display: none;">
+                    <h3 class="titleRowApp mb-0 w-100">Todas las Variables</h3>
                     <table class="table table-sm table-hover">
                         <thead>
                             <tr class="theadVars border-bottom border-top">
@@ -148,10 +214,6 @@
                             </tr>
                         </thead>
                         <tbody id="tbodyBreakPoints">
-                            <tr>
-                                <th>1</th>
-                                <td>87</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>

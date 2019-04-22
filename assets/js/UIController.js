@@ -11,13 +11,14 @@ var actErrorMarker;
 var Range = ace.require('ace/range').Range;
 var breakPoints = {};
 var visualizerIF;
-var VarsVisualized = [];
+var gameTreeIF;
+var treeIF;
 var isVisualicerActive = true;
+var exampleChoosed = undefined;
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
     $("#headerBar").on("click", function () {
-        alert(visualizerIF.isCanvas("A"));
     });
     //---------------------------------------------------------------------------------------------------
 
@@ -75,6 +76,7 @@ $(document).ready(function () {
 
     //Inicializar Visualizer y Tree
     visualizerIF = document.getElementById("iframeVisualizer").contentWindow;
+    gameTreeIF = document.getElementById("iframeGameTree").contentWindow;
     treeIF = document.getElementById("iframeTree").contentWindow;
 
     //escoger un algoritmo para cargarlo
@@ -83,6 +85,16 @@ $(document).ready(function () {
         $.get('../assets/algorithms/' + $(this).attr("data-fname"), (pseudo) => {
             editor.setValue(pseudo, 1);
         }, 'text');
+        exampleChoosed = $(this).attr("data-nAlgorithm");
+        editor.setReadOnly(true);
+        $("#btnEditExampleTxt").html($(this).text());
+        $("#btnEditExample").fadeIn(VELOCIDADUINORMALMS);
+    });
+
+    $("#btnEditExample").on("click", function () {
+        exampleChoosed = undefined;
+        editor.setReadOnly(false);
+        $(this).fadeOut(VELOCIDADUINORMALMS);
     });
 
     document.getElementById("checkVisualizer").checked = true;
@@ -158,7 +170,7 @@ $(document).ready(function () {
                 startAnalyzing("main");
             }
         } else {
-            alertify.error('El programa no se puede ejecutar.');
+            alertify.error('El programa no se puede ejecutar para modo juego.');
         }
     });
 
@@ -256,6 +268,36 @@ $(document).ready(function () {
     $("#btnUploadFile").on("click", function () {
         $("#fileURLInput").click();
     });
+
+    $("#btnStartGame").on("click", function () {
+        askForRecursive();
+    });
+
+    $("#btnStopGame").on("click", function () {
+        alertify.confirm('¿Desea salir del juego?', 'Tendrás que volver a empezar desde cero.',
+            function () {
+                hideGamingUI();
+            }
+            , function () {
+
+            }).set('labels', { ok: 'Si', cancel: 'No' });
+    });
+
+    $("#btnCheckTrees").on("click", function () {
+        compareTrees();
+    });
+
+    dragElement(document.getElementById("containerGameInfo"));
+
+    var element = document.getElementById("testt");
+    katex.render("O(n^n)", element, {
+        throwOnError: false
+    });
+
+    $("#btnNextLineGame").on("click", function () {
+        nextLineGame();
+    });
+
 });
 
 function showRunningUI() {
@@ -276,30 +318,32 @@ function hideRunningUI() {
     $("#viewerCointainer").fadeOut(VELOCIDADUINORMALMS);
     $("#configBar").slideDown(VELOCIDADUINORMALMS);
     unSelectActLine();
-    editor.setReadOnly(false);
+    if (exampleChoosed == undefined) {
+        editor.setReadOnly(false);
+    }
     editor.setOption("maxLines", 30);
     editor.resize();
 }
-//ui
+
 function showGamingUI() {
-    $("#hubExecutionControllerContainer button").prop('disabled', false);
-    $("#containerSideBtns").fadeIn(VELOCIDADUINORMALMS);
-    $("#viewerCointainer").fadeIn(VELOCIDADUINORMALMS);
+    skipAll = true;
+    deleteAllBreakPoints();
+    $("#gameCointainer").fadeIn(VELOCIDADUINORMALMS);
     $("#configBar").slideUp(VELOCIDADUINORMALMS);
-    $("#hubExecutionControllerContainer").fadeIn(VELOCIDADUINORMALMS);
     editor.setReadOnly(true);
     editor.setOption("maxLines", 33);
     editor.resize();
 }
 
 function hideGamingUI() {
-    $("#hubExecutionControllerContainer button").prop('disabled', true);
-    $("#hubExecutionControllerContainer").fadeOut(VELOCIDADUINORMALMS);
-    $("#containerSideBtns").fadeOut(VELOCIDADUINORMALMS);
-    $("#viewerCointainer").fadeOut(VELOCIDADUINORMALMS);
+    unSelectActLine();
+    skipAll = false;
+    $("#gameCointainer").fadeOut(VELOCIDADUINORMALMS);
     $("#configBar").slideDown(VELOCIDADUINORMALMS);
     unSelectActLine();
-    editor.setReadOnly(false);
+    if (exampleChoosed == undefined) {
+        editor.setReadOnly(false);
+    }
     editor.setOption("maxLines", 30);
     editor.resize();
 }
@@ -338,6 +382,15 @@ function createBreakPoint(line) {
     breakPoints[line] = marker;
 }
 
+function deleteAllBreakPoints() {
+    if (sizeObj(breakPoints) > 0) {
+        for (let [line] of Object.entries(breakPoints)) {
+            deleteBreakPoint(line);
+        }
+        alertify.warning("Se quitaron todos los breakpoints");
+    }
+}
+
 function deleteBreakPoint(line) {
     editorSession.removeGutterDecoration(line, "fas fa-star ace_breakpoint_gutter");
     deleteMarker(breakPoints[line]);
@@ -353,73 +406,74 @@ function getUISpeed() {
 }
 
 function showSelectionVarsVisualizer(VarsToShow) {
-    resetVisualizer();
-    if (VarsToShow != null) {
-        for (let index = 0; index < VarsToShow.length; index++) {
-            const element = VarsToShow[index];
-            VarsVisualized[index] = element;
-        }
-        showVariablesVisualizer();
-    } else if (isVisualicerActive) {
-        var paused = tryPauseAutoExecute();
-        if (!alertify.selectVarsVisualizer) {
-            alertify.dialog('selectVarsVisualizer', function factory() {
-                return {
-                    main: function (message) {
-                        this.message = message;
-                    },
-                    setup: function () {
-                        return {
-                            buttons: [{
-                                text: "¡Iniciar Ejecución!",
-                                className: alertify.defaults.theme.ok
-                            }],
-                            focus: {
-                                element: 0
+    if (!subprogram.skipExecution && !skipAll) {
+        resetVisualizer();
+        if (VarsToShow != null) {
+            for (let index = 0; index < VarsToShow.length; index++) {
+                const element = VarsToShow[index];
+                subprogram.VarsVisualized[index] = element;
+            }
+            showVariablesVisualizer();
+        } else if (isVisualicerActive) {
+            var paused = tryPauseAutoExecute();
+            if (!alertify.selectVarsVisualizer) {
+                alertify.dialog('selectVarsVisualizer', function factory() {
+                    return {
+                        main: function (message) {
+                            this.message = message;
+                        },
+                        setup: function () {
+                            return {
+                                buttons: [{
+                                    text: "¡Iniciar Ejecución!",
+                                    className: alertify.defaults.theme.ok
+                                }],
+                                focus: {
+                                    element: 0
+                                }
+                            };
+                        },
+                        hooks: {
+                            onclose: function () {
+                                showVariablesVisualizer();
+                                if (paused) {
+                                    $("#btnPlay").click();
+                                }
                             }
-                        };
-                    },
-                    hooks: {
-                        onclose: function () {
-                            showVariablesVisualizer();
-                            if (paused) {
-                                $("#btnPlay").click();
-                            }
+                        },
+                        prepare: function () {
+                            this.setContent(this.message);
+                            this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
                         }
-                    },
-                    prepare: function () {
-                        this.setContent(this.message);
-                        this.setHeader('<h4 class="text-center">¡Seleccione las variables a mostrar para: ' + subprogram.name + '!</h4>');
-                    }
-                };
-            });
+                    };
+                });
+            }
+            alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
+                Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
+                    return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
+                }, "") +
+                '</div>');
         }
-        alertify.selectVarsVisualizer('<div class="btn-group-vertical w-100">' +
-            Object.keys(subprogram.localVariables).reduce(function (VarList, nameAct) {
-                return VarList + '<button type="button" class="btn btn-secondary  w-100 mb-1" onclick="selectVariableToShow(' + "'" + nameAct + "', this" + ')">' + nameAct + '</button>';
-            }, "") +
-            '</div>');
     }
 }
 
 function resetVisualizer() {
-    VarsVisualized = [];
     visualizerIF.clearAllDivs();
 }
 
 function selectVariableToShow(id, button) {
-    var index = VarsVisualized.indexOf(id);
+    var index = subprogram.VarsVisualized.indexOf(id);
     if (index == -1) {
-        VarsVisualized.push(id);
+        subprogram.VarsVisualized.push(id);
     } else {
-        VarsVisualized.splice(index, 1);
+        subprogram.VarsVisualized.splice(index, 1);
     }
     $(button).toggleClass("btn-secondary btn-primary");
 }
 
 function showVariablesVisualizer() {
-    for (let i = 0; i < VarsVisualized.length; i++) {
-        const varId = VarsVisualized[i];
+    for (let i = 0; i < subprogram.VarsVisualized.length; i++) {
+        const varId = subprogram.VarsVisualized[i];
         const varDataType = getVariableDataType(varId);
         if (varDataType.includes("[][]")) {
             visualizerIF.drawMatriz(getVariableValue(varId), varId);
@@ -458,7 +512,7 @@ function removeViewContent(id) {
 }
 
 function checkIsOnVisualizer(id) {
-    return VarsVisualized.indexOf(id) > -1;
+    return subprogram.VarsVisualized.indexOf(id) > -1;
 }
 
 function visualizeVariableChange(id, value) {
@@ -546,7 +600,76 @@ function enqueueQueueVisualizer(varid) {
 }
 
 function openDocumentation() {
-    window.open("../docs/DOCUMETATION_ADA.pdf", '_blank');
+    window.open("../views/documentation.html", '_blank');
+}
+
+function updatePointsUI() {
+    var porcentaje = (points / maxPointsLevel) * 100;
+    $("#pointsBar").html(points);
+    $("#pointsBar").width(porcentaje + "%");
+}
+
+function resetAttemptsUI() {
+    $("#attemptsContainer").html("");
+    let attempsUI = '<span><i class="fas fa-life-ring"></i></span>&nbsp;' +
+        '<span><i class="fas fa-life-ring"></i></span>&nbsp;' +
+        '<span><i class="fas fa-life-ring"></i></span>&nbsp;' +
+        '<span><i class="fas fa-life-ring"></i></span>&nbsp;' +
+        '<span><i class="fas fa-life-ring"></i></span>';
+    $("#attemptsContainer").append(attempsUI);
+}
+
+function removeAttemptsUI() {
+    $("#attemptsContainer span:last-child").remove();
+}
+
+function loadTreeCreation() {
+    $("#containerGameMenu").fadeOut();
+    $("#containerGameTree").fadeIn(VELOCIDADUINORMALMS);
+}
+
+function loadIterativeGame() {
+    $("#containerGameMenu").fadeOut();
+    $("#containerGameIterative").fadeIn(VELOCIDADUINORMALMS);
+    startIterativeGame();
+}
+
+function getLineGame() {
+    return $("#inputLineGame").val();
+}
+
+function dragElement(elmnt) {
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    if (document.getElementById(elmnt.id + "header")) {
+        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+    } else {
+        elmnt.onmousedown = dragMouseDown;
+    }
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
+
+    function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
 }
 
 alertify.defaults = {
@@ -570,7 +693,7 @@ alertify.defaults = {
     transition: 'pulse',
     notifier: {
         delay: 5,
-        position: 'bottom-right',
+        position: 'bottom-left',
         closeButton: false
     },
     glossary: {

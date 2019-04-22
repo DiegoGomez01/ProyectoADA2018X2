@@ -1,14 +1,21 @@
-// var lineCounting = {};
+var lineCounting = {};
+var breakpointsCounting = {};
+var lineOrder = [];
 
-// function countLine(line) {
-//     if (lineCounting[line] !== undefined) {
-//         lineCounting[line]++;
-//     } else {
-//         lineCounting[line] = 1;
-//     }
-// }
-
-var breakPointsCount = {};
+function countLine(line) {
+    if (lineCounting[line] !== undefined) {
+        lineCounting[line]++;
+    } else {
+        lineCounting[line] = 1;
+        if (skipAll) {
+            lineOrder.push(line);
+        }
+    }
+    if (typeof breakpointsCounting[line] !== "undefined") {
+        breakpointsCounting[line]++;
+        updateBreakPointValue(line);
+    }
+}
 
 function initializeBreakPointCount() {
     let keys = Object.keys(breakPoints);
@@ -17,7 +24,7 @@ function initializeBreakPointCount() {
     if (hasBP) {
         for (let index = 0; index < keys.length; index++) {
             const key = keys[index];
-            breakPointsCount[key] = 0;
+            breakpointsCounting[key] = 0;
         }
         showBreakPoints();
         tabVisualizer.parentElement.parentElement.style.display = 'block';
@@ -28,17 +35,10 @@ function initializeBreakPointCount() {
     $(tabVisualizer).change();
 }
 
-function countLine(line) {
-    if (typeof breakPointsCount[line] !== "undefined") {
-        breakPointsCount[line]++;
-        updateBreakPointValue(line);
-    }
-}
-
 function showBreakPoints() {
     let breakpointInfo = "";
     $("#tbodyBreakPoints tr").remove();
-    for (let [line] of Object.entries(breakPointsCount)) {
+    for (let [line] of Object.entries(breakpointsCounting)) {
         breakpointInfo += "<tr>" +
             '<th scope="row">' + (parseInt(line) + 1) + '</th>' +
             '<td id="bp_' + line + '">' + '0</td>' +
@@ -47,10 +47,17 @@ function showBreakPoints() {
     $('#tbodyBreakPoints').append(breakpointInfo);
 }
 
+function updateCountBreakPoints() {
+    for (let [line] of Object.entries(breakpointsCounting)) {
+        breakpointsCounting[line] = 0;
+        updateBreakPointValue(line);
+    }
+}
+
 function updateBreakPointValue(line) {
     var valueContainer = $("#bp_" + line);
     $(valueContainer).fadeOut(VELOCIDADUICAMBIOSMS, function () {
-        $(valueContainer).text(breakPointsCount[line]);
+        $(valueContainer).text(breakpointsCounting[line]);
         $(valueContainer).fadeIn(VELOCIDADUICAMBIOSMS);
     });
 }
