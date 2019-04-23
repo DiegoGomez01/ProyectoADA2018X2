@@ -6,6 +6,8 @@ var mainNameGame;
 var indexLineAct;
 var lineActG;
 
+var allOptionsForm = ['O(n^n)','O(n*log (n))'];
+
 function startAnalyzing(mainName) {
     var actSubprogram = program.SUBPROGRAMS[mainName];
     if (sizeObj(actSubprogram.params) > 0) {
@@ -151,8 +153,48 @@ function tryLoadComplexityGame() {
 }
 
 function startComplexityGame() {
-    alert("Elegido: " + exampleChoosed);
-    alert("aquí va el código de preparación para el juego de complejidad");
+    createDropDown();
+    if(dataSpecial != undefined){
+        var element = document.getElementById("nameAlgSelected");
+        katex.render("O(n^n)", element, {
+            throwOnError: false
+        });
+    }else{
+        $("#nameAlgSelected").html(nameExampleChoosed);
+    }
+    
+    //alert("Elegido: " + exampleChoosed);
+    //alert("aquí va el código de preparación para el juego de complejidad");
+}
+
+function createDropDown(){
+    for(var i = 0; i < allOptionsForm.length; i++){ 
+        document.getElementById("bestCaseOptionsItems").appendChild(createItemDropDown(i,true));
+        document.getElementById("worstCaseOptionsItems").appendChild(createItemDropDown(i, false));
+    }
+}
+
+function changeTextButtons(text,isbestCase){
+    var element;
+    if(isbestCase){
+        element = document.getElementById("txtOpcionsBest");
+    }else{
+        element = document.getElementById("txtOpcionsWorst");
+    }
+    katex.render(text, element, {
+        throwOnError: false
+    });
+}
+
+function createItemDropDown(i, isbestCase){
+    var tagA = document.createElement("a");
+    tagA.setAttribute("class","dropdown-item");
+    tagA.setAttribute("data-idAnswer",i);
+    tagA.setAttribute("href","javascript:changeTextButtons(allOptionsForm["+i+"],"+isbestCase+")");
+    katex.render(allOptionsForm[i], tagA, {
+        throwOnError: false
+    });
+    return tagA;
 }
 
 function validateComplexity() {

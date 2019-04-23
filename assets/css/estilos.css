@@ -262,3 +262,9 @@ Alertify
     width: 45%;
     text-align: center;
 }
+
+.textFormComplex {
+    font-family: KaTeX_Math;
+    font-style: italic;
+    font-size: x-large;
+}
