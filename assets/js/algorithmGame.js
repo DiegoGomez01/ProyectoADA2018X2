@@ -15,10 +15,16 @@ var answersForm = {
     5: { "best": "O(n * log(n))", "wrost": "O(n * log(n))" },
     6: { "best": "O(n * log(n))", "wrost": "O(n^2)" },
 };
-var bestSelectedUser = undefined;
-var worstSelectedUser = undefined;
+var bestSelectedUser;
+var worstSelectedUser;
 
 function startAnalyzing(mainName) {
+    worstSelectedUser = undefined;
+    bestSelectedUser = undefined;
+    $("#txtOpcionsBest").html("Opciones");
+    $("#txtOpcionsWorst").html("Opciones");
+    document.getElementById("bestCaseOptionsItems").innerHTML = "";
+    document.getElementById("worstCaseOptionsItems").innerHTML = "";
     var actSubprogram = program.SUBPROGRAMS[mainName];
     if (sizeObj(actSubprogram.params) > 0) {
         alertify.error('La subrutina inicial no debe tener parametros.');
