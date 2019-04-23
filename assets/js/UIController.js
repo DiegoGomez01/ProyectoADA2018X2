@@ -547,7 +547,9 @@ function visualizeswapArrayCanvas(left, right) {
         var i = getArrayIndex(left.index)[0] - 1;
         var j = getArrayIndex(right.index)[0] - 1;
         visualizerIF.swap(i, j);
-        return true;
+        setTimeout(() => {
+            return true;
+        }, 500);
     }
 }
 

@@ -124,7 +124,6 @@ function swap(index1, index2) {
 	tmp = thisGlobal.barLabels[index1];
 	thisGlobal.barLabels[index1] = thisGlobal.barLabels[index2];
 	thisGlobal.barLabels[index2] = tmp;
-
 	barColorChangeSwap(index1);
 	barColorChangeSwap(index2);
 	thisGlobal.cmd("Move", thisGlobal.barObjects[index1], thisGlobal.barPositionsX[index1], thisGlobal.array_y_pos);
