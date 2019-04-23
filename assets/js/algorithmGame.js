@@ -6,7 +6,16 @@ var mainNameGame;
 var indexLineAct;
 var lineActG;
 
-var allOptionsForm = ['O(n^n)','O(n*log (n))'];
+var allOptionsForm = ['O(n^n)','O(n*log (n))',"O(n^2)","O(1)","O(n)","O(n/2)"];
+var answersForm = {
+    1: {"best":"O(n)","wrost":"O(n^2)"},
+    2: {"best":"O(n)","wrost":"O(n^2)"},
+    3: {"best":"O(n^2)","wrost":"O(n^2)"},
+    4: {"best":"O(n * log(n))","wrost":"O(1)"},
+    5: {"best":"O(n * log(n))","wrost":"O(n * log(n))"},
+};
+var bestSelectedUser= undefined;
+var worstSelectedUser= undefined;
 
 function startAnalyzing(mainName) {
     var actSubprogram = program.SUBPROGRAMS[mainName];
@@ -178,8 +187,10 @@ function changeTextButtons(text,isbestCase){
     var element;
     if(isbestCase){
         element = document.getElementById("txtOpcionsBest");
+        bestSelectedUser = text;
     }else{
         element = document.getElementById("txtOpcionsWorst");
+        worstSelectedUser = text;
     }
     katex.render(text, element, {
         throwOnError: false
@@ -189,7 +200,6 @@ function changeTextButtons(text,isbestCase){
 function createItemDropDown(i, isbestCase){
     var tagA = document.createElement("a");
     tagA.setAttribute("class","dropdown-item");
-    tagA.setAttribute("data-idAnswer",i);
     tagA.setAttribute("href","javascript:changeTextButtons(allOptionsForm["+i+"],"+isbestCase+")");
     katex.render(allOptionsForm[i], tagA, {
         throwOnError: false
@@ -198,9 +208,20 @@ function createItemDropDown(i, isbestCase){
 }
 
 function validateComplexity() {
-    if (true) {
-        alert("aqui validamos");
-    } else {
-
+    if(bestSelectedUser != undefined && worstSelectedUser != undefined){
+        var answer = answersForm[exampleChoosed];
+        if(answer.best == bestSelectedUser || answer.wrost == worstSelectedUser){
+            if(answer.best == bestSelectedUser && answer.wrost == worstSelectedUser){
+                alert("LOS DOS ESTAN BIEN");
+            }else if(answer.best == bestSelectedUser){
+                alert("Solo el mejor caso está bien");
+            }else{
+                alert("Solo el peor caso está bien");
+            }
+        }else{
+            alert("Falló todo, todo está mal");
+        }
+    }else{
+        alertify.error("Por favor el mejor y peor caso deben ser seleccionados. Gracias");
     }
 }
