@@ -348,7 +348,7 @@ function hideRunningUI() {
 function showGamingUI() {
     skipAll = true;
     deleteAllBreakPoints();
-    // loadGameUI();
+    loadGameUI();
     $("#gameCointainer").fadeIn(VELOCIDADUINORMALMS);
     $("#configBar").slideUp(VELOCIDADUINORMALMS);
     editor.setReadOnly(true);
@@ -602,28 +602,28 @@ function visualizeArrayChangeValue(exp, value, vsChange) {
 
 function pushStackVisualizer(varid, value) {
     if (checkIsOnVisualizer(varid)) {
-        SelectCanvas(id);
+        // SelectCanvas(varid);
         visualizerIF.pushStack(value);
     }
 }
 
 function popStackVisualizer(varid) {
     if (checkIsOnVisualizer(varid)) {
-        SelectCanvas(id);
+        // SelectCanvas(varid);
         visualizerIF.popStack();
     }
 }
 
 function enqueueQueueVisualizer(varid, value) {
     if (checkIsOnVisualizer(varid)) {
-        SelectCanvas(id);
+        // SelectCanvas(varid);
         visualizerIF.enqueueCall(value);
     }
 }
 
-function enqueueQueueVisualizer(varid) {
+function dequeueQueueVisualizer(varid) {
     if (checkIsOnVisualizer(varid)) {
-        SelectCanvas(id);
+        // SelectCanvas(varid);
         visualizerIF.dequeueCall();
     }
 }

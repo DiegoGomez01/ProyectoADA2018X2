@@ -6,16 +6,16 @@ var mainNameGame;
 var indexLineAct;
 var lineActG;
 
-var allOptionsForm = ['O(n^n)','O(n*log (n))',"O(n^2)","O(1)","O(n)","O(n/2)"];
+var allOptionsForm = ['O(n^n)', 'O(n*log (n))', "O(n^2)", "O(1)", "O(n)", "O(n/2)"];
 var answersForm = {
-    1: {"best":"O(n)","wrost":"O(n^2)"},
-    2: {"best":"O(n)","wrost":"O(n^2)"},
-    3: {"best":"O(n^2)","wrost":"O(n^2)"},
-    4: {"best":"O(n * log(n))","wrost":"O(1)"},
-    5: {"best":"O(n * log(n))","wrost":"O(n * log(n))"},
+    1: { "best": "O(n)", "wrost": "O(n^2)" },
+    2: { "best": "O(n)", "wrost": "O(n^2)" },
+    3: { "best": "O(n^2)", "wrost": "O(n^2)" },
+    4: { "best": "O(n * log(n))", "wrost": "O(1)" },
+    5: { "best": "O(n * log(n))", "wrost": "O(n * log(n))" },
 };
-var bestSelectedUser= undefined;
-var worstSelectedUser= undefined;
+var bestSelectedUser = undefined;
+var worstSelectedUser = undefined;
 
 function startAnalyzing(mainName) {
     var actSubprogram = program.SUBPROGRAMS[mainName];
@@ -43,7 +43,7 @@ function startAnalyzing(mainName) {
         subprogram.name = mainName;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params);
         subprogram.addBlock(actSubprogram.body);
-        tryLoadComplexityGame();
+        // tryLoadComplexityGame();
         console.log(lineCounting);
         console.log(lineOrder);
     }
@@ -163,32 +163,29 @@ function tryLoadComplexityGame() {
 
 function startComplexityGame() {
     createDropDown();
-    if(dataSpecial != undefined){
+    if (dataSpecial != undefined) {
         var element = document.getElementById("nameAlgSelected");
         katex.render("O(n^n)", element, {
             throwOnError: false
         });
-    }else{
+    } else {
         $("#nameAlgSelected").html(nameExampleChoosed);
     }
-    
-    //alert("Elegido: " + exampleChoosed);
-    //alert("aquí va el código de preparación para el juego de complejidad");
 }
 
-function createDropDown(){
-    for(var i = 0; i < allOptionsForm.length; i++){ 
-        document.getElementById("bestCaseOptionsItems").appendChild(createItemDropDown(i,true));
+function createDropDown() {
+    for (var i = 0; i < allOptionsForm.length; i++) {
+        document.getElementById("bestCaseOptionsItems").appendChild(createItemDropDown(i, true));
         document.getElementById("worstCaseOptionsItems").appendChild(createItemDropDown(i, false));
     }
 }
 
-function changeTextButtons(text,isbestCase){
+function changeTextButtons(text, isbestCase) {
     var element;
-    if(isbestCase){
+    if (isbestCase) {
         element = document.getElementById("txtOpcionsBest");
         bestSelectedUser = text;
-    }else{
+    } else {
         element = document.getElementById("txtOpcionsWorst");
         worstSelectedUser = text;
     }
@@ -197,10 +194,10 @@ function changeTextButtons(text,isbestCase){
     });
 }
 
-function createItemDropDown(i, isbestCase){
+function createItemDropDown(i, isbestCase) {
     var tagA = document.createElement("a");
-    tagA.setAttribute("class","dropdown-item");
-    tagA.setAttribute("href","javascript:changeTextButtons(allOptionsForm["+i+"],"+isbestCase+")");
+    tagA.setAttribute("class", "dropdown-item");
+    tagA.setAttribute("href", "javascript:changeTextButtons(allOptionsForm[" + i + "]," + isbestCase + ")");
     katex.render(allOptionsForm[i], tagA, {
         throwOnError: false
     });
@@ -208,20 +205,24 @@ function createItemDropDown(i, isbestCase){
 }
 
 function validateComplexity() {
-    if(bestSelectedUser != undefined && worstSelectedUser != undefined){
+    if (bestSelectedUser != undefined && worstSelectedUser != undefined) {
         var answer = answersForm[exampleChoosed];
-        if(answer.best == bestSelectedUser || answer.wrost == worstSelectedUser){
-            if(answer.best == bestSelectedUser && answer.wrost == worstSelectedUser){
-                alert("LOS DOS ESTAN BIEN");
-            }else if(answer.best == bestSelectedUser){
-                alert("Solo el mejor caso está bien");
-            }else{
-                alert("Solo el peor caso está bien");
+        if (answer.best == bestSelectedUser || answer.wrost == worstSelectedUser) {
+            if (answer.best == bestSelectedUser && answer.wrost == worstSelectedUser) {
+                addPoints(sizeObj(lineCounting) * 2);
+                win();
+            } else if (answer.best == bestSelectedUser) {
+                alertify.error('¡Error!&nbsp;<i class="far fa-sad-tear"></i><br>El peor caso está mal');
+                lostAttempts();
+            } else {
+                alertify.error('¡Error!&nbsp;<i class="far fa-sad-tear"></i><br>El mejor caso está mal');
+                lostAttempts();
             }
-        }else{
-            alert("Falló todo, todo está mal");
+        } else {
+            alertify.error('¡Error!&nbsp;<i class="far fa-sad-tear"></i><br>Ninguno está bien');
+            lostAttempts();
         }
-    }else{
-        alertify.error("Por favor el mejor y peor caso deben ser seleccionados. Gracias");
+    } else {
+        alertify.warning('¡Advertencia!&nbsp;<i class="fas fa-exclamation-triangle"></i><br>Debe seleccionar tanto el mejor como el peor caso');
     }
 }

@@ -689,7 +689,7 @@ function RemoveFirstDSFunction(id, EMPTYEXCEPTION) {
     }
     let returned = dataStructure.shift();
     updateVariableValue(id);
-    enqueueQueueVisualizer(id);
+    dequeueQueueVisualizer(id);
     return returned;
 }
 
