@@ -1,6 +1,6 @@
 var recursiveCalls = [];
 var points = 0;
-var maxPointsLevel = 100;
+var maxPointsLevel = 50;
 var attempts = 5;
 var mainNameGame;
 var indexLineAct;
@@ -20,6 +20,7 @@ function startAnalyzing(mainName) {
         showGamingUI();
         mainNameGame = mainName;
         lineOrder = [];
+        lineCounting = {};
         recursiveCalls = [];
         points = 0;
         updatePointsUI();
@@ -31,6 +32,7 @@ function startAnalyzing(mainName) {
         subprogram.name = mainName;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params);
         subprogram.addBlock(actSubprogram.body);
+        // tryLoadComplexityGame();
         console.log(lineCounting);
         console.log(lineOrder);
     }
@@ -64,6 +66,7 @@ function compareTrees() {
     if (gameTreeIF.compareTree(treeIF.getTree()[0], gameTreeIF.getTree()[0])) {
         alertify.success('¡Bien!&nbsp;<i class="far fa-smile-beam"></i><br>¡Los arboles de ambientes son iguales!');
         addPoints(gameTreeIF.countTreeNodes(treeIF.getTree()[0]));
+        tryLoadComplexityGame();
     } else {
         alertify.error('¡Error!&nbsp;<i class="far fa-sad-tear"></i><br>¡Los arboles de ambientes no son iguales!');
         lostAttempts();
@@ -82,7 +85,7 @@ function getRecursiveCalls() {
 function addPoints(np) {
     points += np;
     if (points >= maxPointsLevel) {
-        alertify.alert('<h1 class="texto-exito">¡Superaste los ' + maxPointsLevel + ' puntos máximos!&nbsp;<i class="far fa-surprise"></i></h1>', '<p class="text-center">¡Lo Has Hecho Muy Bien! <br> Alcanzaste el mayor puntaje del juego <br><br> ¡Ahora estás a otro nivel!</p>');
+        alertify.alert('<h1 class="texto-exito">¡Superaste los ' + maxPointsLevel + ' puntos máximos!&nbsp;<i class="fas fa-trophy"></i></h1>', '<p class="text-center">¡Lo Has Hecho Muy Bien! &nbsp;<i class="far fa-surprise"></i> <br> Alcanzaste el mayor puntaje del juego <br><br> ¡Ahora estás a otro nivel!</p>');
     }
     updatePointsUI();
 }
@@ -97,6 +100,11 @@ function lostAttempts() {
 
 function lost() {
     alertify.alert('<h1 class="texto-errorSistema">¡Ya Perdiste!</h1>', '<p class="text-center">Debes estudiar el algoritmo y volver a empezar</p>');
+    hideGamingUI();
+}
+
+function win() {
+    alertify.alert('<h1 class="texto-exito">¡Lo has hecho muy bien!&nbsp;<i class="fas fa-smile"></i></h1>', '<p class="text-center">Tu puntaje es de:</p> <br> <h1 class="text-center border-bottom">' + points + '</h1> <br><br> <p class="text-center">¡Ya dominas este algoritmo, puedes intentar con otro o aumentarle la complejidad a este para aumentar tu puntaje!</p>');
     hideGamingUI();
 }
 
@@ -117,10 +125,6 @@ function nextLineGame() {
     }
 }
 
-function lineError() {
-
-}
-
 function startIterativeGame() {
     indexLineAct = 0;
     updateLineGame();
@@ -134,6 +138,27 @@ function updateLineGame() {
         $("#actLineGame").text(lineActG + 1);
     } else {
         unSelectActLine();
-        alert("termine");
+        tryLoadComplexityGame();
+    }
+}
+
+function tryLoadComplexityGame() {
+    if (exampleChoosed !== undefined) {
+        loadComplexityGame();
+    } else {
+        win();
+    }
+}
+
+function startComplexityGame() {
+    alert("Elegido: " + exampleChoosed);
+    alert("aquí va el código de preparación para el juego de complejidad");
+}
+
+function validateComplexity() {
+    if (true) {
+        alert("aqui validamos");
+    } else {
+
     }
 }

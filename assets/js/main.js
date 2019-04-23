@@ -435,8 +435,7 @@ function evalExpression(exp) {
         case "Variable":
             return getVariableValue(exp.id);
         case "ArrayAccess":
-            visualizeArrayAccess(exp);
-            return getArrayAccessValue(exp.id, getArrayIndex(exp.index));
+            return getArrayAccessValue(exp);
         case "int":
             return getValidatedNumberExpression(evalIntExpression(exp));
         case "float":
@@ -466,12 +465,10 @@ function evalExpression(exp) {
         case "IsEmptyFunction":
             return IsEmptyDataStructureFunction(getVariableValue(exp.DSVar.id));
         case "PopExpression":
-            popStackVisualizer(exp.StackVar.id);
             return RemoveLastDSFunction(exp.StackVar.id, "La pila está vacía");
         case "PeekExpression":
             return GetLastDSFunction(exp.StackVar.id, "La pila está vacía");
         case "DequeueExpression":
-            enqueueQueueVisualizer(exp.QueueVar.id);
             return RemoveFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
         case "FrontExpression":
             return GetFirstDSFunction(exp.QueueVar.id, "La cola está vacía");
@@ -604,7 +601,7 @@ function evalStringConcatenation(exps) {
 
 //Obtiene el caracter de un string en la posición definida
 function getCharAt(exp) {
-    var strV = getVariableValue(exp.strVar.id);
+    var strV = evalExpression(exp.strVar);
     var index = evalExpression(exp.index);
     if (index <= 0) {
         throwException("No puede acceder a un indice menor a 0");
@@ -642,7 +639,7 @@ function AssignmentFunction(left, right) {
 //Añade un elemento en la última posición
 function DataStructurePush(id, exp, typeAction) {
     var expValue = evalExpression(exp);
-    if (checkIsOnVisualizer(varid)) {
+    if (checkIsOnVisualizer(id)) {
         if (typeAction == "PushStatement") {
             pushStackVisualizer(id, expValue);
         } else if (typeAction == "EnqueueStatement") {
@@ -692,6 +689,7 @@ function RemoveFirstDSFunction(id, EMPTYEXCEPTION) {
     }
     let returned = dataStructure.shift();
     updateVariableValue(id);
+    enqueueQueueVisualizer(id);
     return returned;
 }
 
@@ -703,6 +701,7 @@ function RemoveLastDSFunction(id, EMPTYEXCEPTION) {
     }
     let returned = dataStructure.pop();
     updateVariableValue(id);
+    popStackVisualizer(id);
     return returned;
 }
 
@@ -766,7 +765,7 @@ function incVariable(id, inc) {
 //Obtiene el valor de una acceso a variable
 function getValueExpVariableAccess(exp) {
     if (exp.type == "ArrayAccess") {
-        return getArrayAccessValue(exp.id, getArrayIndex(exp.index));
+        return getArrayAccessValue(exp);
     } else {
         return getVariableValue(exp.id);
     }
@@ -779,13 +778,13 @@ function changeValueExpVariableAccess(exp, value, vsChange) {
         changeArrayAccessValue(exp.id, getArrayIndex(exp.index), value);
     } else {
         changeVariableValue(exp.id, value);
-        visualizeVariableChange(exp.id, value);
     }
 }
 
 //Cambia el valor de una variable
 function changeVariableValue(id, value) {
     getVariable(id).value = value;
+    visualizeVariableChange(id, value);
     updateVariableValue(id);
 }
 
@@ -818,8 +817,9 @@ function getVariableDataType(id) {
 }
 
 //Obtiene el valor de una posición de un arreglo
-function getArrayAccessValue(id, index) {
-    var arrV = getVariable(id).value;
+function getArrayAccessValue(exp) {
+    let index = getArrayIndex(exp.index);
+    let arrV = getVariable(exp.id).value;
     for (let i = 0; i < index.length; i++) {
         if (index[i] < 1) {
             throwException("La primera posición de los arreglos es 1.");
@@ -829,6 +829,7 @@ function getArrayAccessValue(id, index) {
             arrV = arrV[index[i] - 1];
         }
     }
+    visualizeArrayAccess(exp, index);
     return arrV;
 }
 
