@@ -26,17 +26,17 @@ function drawMatriz(matriz, idMatriz) {
 
 }
 
-function isMatriz(idMatriz){
+function isMatriz(idMatriz) {
     let object = document.getElementById(idMatriz);
-    if(object.getElementsByTagName('table').length >= 1){
+    if (object.getElementsByTagName('table').length >= 1) {
         return true;
     }
     return false;
 }
 
-function isCanvas(idMatriz){
+function isCanvas(idMatriz) {
     let object = document.getElementById(idMatriz);
-    if(object !== null && !(object.getElementsByTagName('table').length >= 1)){
+    if (object !== null && !(object.getElementsByTagName('table').length >= 1)) {
         return true;
     }
     return false;

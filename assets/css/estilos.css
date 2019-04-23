@@ -35,7 +35,9 @@ button,
     font-family: 'Source Sans Pro', sans-serif;
 }
 
-#iframeGameTreeContainer {
+#containerGameTree div,
+#containerTree div,
+#containerVisualizer div {
     height: 540px;
     padding: 0px;
 }

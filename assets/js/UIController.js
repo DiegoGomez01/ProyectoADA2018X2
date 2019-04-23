@@ -298,6 +298,9 @@ $(document).ready(function () {
         nextLineGame();
     });
 
+    $("#btnCheckComplexity").on("click", function () {
+        validateComplexity();
+    });
 });
 
 function showRunningUI() {
@@ -328,6 +331,7 @@ function hideRunningUI() {
 function showGamingUI() {
     skipAll = true;
     deleteAllBreakPoints();
+    loadGameUI();
     $("#gameCointainer").fadeIn(VELOCIDADUINORMALMS);
     $("#configBar").slideUp(VELOCIDADUINORMALMS);
     editor.setReadOnly(true);
@@ -457,9 +461,7 @@ function showSelectionVarsVisualizer(VarsToShow) {
     }
 }
 
-function resetVisualizer() {
-    visualizerIF.clearAllDivs();
-}
+// ---------- Funciones Visualizer ----------
 
 function selectVariableToShow(id, button) {
     var index = subprogram.VarsVisualized.indexOf(id);
@@ -493,6 +495,10 @@ function showVariablesVisualizer() {
             visualizerIF.addVisibleVariable(varId, getVariableValue(varId));
         }
     }
+}
+
+function resetVisualizer() {
+    visualizerIF.clearAllDivs();
 }
 
 function SelectCanvas(id) {
@@ -531,20 +537,23 @@ function visualizeswapArrayCanvas(left, right) {
     }
 }
 
-function visualizeArrayAccess(exp) {
+function visualizeArrayAccess(exp, index) {
     if (checkIsOnVisualizer(exp.id)) {
-        let index = getArrayIndex(exp.index);
         index[0]--;
         if (index.length == 1) {
-            if (visualizerIF.isCanvas(exp.id) && exp.index[0].type == "Variable") {
-                SelectCanvas(exp.id);
-                selectIndexArray(index[0]);
-                visualizerIF.setIndexBar(index[0], exp.index[0].id);
-            } else if (false) {
+            if (visualizerIF.isCanvas(exp.id)) {
+                if (exp.index[0].type == "Variable") {
+                    SelectCanvas(exp.id);
+                    selectIndexArray(index[0]);
+                    visualizerIF.setIndexBar(index[0], exp.index[0].id);
+                }
+            } else {
+                visualizerIF.unsealAllCell(exp.id);
                 visualizerIF.drawCell(exp.id, 0, index[0]);
             }
         } else {
             index[1]--;
+            visualizerIF.unsealAllCell(exp.id);
             visualizerIF.drawCell(exp.id, index[0], index[1]);
         }
     }
@@ -576,28 +585,33 @@ function visualizeArrayChangeValue(exp, value, vsChange) {
 
 function pushStackVisualizer(varid, value) {
     if (checkIsOnVisualizer(varid)) {
+        SelectCanvas(id);
         visualizerIF.pushStack(value);
     }
 }
 
 function popStackVisualizer(varid) {
     if (checkIsOnVisualizer(varid)) {
+        SelectCanvas(id);
         visualizerIF.popStack();
     }
 }
 
 function enqueueQueueVisualizer(varid, value) {
-    // SelectCanvas(id)
     if (checkIsOnVisualizer(varid)) {
+        SelectCanvas(id);
         visualizerIF.enqueueCall(value);
     }
 }
 
 function enqueueQueueVisualizer(varid) {
     if (checkIsOnVisualizer(varid)) {
+        SelectCanvas(id);
         visualizerIF.dequeueCall();
     }
 }
+
+// --------------------------------------------------
 
 function openDocumentation() {
     window.open("../views/documentation.html", '_blank');
@@ -623,6 +637,13 @@ function removeAttemptsUI() {
     $("#attemptsContainer span:last-child").remove();
 }
 
+function loadGameUI() {
+    $("#containerGameMenu").fadeIn();
+    $("#containerGameComplexity").fadeOut();
+    $("#containerGameIterative").fadeOut();
+    $("#containerGameTree").fadeOut();
+}
+
 function loadTreeCreation() {
     $("#containerGameMenu").fadeOut();
     $("#containerGameTree").fadeIn(VELOCIDADUINORMALMS);
@@ -632,6 +653,13 @@ function loadIterativeGame() {
     $("#containerGameMenu").fadeOut();
     $("#containerGameIterative").fadeIn(VELOCIDADUINORMALMS);
     startIterativeGame();
+}
+
+function loadComplexityGame() {
+    $("#containerGameTree").fadeOut();
+    $("#containerGameIterative").fadeOut();
+    $("#containerGameComplexity").fadeIn(VELOCIDADUINORMALMS);
+    startComplexityGame();
 }
 
 function getLineGame() {
