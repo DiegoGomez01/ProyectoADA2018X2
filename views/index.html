@@ -71,7 +71,7 @@
                         class="fas fa-save"></i></button>
                 <div id="examplesChooser" class="btn-group ml-4">
                     <div type="button" class="btn btn-secondary">
-                        Ejemplos <i class="fas fa-lightbulb"></i>
+                        <span id="txtExampleDropdown">Ejemplos</span> <i class="fas fa-lightbulb"></i>
                     </div>
                     <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -96,7 +96,7 @@
                         <a class="dropdown-item" href="#" data-fname="KnightsTour.pseudo" data-nAlgorithm="9">Knight's
                             Tour</a>
                         <a class="dropdown-item" href="#" data-fname="NQueens.pseudo" data-nAlgorithm="10">N-Queens</a>
-                        <a id="testt" class="dropdown-item" href="#" data-fname="NQueens.pseudo" data-complex="3"></a>
+                        <a id="testt" class="dropdown-item" href="#" data-fname="NQueens.pseudo" data-complex="3" data-special="true"></a>
                     </div>
                 </div>
                 <button id="btnEditExample" type="button" class="btn btn-secondary ml-2" style="display: none;">
@@ -159,6 +159,31 @@
                 </div>
                 <div id="containerGameComplexity">
                     <h3 class="titleRowApp mb-0">Complejidad del Algoritmo</h3>
+                    <br>
+                    <div style="text-align: center">
+                        <p class="textFormComplex"><b>Algoritmo:</b> <span id="nameAlgSelected"></span></p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                Mejor Caso:
+                                <div id="bestCaseOptions" class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <span id="txtOpcionsBest">Opciones</span>
+                                    </button>
+                                    <div class="dropdown-menu" id="bestCaseOptionsItems" aria-labelledby="dropdownMenuButton"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                Peor Caso:
+                                <div id="worstCaseOptions"class="dropdown">
+                                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span id="txtOpcionsWorst">Opciones</span>
+                                    </button>
+                                    <div class="dropdown-menu" id="worstCaseOptionsItems" aria-labelledby="dropdownMenuButton"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-center">
                         <button id="btnCheckComplexity" class="d-block mt-5 btn btn-primary btn-lg">¡Validar!&nbsp;<i class="fas fa-check"></i></button>
                     </div>
