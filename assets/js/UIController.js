@@ -15,6 +15,8 @@ var gameTreeIF;
 var treeIF;
 var isVisualicerActive = true;
 var exampleChoosed = undefined;
+var nameExampleChoosed = undefined;
+var dataSpecial= undefined;
 
 $(document).ready(function () {
     //---------------------------------PRUEBAS-----------------------------------------------------------
@@ -86,8 +88,19 @@ $(document).ready(function () {
             editor.setValue(pseudo, 1);
         }, 'text');
         exampleChoosed = $(this).attr("data-nAlgorithm");
+        nameExampleChoosed = $(this).text();
         editor.setReadOnly(true);
-        $("#btnEditExampleTxt").html($(this).text());
+        dataSpecial = $(this).attr("data-special");
+        if(dataSpecial != undefined){
+            var element = document.getElementById("txtExampleDropdown");
+            var element2 = document.getElementById("btnEditExampleTxt");
+            convertToKatex("O(n^n)",element);
+            convertToKatex("O(n^n)",element2);
+            nameExampleChoosed = "O(n^n)";
+        }else{
+            $("#txtExampleDropdown").html(nameExampleChoosed);
+            $("#btnEditExampleTxt").html(nameExampleChoosed);
+        }
         $("#btnEditExample").fadeIn(VELOCIDADUINORMALMS);
     });
 
@@ -290,9 +303,7 @@ $(document).ready(function () {
     dragElement(document.getElementById("containerGameInfo"));
 
     var element = document.getElementById("testt");
-    katex.render("O(n^n)", element, {
-        throwOnError: false
-    });
+    convertToKatex("O(n^n)",element);
 
     $("#btnNextLineGame").on("click", function () {
         nextLineGame();
@@ -302,6 +313,12 @@ $(document).ready(function () {
         validateComplexity();
     });
 });
+
+function convertToKatex(text,element){
+    katex.render(text, element, {
+        throwOnError: false
+    });
+}
 
 function showRunningUI() {
     $("#hubExecutionControllerContainer button").prop('disabled', false);
