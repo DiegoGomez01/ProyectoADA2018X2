@@ -13,6 +13,7 @@ var answersForm = {
     3: { "best": "O(n^2)", "wrost": "O(n^2)" },
     4: { "best": "O(n * log(n))", "wrost": "O(1)" },
     5: { "best": "O(n * log(n))", "wrost": "O(n * log(n))" },
+    6: { "best": "O(n * log(n))", "wrost": "O(n^2)" },
 };
 var bestSelectedUser = undefined;
 var worstSelectedUser = undefined;
