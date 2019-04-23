@@ -302,9 +302,6 @@ $(document).ready(function () {
 
     dragElement(document.getElementById("containerGameInfo"));
 
-    var element = document.getElementById("testt");
-    convertToKatex("O(n^n)",element);
-
     $("#btnNextLineGame").on("click", function () {
         nextLineGame();
     });
