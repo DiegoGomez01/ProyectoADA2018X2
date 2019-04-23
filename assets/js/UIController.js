@@ -331,7 +331,7 @@ function hideRunningUI() {
 function showGamingUI() {
     skipAll = true;
     deleteAllBreakPoints();
-    loadGameUI();
+    // loadGameUI();
     $("#gameCointainer").fadeIn(VELOCIDADUINORMALMS);
     $("#configBar").slideUp(VELOCIDADUINORMALMS);
     editor.setReadOnly(true);

@@ -32,7 +32,7 @@ function startAnalyzing(mainName) {
         subprogram.name = mainName;
         createLocalVariables(actSubprogram.localVars, actSubprogram.params);
         subprogram.addBlock(actSubprogram.body);
-        // tryLoadComplexityGame();
+        tryLoadComplexityGame();
         console.log(lineCounting);
         console.log(lineOrder);
     }
